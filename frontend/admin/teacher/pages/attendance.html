@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Attendance - Teacher Dashboard</title>
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <link rel="stylesheet" href="/assets/css/principal.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="teacher-dashboard">
+    <header class="main-header">
+      <div class="header-container">
+        <div class="logo">
+          <i class="fas fa-school"></i>
+          <span>School Management System</span>
+        </div>
+
+        <nav class="main-nav">
+          <ul>
+            <li>
+              <a href="teacher-dashboard.html"
+                ><i class="fas fa-tachometer-alt"></i> Dashboard</a
+              >
+            </li>
+            <li>
+              <a href="my-classes.html"
+                ><i class="fas fa-chalkboard-teacher"></i> My Lectures</a
+              >
+            </li>
+            <li>
+              <a href="my-students.html"
+                ><i class="fas fa-users"></i> My Students</a
+              >
+            </li>
+            <li>
+              <a href="attendance.html" class="active"
+                ><i class="fas fa-calendar-check"></i> Attendance</a
+              >
+            </li>
+            <li>
+              <a href="assignments.html"
+                ><i class="fas fa-tasks"></i> Assignments</a
+              >
+            </li>
+          </ul>
+        </nav>
+
+        <div class="user-menu">
+          <div class="user-info">
+            <i class="fas fa-user-circle"></i>
+            <span id="userName">Teacher</span>
+          </div>
+          <div class="dropdown-menu">
+            <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
+            <a href="settings.html"><i class="fas fa-cog"></i> Settings</a>
+            <a href="#" onclick="logout()"
+              ><i class="fas fa-sign-out-alt"></i> Logout</a
+            >
+          </div>
+        </div>
+
+        <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+
+      <!-- Mobile Navigation -->
+      <nav class="mobile-nav" id="mobileNav">
+        <ul>
+          <li>
+            <a href="teacher-dashboard.html"
+              ><i class="fas fa-tachometer-alt"></i> Dashboard</a
+            >
+          </li>
+          <li>
+            <a href="my-classes.html"
+              ><i class="fas fa-chalkboard-teacher"></i> My Lectures</a
+            >
+          </li>
+          <li>
+            <a href="my-students.html"
+              ><i class="fas fa-users"></i> My Students</a
+            >
+          </li>
+          <li>
+            <a href="attendance.html" class="active"
+              ><i class="fas fa-calendar-check"></i> Attendance</a
+            >
+          </li>
+          <li>
+            <a href="assignments.html"
+              ><i class="fas fa-tasks"></i> Assignments</a
+            >
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <main class="main-content">
+      <div class="page-header">
+        <h1>Attendance Management</h1>
+        <p>Mark and manage student attendance for your classes</p>
+      </div>
+
+      <!-- Attendance Statistics -->
+      <div class="dashboard-cards">
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Today's Attendance</div>
+            <div class="card-icon" style="background: #667eea">
+              <i class="fas fa-calendar-day"></i>
+            </div>
+          </div>
+          <div class="card-number" id="todayAttendance">92%</div>
+          <div class="card-description">Average across classes</div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Present Today</div>
+            <div class="card-icon" style="background: #28a745">
+              <i class="fas fa-user-check"></i>
+            </div>
+          </div>
+          <div class="card-number" id="presentToday">78</div>
+          <div class="card-description">Students present</div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Absent Today</div>
+            <div class="card-icon" style="background: #dc3545">
+              <i class="fas fa-user-times"></i>
+            </div>
+          </div>
+          <div class="card-number" id="absentToday">7</div>
+          <div class="card-description">Students absent</div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">This Week</div>
+            <div class="card-icon" style="background: #17a2b8">
+              <i class="fas fa-calendar-week"></i>
+            </div>
+          </div>
+          <div class="card-number" id="weekAttendance">89%</div>
+          <div class="card-description">Weekly average</div>
+        </div>
+      </div>
+
+      <!-- Today's Attendance Section -->
+      <div class="card" id="todayAttendanceSection">
+        <div class="card-header">
+          <h3>Today's Attendance</h3>
+          <div class="header-actions"></div>
+          <button class="btn btn-primary" id="startTodayAttendanceBtn">
+            Start
+          </button>
+        </div>
+        <div
+          class="card-body"
+          id="todayAttendanceFormContainer"
+          style="display: none"
+        ></div>
+      </div>
+
+      <!-- Select Class for Attendance Section -->
+      <div class="card" id="selectClassAttendanceSection">
+        <div class="card-header">
+          <h3>Select Class for Attendance</h3>
+        </div>
+        <div class="card-body">
+          <div class="class-selection">
+            <input type="date" id="viewAttendanceDate" value="" />
+          </div>
+        </div>
+        <div
+          class="card-body"
+          id="viewAttendanceFormContainer"
+          style="display: none"
+        ></div>
+      </div>
+
+      <!-- Attendance Table -->
+      <div class="card" id="attendanceCard" style="display: none">
+        <div class="card-header">
+          <h3 id="attendanceTitle">Class Attendance</h3>
+          <div class="header-actions">
+            <button class="btn btn-success" onclick="saveAttendance()">
+              <i class="fas fa-save"></i> Save Attendance
+            </button>
+            <button class="btn btn-primary" onclick="markAllPresent()">
+              <i class="fas fa-check-double"></i> Mark All Present
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Student ID</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody id="attendanceTableBody">
+                <!-- Attendance data will be loaded here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="/assets/js/auth.js"></script>
+    <script>
+      let currentTeacherId = null;
+      let currentClassId = null;
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const today = new Date().toISOString().split("T")[0];
+        document.getElementById("viewAttendanceDate").value = today;
+        // Get teacher ID from session
+        let teacherData = JSON.parse(localStorage.getItem("userData") || "{}");
+        if (!teacherData.id) {
+          // fallback to 'user' if 'userData' is not present
+          teacherData = JSON.parse(localStorage.getItem("user") || "{}");
+        }
+        currentTeacherId = teacherData.id;
+
+        if (currentTeacherId) {
+          // Fetch teacher info to get class_teacher_of
+          fetch(
+            `/backend/controllers/teachers.php?action=get_by_id&id=${currentTeacherId}`
+          )
+            .then((res) => res.json())
+            .then((teacherRes) => {
+              if (
+                !teacherRes.success ||
+                !teacherRes.data ||
+                !teacherRes.data.class_teacher_of
+              )
+                return;
+              currentClassId = teacherRes.data.class_teacher_of;
+              // Check if today's attendance is already marked
+              checkAndHideTodayAttendanceSection(currentClassId, today);
+            });
+
+          loadTeacherClassesForToday();
+          loadAttendanceData();
+          document
+            .getElementById("startTodayAttendanceBtn")
+            .addEventListener("click", showTodayAttendanceForm);
+          document
+            .getElementById("viewAttendanceDate")
+            .addEventListener("change", showViewAttendanceForm);
+          // Automatically show today's attendance for teacher's class on load
+          showViewAttendanceForm();
+        } else {
+          console.error("Teacher ID not found");
+        }
+      });
+
+      // Mobile menu toggle function
+      function toggleMobileMenu() {
+        const mobileNav = document.getElementById("mobileNav");
+        const toggleBtn = document.querySelector(".mobile-menu-toggle i");
+
+        if (mobileNav.classList.contains("active")) {
+          mobileNav.classList.remove("active");
+          toggleBtn.className = "fas fa-bars";
+        } else {
+          mobileNav.classList.add("active");
+          toggleBtn.className = "fas fa-times";
+        }
+      }
+
+      // Close mobile menu when clicking outside
+      document.addEventListener("click", function (event) {
+        const mobileNav = document.getElementById("mobileNav");
+        const toggleBtn = document.querySelector(".mobile-menu-toggle");
+
+        if (
+          mobileNav.classList.contains("active") &&
+          !mobileNav.contains(event.target) &&
+          !toggleBtn.contains(event.target)
+        ) {
+          mobileNav.classList.remove("active");
+          toggleBtn.querySelector("i").className = "fas fa-bars";
+        }
+      });
+
+      function loadTeacherClassesForToday() {
+        fetch("/backend/controllers/attendance.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "get_teacher_classes",
+            teacher_id: currentTeacherId,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              const todayForm = document.getElementById(
+                "todayAttendanceFormContainer"
+              );
+              todayForm.innerHTML = "";
+              todayForm.style.display = "none";
+              // Only show form after Start is clicked
+            }
+          });
+      }
+
+      function showTodayAttendanceForm() {
+        document.getElementById("startTodayAttendanceBtn").style.display =
+          "none";
+        // Directly show attendance table for teacher's class for today
+        const todayForm = document.getElementById(
+          "todayAttendanceFormContainer"
+        );
+        todayForm.style.display = "block";
+        todayForm.innerHTML = "";
+        // Get teacher's class_teacher_of
+        let teacherData = JSON.parse(localStorage.getItem("userData") || "{}");
+        console.log(teacherData);
+        if (!teacherData.id) {
+          teacherData = JSON.parse(localStorage.getItem("user") || "{}");
+        }
+        const teacherId = teacherData.id;
+        if (!teacherId) return;
+        fetch(
+          `/backend/controllers/teachers.php?action=get_by_id&id=${teacherId}`
+        )
+          .then((res) => res.json())
+          .then((teacherRes) => {
+            if (
+              !teacherRes.success ||
+              !teacherRes.data ||
+              !teacherRes.data.class_teacher_of
+            )
+              return;
+            const classId = teacherRes.data.class_teacher_of;
+            const today = new Date().toISOString().split("T")[0];
+            fetch("/backend/controllers/attendance.php", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                action: "get_students_by_class",
+                class_id: classId,
+              }),
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                if (data.success) {
+                  renderAttendanceTable(data.data, classId, today, true);
+                }
+              });
+          });
+      }
+
+      function showTodayAttendanceTable() {
+        const classId = document.getElementById("todayClassSelect").value;
+        const date = document.getElementById("todayAttendanceDate").value;
+        if (!classId) return;
+        fetch("/backend/controllers/attendance.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "get_students_by_class",
+            class_id: classId,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              renderAttendanceTable(data.data, classId, date, true);
+            }
+          });
+      }
+
+      function showViewAttendanceForm() {
+        // Get teacher's primary class (class_teacher_of)
+        let teacherData = JSON.parse(localStorage.getItem("userData") || "{}");
+        if (!teacherData.id) {
+          teacherData = JSON.parse(localStorage.getItem("user") || "{}");
+        }
+        const teacherId = teacherData.id;
+        if (!teacherId) return;
+        // Fetch teacher info to get class_teacher_of
+        fetch(
+          `/backend/controllers/teachers.php?action=get_by_id&id=${teacherId}`
+        )
+          .then((res) => res.json())
+          .then((teacherRes) => {
+            if (
+              !teacherRes.success ||
+              !teacherRes.data ||
+              !teacherRes.data.class_teacher_of
+            )
+              return;
+            const classId = teacherRes.data.class_teacher_of;
+            const date = document.getElementById("viewAttendanceDate").value;
+            const viewForm = document.getElementById(
+              "viewAttendanceFormContainer"
+            );
+            if (!classId || !date) {
+              viewForm.style.display = "none";
+              viewForm.innerHTML = "";
+              return;
+            }
+            // Update dashboard stats for selected date
+            updateDashboardStats(classId, date);
+            fetch("/backend/controllers/attendance.php", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                action: "get_by_class_and_date",
+                class_id: classId,
+                date: date,
+              }),
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                if (data.success) {
+                  renderAttendanceTable(data.data, classId, date, false);
+                  viewForm.style.display = "block";
+                } else {
+                  viewForm.innerHTML =
+                    "<div>No attendance found for this date.</div>";
+                  viewForm.style.display = "block";
+                }
+              });
+          });
+      }
+
+      // Update dashboard statistics for selected class and date
+      function updateDashboardStats(classId, date) {
+        fetch("/backend/controllers/attendance.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "get_stats_by_class_and_date",
+            class_id: classId,
+            date: date,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              const stats = data.data;
+              // Update cards
+              document.getElementById("todayAttendance").textContent =
+                stats.total > 0
+                  ? Math.round((stats.present / stats.total) * 100) + "%"
+                  : "0%";
+              document.getElementById("presentToday").textContent =
+                stats.present + " / " + stats.total;
+              document.getElementById("absentToday").textContent = stats.absent;
+              document.getElementById("weekAttendance").textContent = "-"; // Not updating week stat here
+            }
+          });
+      }
+
+      function renderAttendanceTable(students, classId, date, editable) {
+        let html = `<table class="data-table"><thead><tr><th>Student</th><th>Student ID</th><th>Status</th><th>Date</th></tr></thead><tbody>`;
+        students.forEach((student) => {
+          html += `<tr>
+            <td><div class="student-info"><div class="student-avatar">${student.first_name.charAt(
+              0
+            )}${student.last_name.charAt(0)}</div><div><strong>${
+            student.first_name
+          } ${student.last_name}</strong></div></div></td>
+            <td>${student.roll_number}</td>
+            <td>`;
+          if (editable) {
+            html += `<select class="attendance-status" data-student-id="${student.id}">
+              <option value="present">Present</option>
+              <option value="absent">Absent</option>
+            </select>`;
+          } else {
+            html += `${student.status || "-"}`;
+          }
+          html += `</td>
+            <td>`;
+          if (editable) {
+            html += `${date}`;
+          } else {
+            html += `${student.time || "-"}`;
+          }
+          html += `</td></tr>`;
+        });
+        html += `</tbody></table>`;
+        if (editable) {
+          // Place buttons in the header-actions div above the table
+          const headerActions = document.querySelector(
+            "#todayAttendanceSection .header-actions"
+          );
+          if (headerActions) {
+            headerActions.innerHTML = `<button class="btn btn-success" onclick="saveAttendanceTable(${classId}, '${date}')"><i class="fas fa-save"></i> Save Attendance</button>
+            <button class="btn btn-primary" onclick="markAllPresentTable()"><i class="fas fa-check-double"></i> Mark All Present</button>`;
+          }
+          document.getElementById("todayAttendanceFormContainer").innerHTML =
+            html;
+        } else {
+          document.getElementById("viewAttendanceFormContainer").innerHTML =
+            html;
+        }
+      }
+
+      function loadAttendanceData() {
+        if (!currentTeacherId) return;
+
+        fetch("/backend/controllers/attendance.php", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            action: "get_attendance_stats",
+            teacher_id: currentTeacherId,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              const stats = data.data;
+              document.getElementById("todayAttendance").textContent =
+                stats.today.percentage + "%";
+              document.getElementById("presentToday").textContent =
+                stats.today.present;
+              document.getElementById("absentToday").textContent =
+                stats.today.absent;
+              document.getElementById("weekAttendance").textContent =
+                stats.week.percentage + "%";
+            } else {
+              console.error("Error loading attendance stats:", data.message);
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
+
+      function markAllPresent() {
+        const statusSelects = document.querySelectorAll(".attendance-status");
+        statusSelects.forEach((select) => {
+          select.value = "present";
+        });
+
+        // Save attendance immediately
+        saveAttendance();
+      }
+
+      function saveAttendance() {
+        const selectedClass = document.getElementById("classSelect").value;
+        const selectedDate = document.getElementById("attendanceDate").value;
+
+        if (!selectedClass || !selectedDate || !currentTeacherId) {
+          alert("Please select a class and ensure teacher is logged in");
+          return;
+        }
+
+        // Collect attendance data
+        const attendanceData = [];
+        const statusSelects = document.querySelectorAll(".attendance-status");
+        const timeInputs = document.querySelectorAll(".attendance-time");
+
+        statusSelects.forEach((select) => {
+          const studentId = select.getAttribute("data-student-id");
+          const status = select.value;
+
+          attendanceData.push({
+            student_id: studentId,
+            status: status,
+          });
+        });
+
+        // Save to database
+        fetch("/backend/controllers/attendance.php", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            action: "save_attendance",
+            class_id: selectedClass,
+            date: selectedDate,
+            teacher_id: currentTeacherId,
+            attendance_data: attendanceData,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              alert("Attendance saved successfully!");
+              loadAttendanceData(); // Refresh stats
+            } else {
+              alert("Error saving attendance: " + data.message);
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("Error saving attendance. Please try again.");
+          });
+      }
+
+      // Save attendance for the editable table (Today's Attendance)
+      function saveAttendanceTable(classId, date) {
+        // Get teacher ID
+        let teacherData = JSON.parse(localStorage.getItem("userData") || "{}");
+        if (!teacherData.id) {
+          teacherData = JSON.parse(localStorage.getItem("user") || "{}");
+        }
+        const teacherId = teacherData.id;
+        if (!teacherId) {
+          alert("Teacher ID not found");
+          return;
+        }
+
+        // Collect attendance data from selects
+        const attendanceData = [];
+        const statusSelects = document.querySelectorAll(
+          "#todayAttendanceFormContainer .attendance-status"
+        );
+        statusSelects.forEach((select) => {
+          const studentId = select.getAttribute("data-student-id");
+          const status = select.value;
+          attendanceData.push({
+            student_id: studentId,
+            status: status,
+          });
+        });
+
+        // Save to backend
+        fetch("/backend/controllers/attendance.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "save_attendance",
+            class_id: classId,
+            date: date,
+            teacher_id: teacherId,
+            attendance_data: attendanceData,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              // Reload the page to update UI and hide today's attendance section
+              location.reload();
+            } else {
+              alert("Error saving attendance: " + data.message);
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("Error saving attendance. Please try again.");
+          });
+      }
+
+      // Mark all students as present in the editable attendance table
+      function markAllPresentTable() {
+        const selects = document.querySelectorAll(
+          "#todayAttendanceFormContainer .attendance-status"
+        );
+        selects.forEach((select) => {
+          select.value = "present";
+          // Trigger change event for UI update/consistency
+          const event = new Event("change", { bubbles: true });
+          select.dispatchEvent(event);
+        });
+      }
+
+      // Check if today's attendance is already marked and hide section if so
+      function checkAndHideTodayAttendanceSection(classId, date) {
+        fetch("/backend/controllers/attendance.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "get_by_class_and_date",
+            class_id: classId,
+            date: date,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (
+              data.success &&
+              Array.isArray(data.data) &&
+              data.data.length > 0
+            ) {
+              // Attendance already marked, hide the section
+              document.getElementById("todayAttendanceSection").style.display =
+                "none";
+            } else {
+              // Attendance not marked, show the section
+              document.getElementById("todayAttendanceSection").style.display =
+                "";
+            }
+          });
+      }
+    </script>
+
+    <style>
+      .class-selection {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .class-selection select,
+      .class-selection input {
+        padding: 10px 15px;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        font-size: 1rem;
+      }
+
+      .class-selection input:disabled {
+        background-color: #f8f9fa;
+        color: #6c757d;
+        cursor: not-allowed;
+      }
+
+      .attendance-status {
+        padding: 6px 10px;
+        border: 1px solid #e1e5e9;
+        border-radius: 4px;
+        font-size: 0.9rem;
+      }
+
+      .attendance-time {
+        padding: 6px 10px;
+        border: 1px solid #e1e5e9;
+        border-radius: 4px;
+        font-size: 0.9rem;
+      }
+
+      .student-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .student-avatar {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background: #667eea;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.8rem;
+      }
+    </style>
+  </body>
+</html>

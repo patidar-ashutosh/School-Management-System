@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Dashboard - School Management System</title>
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="student-dashboard">
+    <header class="main-header">
+      <div class="header-container">
+        <div class="logo">
+          <i class="fas fa-school"></i>
+          <span>School Management System</span>
+        </div>
+
+        <nav class="main-nav">
+          <ul>
+            <li>
+              <a href="student-dashboard.html" class="active"
+                ><i class="fas fa-tachometer-alt"></i> Dashboard</a
+              >
+            </li>
+            <li>
+              <a href="my-grades.html"
+                ><i class="fas fa-chart-line"></i> My Grades</a
+              >
+            </li>
+            <li>
+              <a href="my-attendance.html"
+                ><i class="fas fa-calendar-check"></i> My Attendance</a
+              >
+            </li>
+            <li>
+              <a href="my-schedule.html"
+                ><i class="fas fa-calendar-alt"></i> My Schedule</a
+              >
+            </li>
+            <li>
+              <a href="my-assignments.html"
+                ><i class="fas fa-tasks"></i> My Assignments</a
+              >
+            </li>
+          </ul>
+        </nav>
+
+        <div class="user-menu">
+          <div class="user-info">
+            <i class="fas fa-user-circle"></i>
+            <span id="userName">Student</span>
+          </div>
+          <div class="dropdown-menu">
+            <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
+            <a href="settings.html"><i class="fas fa-cog"></i> Settings</a>
+            <a href="#" onclick="logout()"
+              ><i class="fas fa-sign-out-alt"></i> Logout</a
+            >
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="page-header">
+        <h1>Student Dashboard</h1>
+        <p>Welcome to the School Management System Student Panel</p>
+      </div>
+
+      <!-- Student Info Card -->
+      <div class="student-info-card">
+        <div class="student-avatar">
+          <i class="fas fa-user-graduate"></i>
+        </div>
+        <div class="student-name" id="studentName">Loading...</div>
+        <div class="student-details">
+          <div class="detail-item">
+            <span class="detail-label">Student ID:</span>
+            <span class="detail-value" id="studentId">Loading...</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Class:</span>
+            <span class="detail-value" id="studentClass">Loading...</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Roll Number:</span>
+            <span class="detail-value" id="rollNumber">Loading...</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Academic Year:</span>
+            <span class="detail-value" id="academicYear">Loading...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistics Cards -->
+      <div class="dashboard-cards">
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">My Class</div>
+            <div class="card-icon" style="background: #667eea">
+              <i class="fas fa-chalkboard"></i>
+            </div>
+          </div>
+          <div class="card-number" id="myClass">Loading...</div>
+          <div class="card-description">Current class</div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">My Subjects</div>
+            <div class="card-icon" style="background: #28a745">
+              <i class="fas fa-book"></i>
+            </div>
+          </div>
+          <div class="card-number" id="totalSubjects">Loading...</div>
+          <div class="card-description">Enrolled subjects</div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Attendance</div>
+            <div class="card-icon" style="background: #ffc107">
+              <i class="fas fa-calendar-check"></i>
+            </div>
+          </div>
+          <div class="card-number" id="attendance">Loading...</div>
+          <div class="card-description">This semester</div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Pending Assignments</div>
+            <div class="card-icon" style="background: #dc3545">
+              <i class="fas fa-tasks"></i>
+            </div>
+          </div>
+          <div class="card-number" id="pendingAssignments">Loading...</div>
+          <div class="card-description">Due this week</div>
+        </div>
+      </div>
+
+      <!-- My Subjects -->
+      <div class="card">
+        <div class="card-header">
+          <h3>My Subjects</h3>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Subject</th>
+                  <th>Code</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody id="mySubjects">
+                <tr>
+                  <td colspan="3" class="text-center">Loading subjects...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Grades -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Recent Grades</h3>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Subject</th>
+                  <th>Assignment/Exam</th>
+                  <th>Grade</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody id="recentGrades">
+                <tr>
+                  <td colspan="4" class="text-center">Loading grades...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="/assets/js/auth.js"></script>
+    <script>
+      // Load dashboard data
+      document.addEventListener("DOMContentLoaded", function () {
+        loadDashboardData();
+        loadMySubjects();
+        loadRecentGrades();
+        updateUserName();
+      });
+
+      async function loadDashboardData() {
+        try {
+          const auth = new Auth();
+          const user = auth.getCurrentUser();
+
+          if (!user) {
+            console.error("User not authenticated");
+            return;
+          }
+
+          const response = await fetch(
+            "/backend/controllers/student_dashboard.php",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                action: "get_dashboard_data",
+                student_id: user.id,
+              }),
+            }
+          );
+
+          const data = await response.json();
+
+          if (data.success) {
+            // Update student info
+            document.getElementById(
+              "studentName"
+            ).textContent = `${data.student.first_name} ${data.student.last_name}`;
+            document.getElementById("studentId").textContent =
+              data.student.roll_number || "N/A";
+            document.getElementById("studentClass").textContent =
+              data.student.class_name || "Not Assigned";
+            document.getElementById("rollNumber").textContent =
+              data.student.roll_number || "N/A";
+            document.getElementById("academicYear").textContent = "2024-25"; // You can make this dynamic
+
+            // Update statistics
+            document.getElementById("myClass").textContent =
+              data.student.class_name || "Not Assigned";
+            document.getElementById("totalSubjects").textContent =
+              data.stats.total_subjects || 0;
+            document.getElementById("attendance").textContent = `${
+              data.stats.attendance_percentage || 0
+            }%`;
+            document.getElementById("pendingAssignments").textContent =
+              data.stats.pending_assignments || 0;
+          } else {
+            console.error("Failed to load dashboard data:", data.message);
+            showError("Failed to load dashboard data");
+          }
+        } catch (error) {
+          console.error("Error loading dashboard data:", error);
+          showError("Error loading dashboard data");
+        }
+      }
+
+      async function loadMySubjects() {
+        try {
+          const auth = new Auth();
+          const user = auth.getCurrentUser();
+
+          if (!user) return;
+
+          const response = await fetch("/backend/controllers/subjects.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              action: "get_by_student",
+              student_id: user.id,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            const tbody = document.getElementById("mySubjects");
+            tbody.innerHTML = "";
+
+            if (data.data.length === 0) {
+              tbody.innerHTML =
+                '<tr><td colspan="3" class="text-center">No subjects found</td></tr>';
+              return;
+            }
+
+            data.data.forEach((subject) => {
+              const row = document.createElement("tr");
+              row.innerHTML = `
+                <td>${subject.name}</td>
+                <td>${subject.code}</td>
+                <td>${subject.description || "No description"}</td>
+              `;
+              tbody.appendChild(row);
+            });
+          } else {
+            document.getElementById("mySubjects").innerHTML =
+              '<tr><td colspan="3" class="text-center text-danger">Failed to load subjects</td></tr>';
+          }
+        } catch (error) {
+          console.error("Error loading subjects:", error);
+          document.getElementById("mySubjects").innerHTML =
+            '<tr><td colspan="3" class="text-center text-danger">Error loading subjects</td></tr>';
+        }
+      }
+
+      async function loadRecentGrades() {
+        try {
+          const auth = new Auth();
+          const user = auth.getCurrentUser();
+
+          if (!user) return;
+
+          const response = await fetch("/backend/controllers/grades.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              action: "get_recent_by_student",
+              student_id: user.id,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            const tbody = document.getElementById("recentGrades");
+            tbody.innerHTML = "";
+
+            if (data.data.length === 0) {
+              tbody.innerHTML =
+                '<tr><td colspan="4" class="text-center">No grades found</td></tr>';
+              return;
+            }
+
+            data.data.forEach((grade) => {
+              const row = document.createElement("tr");
+              row.innerHTML = `
+                <td>${grade.subject_name}</td>
+                <td>${grade.assignment_title || "Exam"}</td>
+                <td>${grade.grade}</td>
+                <td>${formatDate(grade.created_at)}</td>
+              `;
+              tbody.appendChild(row);
+            });
+          } else {
+            document.getElementById("recentGrades").innerHTML =
+              '<tr><td colspan="4" class="text-center text-danger">Failed to load grades</td></tr>';
+          }
+        } catch (error) {
+          console.error("Error loading grades:", error);
+          document.getElementById("recentGrades").innerHTML =
+            '<tr><td colspan="4" class="text-center text-danger">Error loading grades</td></tr>';
+        }
+      }
+
+      function updateUserName() {
+        const auth = new Auth();
+        const user = auth.getCurrentUser();
+        if (user) {
+          document.getElementById(
+            "userName"
+          ).textContent = `${user.first_name} ${user.last_name}`;
+        }
+      }
+
+      function formatDate(dateString) {
+        if (!dateString) return "N/A";
+        const date = new Date(dateString);
+        return date.toLocaleDateString();
+      }
+
+      function showError(message) {
+        console.error(message);
+      }
+
+      function logout() {
+        fetch("/backend/controllers/auth.php", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "logout" }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              window.location.href = "../index.html";
+            } else {
+              alert("Logout failed: " + data.message);
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("Logout failed. Please try again.");
+          });
+      }
+    </script>
+  </body>
+</html>

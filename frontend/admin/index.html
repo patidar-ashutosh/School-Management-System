@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>School Management System - Principal Portal</title>
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <link rel="stylesheet" href="/assets/css/principal.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="admin-portal">
+    <div class="portal-container">
+      <div class="portal-header">
+        <h1><i class="fas fa-school"></i> School Management System</h1>
+        <h2>Principal Portal</h2>
+      </div>
+
+      <div class="role-selection">
+        <h3>Choose Your Role</h3>
+        <div class="role-cards">
+          <div class="role-card">
+            <div class="card-icon">
+              <i class="fas fa-user-tie"></i>
+            </div>
+            <h4>Principal</h4>
+            <p>
+              Manage school operations, students, teachers, and academic
+              activities
+            </p>
+            <a href="principal/index.html" class="btn btn-primary">
+              <i class="fas fa-sign-in-alt"></i> Principal Login
+            </a>
+          </div>
+
+          <div class="role-card">
+            <div class="card-icon">
+              <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+            <h4>Teacher</h4>
+            <p>Manage classes, take attendance, and grade assignments</p>
+            <a href="teacher/index.html" class="btn btn-success">
+              <i class="fas fa-sign-in-alt"></i> Teacher Login
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="portal-footer">
+        <a href="../index.html" class="link">Back to Main Page</a>
+        <a href="../user/index.html" class="link">Student Portal</a>
+      </div>
+    </div>
+
+    <style>
+      .admin-portal {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+
+      .portal-container {
+        background: white;
+        border-radius: 20px;
+        padding: 3rem;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        text-align: center;
+        max-width: 900px;
+        width: 100%;
+        margin: 2rem;
+      }
+
+      .portal-header {
+        margin-bottom: 2rem;
+      }
+
+      .portal-header h1 {
+        color: #333;
+        margin-bottom: 0.5rem;
+        font-size: 2.5rem;
+        font-weight: 700;
+      }
+
+      .portal-header h2 {
+        color: #667eea;
+        margin-bottom: 1rem;
+        font-size: 1.8rem;
+        font-weight: 600;
+      }
+
+      .role-selection h3 {
+        color: #333;
+        margin-bottom: 2rem;
+        font-size: 1.5rem;
+        font-weight: 600;
+      }
+
+      .role-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
+        margin: 2rem 0;
+      }
+
+      .role-card {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 2.5rem;
+        border: 3px solid transparent;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .role-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+      }
+
+      .role-card:hover {
+        border-color: #667eea;
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      }
+
+      .card-icon {
+        font-size: 3.5rem;
+        color: #667eea;
+        margin-bottom: 1.5rem;
+        display: block;
+      }
+
+      .role-card h4 {
+        color: #333;
+        margin-bottom: 1rem;
+        font-size: 1.8rem;
+        font-weight: 600;
+      }
+
+      .role-card p {
+        color: #666;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+        font-size: 1.1rem;
+      }
+
+      .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+        text-align: center;
+      }
+
+      .btn-primary {
+        background: #667eea;
+        color: white;
+      }
+
+      .btn-success {
+        background: #28a745;
+        color: white;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      }
+
+      .portal-footer {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid #eee;
+      }
+
+      .portal-footer .link {
+        color: #667eea;
+        text-decoration: none;
+        margin: 0 1rem;
+        font-weight: 500;
+        transition: color 0.3s ease;
+        padding: 8px 16px;
+        border-radius: 5px;
+      }
+
+      .portal-footer .link:hover {
+        color: #764ba2;
+        background: #f8f9fa;
+      }
+
+      @media (max-width: 768px) {
+        .portal-container {
+          padding: 2rem;
+          margin: 1rem;
+        }
+
+        .portal-header h1 {
+          font-size: 2rem;
+        }
+
+        .role-cards {
+          grid-template-columns: 1fr;
+        }
+
+        .role-card {
+          padding: 2rem;
+        }
+      }
+    </style>
+  </body>
+</html>

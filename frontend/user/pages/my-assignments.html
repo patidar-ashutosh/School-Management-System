@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Assignments - Student Dashboard</title>
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="student-dashboard">
+    <header class="main-header">
+      <div class="header-container">
+        <div class="logo">
+          <i class="fas fa-school"></i>
+          <span>School Management System</span>
+        </div>
+
+        <nav class="main-nav">
+          <ul>
+            <li>
+              <a href="student-dashboard.html"
+                ><i class="fas fa-tachometer-alt"></i> Dashboard</a
+              >
+            </li>
+            <li>
+              <a href="my-grades.html"
+                ><i class="fas fa-chart-line"></i> My Grades</a
+              >
+            </li>
+            <li>
+              <a href="my-attendance.html"
+                ><i class="fas fa-calendar-check"></i> My Attendance</a
+              >
+            </li>
+            <li>
+              <a href="my-schedule.html"
+                ><i class="fas fa-calendar-alt"></i> My Schedule</a
+              >
+            </li>
+            <li>
+              <a href="my-assignments.html" class="active"
+                ><i class="fas fa-tasks"></i> My Assignments</a
+              >
+            </li>
+          </ul>
+        </nav>
+
+        <div class="user-menu">
+          <div class="user-info">
+            <i class="fas fa-user-circle"></i>
+            <span id="userName">Student</span>
+          </div>
+          <div class="dropdown-menu">
+            <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
+            <a href="settings.html"><i class="fas fa-cog"></i> Settings</a>
+            <a href="#" onclick="logout()"
+              ><i class="fas fa-sign-out-alt"></i> Logout</a
+            >
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="page-header">
+        <h1>My Assignments</h1>
+        <p>View and manage your assignments and submissions</p>
+      </div>
+
+      <!-- Assignment Statistics -->
+      <div class="dashboard-cards">
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Total Assignments</div>
+            <div class="card-icon" style="background: #667eea">
+              <i class="fas fa-tasks"></i>
+            </div>
+          </div>
+          <div class="card-number" id="totalAssignments">12</div>
+          <div class="card-description">This semester</div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Completed</div>
+            <div class="card-icon" style="background: #28a745">
+              <i class="fas fa-check-circle"></i>
+            </div>
+          </div>
+          <div class="card-number" id="completedAssignments">8</div>
+          <div class="card-description">Submitted</div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Pending</div>
+            <div class="card-icon" style="background: #ffc107">
+              <i class="fas fa-clock"></i>
+            </div>
+          </div>
+          <div class="card-number" id="pendingAssignments">3</div>
+          <div class="card-description">Due soon</div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Overdue</div>
+            <div class="card-icon" style="background: #dc3545">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+          </div>
+          <div class="card-number" id="overdueAssignments">1</div>
+          <div class="card-description">Past deadline</div>
+        </div>
+      </div>
+
+      <!-- Search and Filter -->
+      <div class="search-section">
+        <div class="search-box">
+          <input
+            type="text"
+            id="assignmentSearch"
+            placeholder="Search assignments..."
+          />
+          <i class="fas fa-search"></i>
+        </div>
+        <div class="filter-options">
+          <select id="subjectFilter">
+            <option value="">All Subjects</option>
+            <option value="mathematics">Mathematics</option>
+            <option value="english">English</option>
+            <option value="physics">Physics</option>
+            <option value="history">History</option>
+            <option value="computer-science">Computer Science</option>
+          </select>
+          <select id="statusFilter">
+            <option value="">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="submitted">Submitted</option>
+            <option value="graded">Graded</option>
+            <option value="overdue">Overdue</option>
+          </select>
+          <select id="typeFilter">
+            <option value="">All Types</option>
+            <option value="homework">Homework</option>
+            <option value="quiz">Quiz</option>
+            <option value="exam">Exam</option>
+            <option value="project">Project</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Assignments List -->
+      <div class="card">
+        <div class="card-header">
+          <h3>My Assignments</h3>
+          <div class="header-actions">
+            <button class="btn btn-primary" onclick="submitAssignment()">
+              <i class="fas fa-upload"></i> Submit Assignment
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Assignment</th>
+                  <th>Subject</th>
+                  <th>Type</th>
+                  <th>Due Date</th>
+                  <th>Status</th>
+                  <th>Grade</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="assignmentsTableBody">
+                <tr>
+                  <td>
+                    <div class="assignment-info">
+                      <strong>Algebra Problem Set 1</strong>
+                      <small>Solving linear equations and inequalities</small>
+                    </div>
+                  </td>
+                  <td>Mathematics</td>
+                  <td><span class="type-badge homework">Homework</span></td>
+                  <td>2024-01-20</td>
+                  <td><span class="status-badge pending">Pending</span></td>
+                  <td>-</td>
+                  <td>
+                    <div class="action-buttons">
+                      <button
+                        class="btn btn-sm btn-primary"
+                        onclick="viewAssignment('1')"
+                      >
+                        <i class="fas fa-eye"></i>
+                      </button>
+                      <button
+                        class="btn btn-sm btn-success"
+                        onclick="submitAssignment('1')"
+                      >
+                        <i class="fas fa-upload"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="assignment-info">
+                      <strong>Shakespeare Essay</strong>
+                      <small>Analysis of Hamlet's soliloquy</small>
+                    </div>
+                  </td>
+                  <td>English</td>
+                  <td><span class="type-badge project">Project</span></td>
+                  <td>2024-01-25</td>
+                  <td><span class="status-badge submitted">Submitted</span></td>
+                  <td>-</td>
+                  <td>
+                    <div class="action-buttons">
+                      <button
+                        class="btn btn-sm btn-primary"
+                        onclick="viewAssignment('2')"
+                      >
+                        <i class="fas fa-eye"></i>
+                      </button>
+                      <button
+                        class="btn btn-sm btn-info"
+                        onclick="viewSubmission('2')"
+                      >
+                        <i class="fas fa-file-alt"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="assignment-info">
+                      <strong>Physics Lab Report</strong>
+                      <small>Experiment on Newton's Laws</small>
+                    </div>
+                  </td>
+                  <td>Physics</td>
+                  <td><span class="type-badge project">Project</span></td>
+                  <td>2024-01-18</td>
+                  <td><span class="status-badge overdue">Overdue</span></td>
+                  <td>-</td>
+                  <td>
+                    <div class="action-buttons">
+                      <button
+                        class="btn btn-sm btn-primary"
+                        onclick="viewAssignment('3')"
+                      >
+                        <i class="fas fa-eye"></i>
+                      </button>
+                      <button
+                        class="btn btn-sm btn-warning"
+                        onclick="submitAssignment('3')"
+                      >
+                        <i class="fas fa-upload"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="assignment-info">
+                      <strong>History Quiz</strong>
+                      <small>World War II - Chapters 5-7</small>
+                    </div>
+                  </td>
+                  <td>History</td>
+                  <td><span class="type-badge quiz">Quiz</span></td>
+                  <td>2024-01-15</td>
+                  <td><span class="status-badge graded">Graded</span></td>
+                  <td><span class="grade-badge good">87%</span></td>
+                  <td>
+                    <div class="action-buttons">
+                      <button
+                        class="btn btn-sm btn-primary"
+                        onclick="viewAssignment('4')"
+                      >
+                        <i class="fas fa-eye"></i>
+                      </button>
+                      <button
+                        class="btn btn-sm btn-info"
+                        onclick="viewGrade('4')"
+                      >
+                        <i class="fas fa-chart-line"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="assignment-info">
+                      <strong>Programming Assignment</strong>
+                      <small>Create a simple calculator in Python</small>
+                    </div>
+                  </td>
+                  <td>Computer Science</td>
+                  <td><span class="type-badge project">Project</span></td>
+                  <td>2024-01-22</td>
+                  <td><span class="status-badge pending">Pending</span></td>
+                  <td>-</td>
+                  <td>
+                    <div class="action-buttons">
+                      <button
+                        class="btn btn-sm btn-primary"
+                        onclick="viewAssignment('5')"
+                      >
+                        <i class="fas fa-eye"></i>
+                      </button>
+                      <button
+                        class="btn btn-sm btn-success"
+                        onclick="submitAssignment('5')"
+                      >
+                        <i class="fas fa-upload"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Submissions -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Recent Submissions</h3>
+        </div>
+        <div class="card-body">
+          <div class="submissions-list">
+            <div class="submission-item">
+              <div class="submission-date">
+                <div class="submission-day">15</div>
+                <div class="submission-month">Jan</div>
+              </div>
+              <div class="submission-content">
+                <div class="submission-title">Shakespeare Essay</div>
+                <div class="submission-details">
+                  English • Submitted at 11:45 PM
+                </div>
+                <div class="submission-file">
+                  shakespeare_essay.pdf (2.3 MB)
+                </div>
+              </div>
+              <div class="submission-status">
+                <span class="status-badge submitted">Submitted</span>
+              </div>
+            </div>
+            <div class="submission-item">
+              <div class="submission-date">
+                <div class="submission-day">12</div>
+                <div class="submission-month">Jan</div>
+              </div>
+              <div class="submission-content">
+                <div class="submission-title">History Quiz</div>
+                <div class="submission-details">
+                  History • Completed at 10:30 AM
+                </div>
+                <div class="submission-file">Online Quiz • Score: 87%</div>
+              </div>
+              <div class="submission-status">
+                <span class="status-badge graded">Graded</span>
+              </div>
+            </div>
+            <div class="submission-item">
+              <div class="submission-date">
+                <div class="submission-day">10</div>
+                <div class="submission-month">Jan</div>
+              </div>
+              <div class="submission-content">
+                <div class="submission-title">Mathematics Homework</div>
+                <div class="submission-details">
+                  Mathematics • Submitted at 9:15 PM
+                </div>
+                <div class="submission-file">math_homework.pdf (1.1 MB)</div>
+              </div>
+              <div class="submission-status">
+                <span class="status-badge graded">Graded</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Submit Assignment Modal -->
+    <div id="submitModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="submitModalTitle">Submit Assignment</h2>
+          <span class="close" onclick="closeSubmitModal()">&times;</span>
+        </div>
+        <form id="submitForm">
+          <div class="form-group">
+            <label for="assignmentTitle">Assignment Title</label>
+            <input type="text" id="assignmentTitle" name="title" readonly />
+          </div>
+          <div class="form-group">
+            <label for="assignmentFile">Upload File</label>
+            <input type="file" id="assignmentFile" name="file" required />
+            <small>Accepted formats: PDF, DOC, DOCX, ZIP (Max 10MB)</small>
+          </div>
+          <div class="form-group">
+            <label for="assignmentComments">Comments (Optional)</label>
+            <textarea
+              id="assignmentComments"
+              name="comments"
+              rows="3"
+              placeholder="Add any comments or notes about your submission..."
+            ></textarea>
+          </div>
+          <div class="form-actions">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="closeSubmitModal()"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">
+              Submit Assignment
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="/assets/js/auth.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        loadAssignmentData();
+        setupSearchAndFilter();
+      });
+
+      function loadAssignmentData() {
+        setTimeout(() => {
+          document.getElementById("totalAssignments").textContent = "12";
+          document.getElementById("completedAssignments").textContent = "8";
+          document.getElementById("pendingAssignments").textContent = "3";
+          document.getElementById("overdueAssignments").textContent = "1";
+        }, 1000);
+      }
+
+      function setupSearchAndFilter() {
+        document
+          .getElementById("assignmentSearch")
+          .addEventListener("input", filterAssignments);
+        document
+          .getElementById("subjectFilter")
+          .addEventListener("change", filterAssignments);
+        document
+          .getElementById("statusFilter")
+          .addEventListener("change", filterAssignments);
+        document
+          .getElementById("typeFilter")
+          .addEventListener("change", filterAssignments);
+      }
+
+      function filterAssignments() {
+        const searchTerm = document
+          .getElementById("assignmentSearch")
+          .value.toLowerCase();
+        const subjectFilter = document.getElementById("subjectFilter").value;
+        const statusFilter = document.getElementById("statusFilter").value;
+        const typeFilter = document.getElementById("typeFilter").value;
+
+        console.log("Filtering assignments:", {
+          searchTerm,
+          subjectFilter,
+          statusFilter,
+          typeFilter,
+        });
+      }
+
+      function viewAssignment(assignmentId) {
+        alert(`Viewing assignment ${assignmentId}`);
+      }
+
+      function submitAssignment(assignmentId) {
+        if (assignmentId) {
+          document.getElementById("submitModalTitle").textContent =
+            "Submit Assignment";
+          document.getElementById("assignmentTitle").value =
+            "Assignment " + assignmentId;
+        } else {
+          document.getElementById("submitModalTitle").textContent =
+            "Submit New Assignment";
+          document.getElementById("assignmentTitle").value = "";
+        }
+        document.getElementById("submitForm").reset();
+        document.getElementById("submitModal").style.display = "block";
+      }
+
+      function viewSubmission(assignmentId) {
+        alert(`Viewing submission for assignment ${assignmentId}`);
+      }
+
+      function viewGrade(assignmentId) {
+        alert(`Viewing grade for assignment ${assignmentId}`);
+      }
+
+      function closeSubmitModal() {
+        document.getElementById("submitModal").style.display = "none";
+      }
+
+      // Handle form submission
+      document
+        .getElementById("submitForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          alert("Assignment submitted successfully!");
+          closeSubmitModal();
+        });
+
+      // Close modal when clicking outside
+      window.onclick = function (event) {
+        const modal = document.getElementById("submitModal");
+        if (event.target === modal) {
+          closeSubmitModal();
+        }
+      };
+    </script>
+
+    <style>
+      .assignment-info {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .assignment-info small {
+        color: #666;
+        font-size: 0.85rem;
+      }
+
+      .type-badge {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 500;
+      }
+
+      .type-badge.homework {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .type-badge.quiz {
+        background: #cce5ff;
+        color: #004085;
+      }
+
+      .type-badge.exam {
+        background: #fff3cd;
+        color: #856404;
+      }
+
+      .type-badge.project {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      .status-badge {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: uppercase;
+      }
+
+      .status-badge.pending {
+        background: #fff3cd;
+        color: #856404;
+      }
+
+      .status-badge.submitted {
+        background: #d1ecf1;
+        color: #0c5460;
+      }
+
+      .status-badge.graded {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .status-badge.overdue {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      .grade-badge {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 500;
+      }
+
+      .grade-badge.excellent {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .grade-badge.good {
+        background: #cce5ff;
+        color: #004085;
+      }
+
+      .grade-badge.average {
+        background: #fff3cd;
+        color: #856404;
+      }
+
+      .grade-badge.poor {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 5px;
+      }
+
+      .action-buttons .btn {
+        padding: 4px 8px;
+        font-size: 0.8rem;
+      }
+
+      .submissions-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .submission-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #667eea;
+      }
+
+      .submission-date {
+        text-align: center;
+        min-width: 60px;
+      }
+
+      .submission-day {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #667eea;
+      }
+
+      .submission-month {
+        font-size: 0.8rem;
+        color: #666;
+        text-transform: uppercase;
+      }
+
+      .submission-content {
+        flex: 1;
+      }
+
+      .submission-title {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.25rem;
+      }
+
+      .submission-details {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+      }
+
+      .submission-file {
+        color: #667eea;
+        font-size: 0.85rem;
+        font-weight: 500;
+      }
+
+      .submission-status {
+        min-width: 100px;
+        text-align: right;
+      }
+
+      .header-actions .btn {
+        margin-left: 0.5rem;
+      }
+
+      .form-group small {
+        color: #666;
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
+        display: block;
+      }
+    </style>
+  </body>
+</html>

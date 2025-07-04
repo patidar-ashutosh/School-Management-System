@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Students - Teacher Dashboard</title>
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <link rel="stylesheet" href="/assets/css/principal.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="teacher-dashboard">
+    <header class="main-header">
+      <div class="header-container">
+        <div class="logo">
+          <i class="fas fa-school"></i>
+          <span>School Management System</span>
+        </div>
+
+        <nav class="main-nav">
+          <ul>
+            <li>
+              <a href="teacher-dashboard.html"
+                ><i class="fas fa-tachometer-alt"></i> Dashboard</a
+              >
+            </li>
+            <li>
+              <a href="lecturers.html"
+                ><i class="fas fa-chalkboard-teacher"></i> My Lectures</a
+              >
+            </li>
+            <li>
+              <a href="my-students.html" class="active"
+                ><i class="fas fa-users"></i> My Students</a
+              >
+            </li>
+            <li>
+              <a href="attendance.html"
+                ><i class="fas fa-calendar-check"></i> Attendance</a
+              >
+            </li>
+            <li>
+              <a href="assignments.html"
+                ><i class="fas fa-tasks"></i> Assignments</a
+              >
+            </li>
+          </ul>
+        </nav>
+
+        <div class="user-menu">
+          <div class="user-info">
+            <i class="fas fa-user-circle"></i>
+            <span id="userName">Teacher</span>
+          </div>
+          <div class="dropdown-menu">
+            <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
+            <a href="settings.html"><i class="fas fa-cog"></i> Settings</a>
+            <a href="#" onclick="logout()"
+              ><i class="fas fa-sign-out-alt"></i> Logout</a
+            >
+          </div>
+        </div>
+
+        <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+
+      <!-- Mobile Navigation -->
+      <nav class="mobile-nav" id="mobileNav">
+        <ul>
+          <li>
+            <a href="teacher-dashboard.html"
+              ><i class="fas fa-tachometer-alt"></i> Dashboard</a
+            >
+          </li>
+          <li>
+            <a href="lecturers.html"
+              ><i class="fas fa-chalkboard-teacher"></i> My Lectures</a
+            >
+          </li>
+          <li>
+            <a href="my-students.html" class="active"
+              ><i class="fas fa-users"></i> My Students</a
+            >
+          </li>
+          <li>
+            <a href="attendance.html"
+              ><i class="fas fa-calendar-check"></i> Attendance</a
+            >
+          </li>
+          <li>
+            <a href="assignments.html"
+              ><i class="fas fa-tasks"></i> Assignments</a
+            >
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <main class="main-content">
+      <div class="page-header">
+        <h1>My Students</h1>
+        <p>View and manage students in your classes</p>
+      </div>
+
+      <!-- Student Statistics -->
+      <div class="dashboard-cards">
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Total Students</div>
+            <div class="card-icon" style="background: #667eea">
+              <i class="fas fa-users"></i>
+            </div>
+          </div>
+          <div class="card-number" id="totalStudents">85</div>
+          <div class="card-description">Across all classes</div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Attendance Rate</div>
+            <div class="card-icon" style="background: #ffc107">
+              <i class="fas fa-calendar-check"></i>
+            </div>
+          </div>
+          <div class="card-number" id="attendanceRate">92%</div>
+          <div class="card-description">This month</div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Active Students</div>
+            <div class="card-icon" style="background: #17a2b8">
+              <i class="fas fa-user-check"></i>
+            </div>
+          </div>
+          <div class="card-number" id="activeStudents">82</div>
+          <div class="card-description">Currently enrolled</div>
+        </div>
+      </div>
+
+      <!-- Search and Filter Section -->
+      <div class="search-section">
+        <div class="search-box">
+          <input
+            type="text"
+            id="studentSearch"
+            placeholder="Search students by name, ID, or class..."
+          />
+          <i class="fas fa-search"></i>
+        </div>
+      </div>
+
+      <!-- Students List -->
+      <div class="card">
+        <div class="card-header">
+          <h3 id="studentListTitle">Student List</h3>
+        </div>
+        <div class="card-body">
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>
+                    <input
+                      type="checkbox"
+                      id="selectAll"
+                      onchange="toggleSelectAll()"
+                    />
+                  </th>
+                  <th>Student</th>
+                  <th>Contact</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="studentsTableBody">
+                <tr>
+                  <td>
+                    <input type="checkbox" class="student-checkbox" value="1" />
+                  </td>
+                  <td>
+                    <div class="student-info">
+                      <div class="student-avatar">JD</div>
+                      <div>
+                        <strong>John Doe</strong>
+                        <small>ID: ST001</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>john.doe@email.com</div>
+                    <small>+1 234-567-8900</small>
+                  </td>
+                  <td>
+                    <div class="action-buttons">
+                      <button
+                        class="btn btn-sm btn-primary"
+                        onclick="viewStudent('1')"
+                      >
+                        <i class="fas fa-eye"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <input type="checkbox" class="student-checkbox" value="2" />
+                  </td>
+                  <td>
+                    <div class="student-info">
+                      <div class="student-avatar">JS</div>
+                      <div>
+                        <strong>Jane Smith</strong>
+                        <small>ID: ST002</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>jane.smith@email.com</div>
+                    <small>+1 234-567-8901</small>
+                  </td>
+                  <td>
+                    <div class="action-buttons">
+                      <button
+                        class="btn btn-sm btn-primary"
+                        onclick="viewStudent('2')"
+                      >
+                        <i class="fas fa-eye"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <input type="checkbox" class="student-checkbox" value="3" />
+                  </td>
+                  <td>
+                    <div class="student-info">
+                      <div class="student-avatar">MJ</div>
+                      <div>
+                        <strong>Mike Johnson</strong>
+                        <small>ID: ST003</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>mike.johnson@email.com</div>
+                    <small>+1 234-567-8902</small>
+                  </td>
+                  <td>
+                    <div class="action-buttons">
+                      <button
+                        class="btn btn-sm btn-primary"
+                        onclick="viewStudent('3')"
+                      >
+                        <i class="fas fa-eye"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="pagination">
+            <button onclick="changePage('prev')">
+              <i class="fas fa-chevron-left"></i> Previous
+            </button>
+            <span>Page 1 of 3</span>
+            <button onclick="changePage('next')">
+              Next <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Student Details Modal -->
+    <div id="studentModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="studentModalTitle">Student Details</h2>
+          <span class="close" onclick="closeStudentModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+          <div id="studentDetails">
+            <!-- Student details will be loaded here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/assets/js/auth.js"></script>
+    <script>
+      // Load page data
+      document.addEventListener("DOMContentLoaded", function () {
+        loadMyStudents();
+        setupSearchAndFilter();
+      });
+
+      // Mobile menu toggle function
+      function toggleMobileMenu() {
+        const mobileNav = document.getElementById("mobileNav");
+        const toggleBtn = document.querySelector(".mobile-menu-toggle i");
+
+        if (mobileNav.classList.contains("active")) {
+          mobileNav.classList.remove("active");
+          toggleBtn.className = "fas fa-bars";
+        } else {
+          mobileNav.classList.add("active");
+          toggleBtn.className = "fas fa-times";
+        }
+      }
+
+      // Close mobile menu when clicking outside
+      document.addEventListener("click", function (event) {
+        const mobileNav = document.getElementById("mobileNav");
+        const toggleBtn = document.querySelector(".mobile-menu-toggle");
+
+        if (
+          mobileNav.classList.contains("active") &&
+          !mobileNav.contains(event.target) &&
+          !toggleBtn.contains(event.target)
+        ) {
+          mobileNav.classList.remove("active");
+          toggleBtn.querySelector("i").className = "fas fa-bars";
+        }
+      });
+
+      async function loadMyStudents() {
+        const userStr = localStorage.getItem("user");
+        if (!userStr) return;
+        const user = JSON.parse(userStr);
+        if (!user || !user.id) return;
+        // Fetch teacher info to get class_teacher_of
+        const teacherRes = await fetch(
+          `/backend/controllers/teachers.php?action=get_by_id&id=${user.id}`
+        );
+        const teacherData = await teacherRes.json();
+        if (
+          !teacherData.success ||
+          !teacherData.data ||
+          !teacherData.data.class_teacher_of
+        ) {
+          document.getElementById("studentsTableBody").innerHTML =
+            '<tr><td colspan="7" class="text-center">You are not assigned as class teacher of any class.</td></tr>';
+          document.getElementById("totalStudents").textContent = "0";
+          document.getElementById("attendanceRate").textContent = "-";
+          document.getElementById("activeStudents").textContent = "0";
+          return;
+        }
+        const classId = teacherData.data.class_teacher_of;
+        // Fetch students of this class
+        const studentsRes = await fetch(`/backend/controllers/students.php`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_by_class", class_id: classId }),
+        });
+        const studentsData = await studentsRes.json();
+        if (!studentsData.success || !studentsData.data) {
+          document.getElementById("studentsTableBody").innerHTML =
+            '<tr><td colspan="7" class="text-center">No students found for your class.</td></tr>';
+          document.getElementById("totalStudents").textContent = "0";
+          document.getElementById("attendanceRate").textContent = "-";
+          document.getElementById("activeStudents").textContent = "0";
+          return;
+        }
+        renderStudentsTable(studentsData.data);
+      }
+
+      function renderStudentsTable(students) {
+        const tbody = document.getElementById("studentsTableBody");
+        tbody.innerHTML = "";
+        let activeCount = 0;
+        let className = students.length > 0 ? students[0].class_name || "" : "";
+        document.getElementById(
+          "studentListTitle"
+        ).textContent = `Student List Of Your Class: ${className}`;
+        students.forEach((student) => {
+          if (student.status === "active") activeCount++;
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td><input type="checkbox" class="student-checkbox" value="${
+              student.id
+            }" /></td>
+            <td>
+              <div class="student-info">
+                <div class="student-avatar">${getInitials(
+                  student.first_name,
+                  student.last_name
+                )}</div>
+                <div>
+                  <strong>${student.first_name} ${student.last_name}</strong>
+                  <small>ID: ${student.id}</small>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div>${student.email || "-"}</div>
+              <small>${student.phone || "-"}</small>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button
+                  class="btn btn-sm btn-primary"
+                  onclick="viewStudent('${student.id}')"
+                >
+                  <i class="fas fa-eye"></i>
+                </button>
+              </div>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+        document.getElementById("totalStudents").textContent = students.length;
+        document.getElementById("activeStudents").textContent = activeCount;
+        document.getElementById("attendanceRate").textContent = "-";
+      }
+
+      function getInitials(first, last) {
+        return (first?.charAt(0) || "") + (last?.charAt(0) || "");
+      }
+
+      function capitalize(str) {
+        return str ? str.charAt(0).toUpperCase() + str.slice(1) : "";
+      }
+
+      function setupSearchAndFilter() {
+        // Search functionality
+        document
+          .getElementById("studentSearch")
+          .addEventListener("input", function () {
+            filterStudents();
+          });
+      }
+
+      function filterStudents() {
+        const searchTerm = document
+          .getElementById("studentSearch")
+          .value.toLowerCase();
+
+        // Implement filtering logic here
+        console.log("Filtering students:", {
+          searchTerm,
+        });
+      }
+
+      function toggleSelectAll() {
+        const selectAll = document.getElementById("selectAll");
+        const checkboxes = document.querySelectorAll(".student-checkbox");
+
+        checkboxes.forEach((checkbox) => {
+          checkbox.checked = selectAll.checked;
+        });
+      }
+
+      async function viewStudent(studentId) {
+        document.getElementById("studentModalTitle").textContent =
+          "Student Details";
+        // Fetch student info
+        const studentRes = await fetch(`/backend/controllers/students.php`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_by_id", id: studentId }),
+        });
+        const studentData = await studentRes.json();
+        if (!studentData.success || !studentData.data) {
+          document.getElementById(
+            "studentDetails"
+          ).innerHTML = `<div style='text-align:center;padding:2rem;'>Student not found.</div>`;
+          document.getElementById("studentModal").style.display = "block";
+          return;
+        }
+        const student = studentData.data;
+        // Fetch attendance percentage
+        let attendancePercent = "-";
+        let attendanceClass = "";
+        try {
+          const attRes = await fetch(`/backend/controllers/attendance.php`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "get_student_attendance_percent",
+              student_id: studentId,
+            }),
+          });
+          const attData = await attRes.json();
+          if (attData.success && attData.percent !== undefined) {
+            attendancePercent = attData.percent + "%";
+            attendanceClass = getAttendanceClass(attData.percent);
+          }
+        } catch {}
+        // Render modal
+        document.getElementById("studentDetails").innerHTML = `
+                <div style="text-align: center; padding: 2rem;">
+            <div style="width: 100px; height: 100px; border-radius: 50%; background: #667eea; color: white; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1rem;">
+              ${getInitials(student.first_name, student.last_name)}
+            </div>
+            <h3>${student.first_name} ${student.last_name}</h3>
+            <p>Student ID: ${student.id}</p>
+            <p>Class: ${student.class_name || "-"}</p>
+            <p>Email: ${student.email || "-"}</p>
+            <p>Phone: ${student.phone || "-"}</p>
+                    <div style="margin-top: 1rem;">
+              <span class="attendance-badge ${attendanceClass}" style="margin-left: 1rem;">Attendance: ${attendancePercent}</span>
+                    </div>
+                </div>
+            `;
+        document.getElementById("studentModal").style.display = "block";
+      }
+
+      function getAttendanceClass(percent) {
+        if (percent < 50) return "poor";
+        if (percent < 65) return "average";
+        if (percent < 85) return "good";
+        return "excellent";
+      }
+
+      function editStudent(studentId) {
+        // Navigate to edit student page
+        window.location.href = `edit-student.html?id=${studentId}`;
+      }
+
+      function viewAttendance(studentId) {
+        // Navigate to attendance page for this student
+        window.location.href = `attendance.html?student=${studentId}`;
+      }
+
+      function changePage(direction) {
+        // Implement pagination
+        console.log("Changing page:", direction);
+      }
+
+      function closeStudentModal() {
+        document.getElementById("studentModal").style.display = "none";
+      }
+
+      // Close modal when clicking outside
+      window.onclick = function (event) {
+        const modal = document.getElementById("studentModal");
+        if (event.target === modal) {
+          closeStudentModal();
+        }
+      };
+    </script>
+
+    <style>
+      .student-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .student-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #667eea;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.9rem;
+      }
+
+      .attendance-badge {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 500;
+      }
+
+      .attendance-badge.excellent {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .attendance-badge.good {
+        background: #cce5ff;
+        color: #004085;
+      }
+
+      .attendance-badge.average {
+        background: #fff3cd;
+        color: #856404;
+      }
+
+      .attendance-badge.poor {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 5px;
+      }
+
+      .action-buttons .btn {
+        padding: 4px 8px;
+        font-size: 0.8rem;
+      }
+    </style>
+  </body>
+</html>

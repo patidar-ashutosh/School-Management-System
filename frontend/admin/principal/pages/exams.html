@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Exams Management - Principal Portal</title>
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <link rel="stylesheet" href="/assets/css/principal.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="admin-portal">
+    <div class="admin-container">
+      <!-- Header -->
+      <header class="admin-header">
+        <div class="header-content">
+          <h1><i class="fas fa-file-alt"></i> Exams Management</h1>
+          <div class="header-actions">
+            <button class="btn btn-primary" onclick="openAddModal()">
+              <i class="fas fa-plus"></i> Add Exam
+            </button>
+            <a href="principal-dashboard.html" class="btn btn-secondary">
+              <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+          </div>
+        </div>
+      </header>
+
+      <!-- Search and Filter Section -->
+      <div class="search-section">
+        <div class="search-box">
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Search exams by name, subject, or grade..."
+          />
+          <i class="fas fa-search"></i>
+        </div>
+        <div class="filter-options">
+          <select id="subjectFilter">
+            <option value="">All Subjects</option>
+            <option value="Mathematics">Mathematics</option>
+            <option value="Science">Science</option>
+            <option value="English">English</option>
+            <option value="History">History</option>
+            <option value="Geography">Geography</option>
+          </select>
+          <select id="gradeFilter">
+            <option value="">All Grades</option>
+            <option value="1">Grade 1</option>
+            <option value="2">Grade 2</option>
+            <option value="3">Grade 3</option>
+            <option value="4">Grade 4</option>
+            <option value="5">Grade 5</option>
+          </select>
+          <select id="statusFilter">
+            <option value="">All Status</option>
+            <option value="Scheduled">Scheduled</option>
+            <option value="Ongoing">Ongoing</option>
+            <option value="Completed">Completed</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Exams Table -->
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Exam ID</th>
+              <th>Exam Name</th>
+              <th>Subject</th>
+              <th>Class</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Total Marks</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="examsTableBody">
+            <!-- Sample data - will be populated by JavaScript -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination">
+        <button class="btn btn-secondary" onclick="previousPage()">
+          <i class="fas fa-chevron-left"></i> Previous
+        </button>
+        <span id="pageInfo">Page 1 of 1</span>
+        <button class="btn btn-secondary" onclick="nextPage()">
+          Next <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Add/Edit Exam Modal -->
+    <div id="examModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="modalTitle">Add New Exam</h2>
+          <span class="close" onclick="closeModal()">&times;</span>
+        </div>
+        <form id="examForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="examName">Name</label>
+              <input type="text" id="examName" name="name" required />
+            </div>
+            <div class="form-group">
+              <label for="subject">Subject</label>
+              <select id="subject" name="subject" required>
+                <option value="">Select Subject</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="class">Class</label>
+              <select id="class" name="class" required>
+                <option value="">Select Class</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="examDate">Exam Date</label>
+              <input type="date" id="examDate" name="exam_date" required />
+            </div>
+            <div class="form-group">
+              <label for="startTime">Start Time</label>
+              <input type="time" id="startTime" name="start_time" required />
+            </div>
+            <div class="form-group">
+              <label for="endTime">End Time</label>
+              <input type="time" id="endTime" name="end_time" required />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="totalMarks">Total Marks</label>
+              <input
+                type="number"
+                id="totalMarks"
+                name="total_marks"
+                min="1"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="examType">Exam Type</label>
+              <select id="examType" name="exam_type" required>
+                <option value="">Select Type</option>
+                <option value="midterm">Midterm</option>
+                <option value="final">Final</option>
+                <option value="quiz">Quiz</option>
+                <option value="assignment">Assignment</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="status">Status</label>
+              <select id="status" name="status" required>
+                <option value="scheduled">Scheduled</option>
+                <option value="ongoing">Ongoing</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="closeModal()"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">Save Exam</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+      <div class="modal-content delete-modal">
+        <div class="modal-header">
+          <h2>Confirm Delete</h2>
+          <span class="close" onclick="closeDeleteModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to delete this exam?</p>
+          <p><strong id="deleteExamName"></strong></p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeDeleteModal()">
+            Cancel
+          </button>
+          <button class="btn btn-danger" onclick="confirmDelete()">
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="/assets/js/auth.js"></script>
+    <script>
+      let exams = [];
+      let currentPage = 1;
+      let itemsPerPage = 10;
+      let editingExamId = null;
+
+      document.addEventListener("DOMContentLoaded", function () {
+        setExamDateLimits();
+        fetchExamsFromDB();
+        setupEventListeners();
+      });
+
+      async function fetchExamsFromDB() {
+        try {
+          const response = await fetch("/backend/controllers/exams.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "get_all" }),
+          });
+          const data = await response.json();
+          if (data.success && data.data) {
+            exams = data.data;
+            loadExams();
+          } else {
+            showNotification(data.message);
+          }
+        } catch (error) {
+          showNotification("Failed to load exams", "error");
+        }
+      }
+
+      function setupEventListeners() {
+        document
+          .getElementById("searchInput")
+          .addEventListener("input", filterExams);
+        document
+          .getElementById("subjectFilter")
+          .addEventListener("change", filterExams);
+        document
+          .getElementById("gradeFilter")
+          .addEventListener("change", filterExams);
+        document
+          .getElementById("statusFilter")
+          .addEventListener("change", filterExams);
+        document
+          .getElementById("examForm")
+          .addEventListener("submit", handleFormSubmit);
+      }
+
+      function loadExams() {
+        const tbody = document.getElementById("examsTableBody");
+        tbody.innerHTML = "";
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const pageExams = exams.slice(startIndex, endIndex);
+        pageExams.forEach((exam) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+                    <td>${exam.id}</td>
+                    <td>${exam.name}</td>
+                    <td>${exam.subject_name || "-"}</td>
+                    <td>${exam.class_name || "-"}</td>
+                    <td>${formatDate(exam.date)}</td>
+                    <td>${
+                      exam.start_time
+                        ? exam.start_time + " - " + exam.end_time
+                        : "-"
+                    }</td>
+                    <td>${exam.total_marks || "-"}</td>
+                    <td><span class="type-badge ${exam.exam_type || ""}">${
+            exam.exam_type || "-"
+          }</span></td>
+                    <td><span class="status-badge ${
+                      exam.status ? exam.status.toLowerCase() : ""
+                    }">${exam.status || "-"}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="openEditModal('${
+                          exam.id
+                        }')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteExam('${
+                          exam.id
+                        }', '${exam.name}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+          tbody.appendChild(row);
+        });
+        updatePagination();
+      }
+
+      function filterExams() {
+        const searchTerm = document
+          .getElementById("searchInput")
+          .value.toLowerCase();
+        const subjectFilter = document.getElementById("subjectFilter").value;
+        const gradeFilter = document.getElementById("gradeFilter").value;
+        const statusFilter = document.getElementById("statusFilter").value;
+
+        const filteredExams = exams.filter((exam) => {
+          const matchesSearch =
+            exam.name.toLowerCase().includes(searchTerm) ||
+            exam.id.toLowerCase().includes(searchTerm) ||
+            exam.subject_name.toLowerCase().includes(searchTerm) ||
+            exam.class_name.toLowerCase().includes(searchTerm);
+          const matchesSubject =
+            !subjectFilter || exam.subject_name === subjectFilter;
+          const matchesGrade =
+            !gradeFilter || exam.class_name.includes(gradeFilter);
+          const matchesStatus = !statusFilter || exam.status === statusFilter;
+
+          return (
+            matchesSearch && matchesSubject && matchesGrade && matchesStatus
+          );
+        });
+
+        displayFilteredExams(filteredExams);
+      }
+
+      function displayFilteredExams(filteredExams) {
+        const tbody = document.getElementById("examsTableBody");
+        tbody.innerHTML = "";
+
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const pageExams = filteredExams.slice(startIndex, endIndex);
+
+        pageExams.forEach((exam) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+                    <td>${exam.id}</td>
+                    <td>${exam.name}</td>
+                    <td>${exam.subject_name || "-"}</td>
+                    <td>${exam.class_name || "-"}</td>
+                    <td>${formatDate(exam.date)}</td>
+                    <td>${
+                      exam.start_time
+                        ? exam.start_time + " - " + exam.end_time
+                        : "-"
+                    }</td>
+                    <td>${exam.total_marks || "-"}</td>
+                    <td><span class="type-badge ${exam.exam_type || ""}">${
+            exam.exam_type || "-"
+          }</span></td>
+                    <td><span class="status-badge ${
+                      exam.status ? exam.status.toLowerCase() : ""
+                    }">${exam.status || "-"}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="openEditModal('${
+                          exam.id
+                        }')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteExam('${
+                          exam.id
+                        }', '${exam.name}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+          tbody.appendChild(row);
+        });
+
+        updatePagination();
+      }
+
+      function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        });
+      }
+
+      function updatePagination() {
+        const totalPages = Math.ceil(exams.length / itemsPerPage);
+        document.getElementById(
+          "pageInfo"
+        ).textContent = `Page ${currentPage} of ${totalPages}`;
+      }
+
+      function previousPage() {
+        if (currentPage > 1) {
+          currentPage--;
+          loadExams();
+        }
+      }
+
+      function nextPage() {
+        const totalPages = Math.ceil(exams.length / itemsPerPage);
+        if (currentPage < totalPages) {
+          currentPage++;
+          loadExams();
+        }
+      }
+
+      function openAddModal() {
+        document.getElementById("modalTitle").textContent = "Add New Exam";
+        document.getElementById("examForm").reset();
+        document.getElementById("examModal").style.display = "block";
+        setExamDateLimits();
+        loadDropdowns();
+        editingExamId = null;
+      }
+
+      async function openEditModal(examId) {
+        const exam = exams.find((e) => e.id == examId);
+        if (exam) {
+          editingExamId = examId;
+          document.getElementById("modalTitle").textContent = "Edit Exam";
+          document.getElementById("examName").value = exam.name;
+          document.getElementById("examDate").value = exam.date;
+          document.getElementById("startTime").value = exam.start_time || "";
+          document.getElementById("endTime").value = exam.end_time || "";
+          document.getElementById("totalMarks").value = exam.total_marks || "";
+          document.getElementById("examType").value = exam.exam_type || "";
+          document.getElementById("status").value = exam.status || "";
+          document.getElementById("examModal").style.display = "block";
+          setExamDateLimits();
+          await loadDropdownsWithSelection(exam.class_id, exam.subject_id);
+        }
+      }
+
+      async function loadDropdownsWithSelection(
+        selectedClassId,
+        selectedSubjectId
+      ) {
+        // Load subjects
+        await fetch("/backend/controllers/subjects.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_all" }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            const subjectSelect = document.getElementById("subject");
+            subjectSelect.innerHTML =
+              '<option value="">Select Subject</option>';
+            if (data.success && data.data) {
+              data.data.forEach((subject) => {
+                const option = document.createElement("option");
+                option.value = subject.id;
+                option.textContent = subject.name;
+                subjectSelect.appendChild(option);
+              });
+              if (selectedSubjectId) {
+                subjectSelect.value = selectedSubjectId;
+              }
+            }
+          });
+
+        // Load classes
+        await fetch("/backend/controllers/classes.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_all" }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            const classSelect = document.getElementById("class");
+            classSelect.innerHTML = '<option value="">Select Class</option>';
+            if (data.success && data.data) {
+              data.data.forEach((cls) => {
+                const option = document.createElement("option");
+                option.value = cls.id;
+                option.textContent = cls.name;
+                classSelect.appendChild(option);
+              });
+              if (selectedClassId) {
+                classSelect.value = selectedClassId;
+              }
+            }
+          });
+      }
+
+      function closeModal() {
+        document.getElementById("examModal").style.display = "none";
+        editingExamId = null;
+      }
+
+      async function handleFormSubmit(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const examData = {
+          name: formData.get("name"),
+          subject_id: formData.get("subject"),
+          class_id: formData.get("class"),
+          date: formData.get("exam_date"),
+          start_time: formData.get("start_time"),
+          end_time: formData.get("end_time"),
+          total_marks: formData.get("total_marks"),
+          exam_type: formData.get("exam_type"),
+          status: formData.get("status"),
+        };
+        if (editingExamId) {
+          // Edit exam (update in DB)
+          try {
+            const response = await fetch("/backend/controllers/exams.php", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                action: "update",
+                id: editingExamId,
+                ...examData,
+              }),
+            });
+            const data = await response.json();
+            if (data.success) {
+              showNotification("Exam updated successfully!", "success");
+              closeModal();
+              fetchExamsFromDB();
+            } else {
+              showNotification(
+                data.message || "Failed to update exam",
+                "error"
+              );
+            }
+          } catch (error) {
+            showNotification("Error updating exam", "error");
+          }
+        } else {
+          // Add new exam (create in DB)
+          try {
+            const response = await fetch("/backend/controllers/exams.php", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                action: "create",
+                ...examData,
+              }),
+            });
+            const data = await response.json();
+            if (data.success) {
+              showNotification("Exam added successfully!", "success");
+              closeModal();
+              fetchExamsFromDB();
+            } else {
+              showNotification(data.message || "Failed to add exam", "error");
+            }
+          } catch (error) {
+            showNotification("Error adding exam", "error");
+          }
+        }
+      }
+
+      function deleteExam(examId, examName) {
+        document.getElementById("deleteExamName").textContent = examName;
+        document.getElementById("deleteModal").style.display = "block";
+        document
+          .getElementById("deleteModal")
+          .setAttribute("data-exam-id", examId);
+      }
+
+      function closeDeleteModal() {
+        document.getElementById("deleteModal").style.display = "none";
+      }
+
+      async function confirmDelete() {
+        const examId = document
+          .getElementById("deleteModal")
+          .getAttribute("data-exam-id");
+        try {
+          const response = await fetch("/backend/controllers/exams.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "delete",
+              id: examId,
+            }),
+          });
+          const data = await response.json();
+          if (data.success) {
+            showNotification("Exam deleted successfully!", "success");
+            closeDeleteModal();
+            fetchExamsFromDB();
+          } else {
+            showNotification(data.message || "Failed to delete exam", "error");
+          }
+        } catch (error) {
+          showNotification("Error deleting exam", "error");
+        }
+      }
+
+      function showNotification(message, type) {
+        // Simple notification - in real app, use a proper notification library
+        alert(message);
+      }
+
+      function loadDropdowns() {
+        // Load subjects
+        fetch("/backend/controllers/subjects.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_all" }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            const subjectSelect = document.getElementById("subject");
+            subjectSelect.innerHTML =
+              '<option value="">Select Subject</option>';
+            if (data.success && data.data) {
+              data.data.forEach((subject) => {
+                const option = document.createElement("option");
+                option.value = subject.id;
+                option.textContent = subject.name;
+                subjectSelect.appendChild(option);
+              });
+            }
+          });
+
+        // Load classes
+        fetch("/backend/controllers/classes.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_all" }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            const classSelect = document.getElementById("class");
+            classSelect.innerHTML = '<option value="">Select Class</option>';
+            if (data.success && data.data) {
+              data.data.forEach((cls) => {
+                const option = document.createElement("option");
+                option.value = cls.id;
+                option.textContent = cls.name;
+                classSelect.appendChild(option);
+              });
+            }
+          });
+      }
+
+      function setExamDateLimits() {
+        const examDateInput = document.getElementById("examDate");
+        if (examDateInput) {
+          const today = new Date();
+          const minDate = today.toISOString().split("T")[0];
+          const maxDateObj = new Date(today);
+          maxDateObj.setDate(today.getDate() + 25);
+          const maxDate = maxDateObj.toISOString().split("T")[0];
+          examDateInput.setAttribute("min", minDate);
+          examDateInput.setAttribute("max", maxDate);
+        }
+      }
+
+      // Close modal when clicking outside
+      window.onclick = function (event) {
+        const modal = document.getElementById("examModal");
+        const deleteModal = document.getElementById("deleteModal");
+        if (event.target === modal) {
+          closeModal();
+        }
+        if (event.target === deleteModal) {
+          closeDeleteModal();
+        }
+      };
+    </script>
+
+    <style>
+      .type-badge {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: capitalize;
+      }
+
+      .type-badge.midterm {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .type-badge.final {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      .type-badge.quiz {
+        background: #cce5ff;
+        color: #004085;
+      }
+
+      .type-badge.assignment {
+        background: #fff3cd;
+        color: #856404;
+      }
+    </style>
+  </body>
+</html>

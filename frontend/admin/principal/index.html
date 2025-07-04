@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>School Management System - Principal Login</title>
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <link rel="stylesheet" href="/assets/css/principal.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="principal-login">
+    <div class="container">
+      <div class="login-container">
+        <div class="login-header">
+          <h1><i class="fas fa-school"></i> School Management System</h1>
+          <h2>Principal Login</h2>
+        </div>
+
+        <form id="loginForm" class="login-form">
+          <div class="form-group">
+            <label for="email"><i class="fas fa-envelope"></i> Email</label>
+            <input type="email" id="email" name="email" required />
+          </div>
+
+          <div class="form-group">
+            <label for="password"><i class="fas fa-lock"></i> Password</label>
+            <input type="password" id="password" name="password" required />
+          </div>
+
+          <input type="hidden" name="role" value="principal" />
+
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-sign-in-alt"></i> Login
+          </button>
+        </form>
+
+        <div class="login-footer">
+          <p>Don't have an account? Contact the system administrator.</p>
+          <p>
+            <a href="/frontend/forgot-password.html" class="link"
+              >Forgot Password?</a
+            >
+          </p>
+          <div class="role-switch-links">
+            <a href="../teacher/index.html" class="link">
+              <i class="fas fa-chalkboard-teacher"></i> Teacher Login
+            </a>
+            <a href="../../user/index.html" class="link">
+              <i class="fas fa-user-graduate"></i> Student Login
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/assets/js/auth.js"></script>
+  </body>
+</html>

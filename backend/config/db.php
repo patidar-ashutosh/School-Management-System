@@ -64,6 +64,28 @@ class Database {
         return $this->query($sql, $params)->fetch();
     }
 
+    public function insert($sql, $params = []) {
+        $this->query($sql, $params);
+        return $this->lastInsertId();
+    }
+
+    public function delete($sql, $params = []) {
+        $stmt = $this->query($sql, $params);
+        return $stmt->rowCount();
+    }
+
+    public function beginTransaction() {
+        return $this->connection->beginTransaction();
+    }
+
+    public function commit() {
+        return $this->connection->commit();
+    }
+
+    public function rollback() {
+        return $this->connection->rollback();
+    }
+
     public function lastInsertId() {
         return $this->connection->lastInsertId();
     }

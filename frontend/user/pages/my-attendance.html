@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Attendance - Student Dashboard</title>
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="student-dashboard">
+    <header class="main-header">
+      <div class="header-container">
+        <div class="logo">
+          <i class="fas fa-school"></i>
+          <span>School Management System</span>
+        </div>
+
+        <nav class="main-nav">
+          <ul>
+            <li>
+              <a href="student-dashboard.html"
+                ><i class="fas fa-tachometer-alt"></i> Dashboard</a
+              >
+            </li>
+            <li>
+              <a href="my-grades.html"
+                ><i class="fas fa-chart-line"></i> My Grades</a
+              >
+            </li>
+            <li>
+              <a href="my-attendance.html" class="active"
+                ><i class="fas fa-calendar-check"></i> My Attendance</a
+              >
+            </li>
+            <li>
+              <a href="my-schedule.html"
+                ><i class="fas fa-calendar-alt"></i> My Schedule</a
+              >
+            </li>
+            <li>
+              <a href="my-assignments.html"
+                ><i class="fas fa-tasks"></i> My Assignments</a
+              >
+            </li>
+          </ul>
+        </nav>
+
+        <div class="user-menu">
+          <div class="user-info">
+            <i class="fas fa-user-circle"></i>
+            <span id="userName">Student</span>
+          </div>
+          <div class="dropdown-menu">
+            <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
+            <a href="settings.html"><i class="fas fa-cog"></i> Settings</a>
+            <a href="#" onclick="logout()"
+              ><i class="fas fa-sign-out-alt"></i> Logout</a
+            >
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="page-header">
+        <h1>My Attendance</h1>
+        <p>Track your attendance records and statistics</p>
+      </div>
+
+      <!-- Attendance Statistics -->
+      <div class="dashboard-cards">
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Overall Attendance</div>
+            <div class="card-icon" style="background: #667eea">
+              <i class="fas fa-calendar-check"></i>
+            </div>
+          </div>
+          <div class="card-number" id="overallAttendance">92.5%</div>
+          <div class="card-description">This semester</div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Present Days</div>
+            <div class="card-icon" style="background: #28a745">
+              <i class="fas fa-user-check"></i>
+            </div>
+          </div>
+          <div class="card-number" id="presentDays">148</div>
+          <div class="card-description">Out of 160 days</div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Absent Days</div>
+            <div class="card-icon" style="background: #dc3545">
+              <i class="fas fa-user-times"></i>
+            </div>
+          </div>
+          <div class="card-number" id="absentDays">8</div>
+          <div class="card-description">This semester</div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Late Arrivals</div>
+            <div class="card-icon" style="background: #ffc107">
+              <i class="fas fa-clock"></i>
+            </div>
+          </div>
+          <div class="card-number" id="lateArrivals">4</div>
+          <div class="card-description">This semester</div>
+        </div>
+      </div>
+
+      <!-- Monthly Attendance Chart -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Monthly Attendance Overview</h3>
+          <div class="header-actions">
+            <select id="monthFilter" onchange="filterAttendance()">
+              <option value="current">Current Month</option>
+              <option value="previous">Previous Month</option>
+              <option value="all">All Months</option>
+            </select>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="monthly-attendance">
+            <div class="month-bar">
+              <div class="month-label">January</div>
+              <div class="attendance-progress">
+                <div
+                  class="progress-fill"
+                  style="width: 95%; background: #28a745"
+                ></div>
+              </div>
+              <div class="attendance-count">95% (19/20)</div>
+            </div>
+            <div class="month-bar">
+              <div class="month-label">February</div>
+              <div class="attendance-progress">
+                <div
+                  class="progress-fill"
+                  style="width: 90%; background: #17a2b8"
+                ></div>
+              </div>
+              <div class="attendance-count">90% (18/20)</div>
+            </div>
+            <div class="month-bar">
+              <div class="month-label">March</div>
+              <div class="attendance-progress">
+                <div
+                  class="progress-fill"
+                  style="width: 100%; background: #28a745"
+                ></div>
+              </div>
+              <div class="attendance-count">100% (20/20)</div>
+            </div>
+            <div class="month-bar">
+              <div class="month-label">April</div>
+              <div class="attendance-progress">
+                <div
+                  class="progress-fill"
+                  style="width: 85%; background: #ffc107"
+                ></div>
+              </div>
+              <div class="attendance-count">85% (17/20)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Subject-wise Attendance -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Subject-wise Attendance</h3>
+        </div>
+        <div class="card-body">
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Subject</th>
+                  <th>Teacher</th>
+                  <th>Total Classes</th>
+                  <th>Present</th>
+                  <th>Absent</th>
+                  <th>Late</th>
+                  <th>Attendance %</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="subjectAttendanceTable">
+                <tr>
+                  <td>
+                    <div class="subject-info">
+                      <strong>Mathematics</strong>
+                      <small>Mon, Wed, Fri</small>
+                    </div>
+                  </td>
+                  <td>Mr. Johnson</td>
+                  <td>45</td>
+                  <td>43</td>
+                  <td>1</td>
+                  <td>1</td>
+                  <td><span class="attendance-badge excellent">95.6%</span></td>
+                  <td><span class="status-badge excellent">Excellent</span></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="subject-info">
+                      <strong>English Literature</strong>
+                      <small>Tue, Thu</small>
+                    </div>
+                  </td>
+                  <td>Ms. Davis</td>
+                  <td>30</td>
+                  <td>28</td>
+                  <td>2</td>
+                  <td>0</td>
+                  <td><span class="attendance-badge good">93.3%</span></td>
+                  <td><span class="status-badge good">Good</span></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="subject-info">
+                      <strong>Physics</strong>
+                      <small>Mon, Wed</small>
+                    </div>
+                  </td>
+                  <td>Dr. Wilson</td>
+                  <td>30</td>
+                  <td>27</td>
+                  <td>2</td>
+                  <td>1</td>
+                  <td><span class="attendance-badge average">90.0%</span></td>
+                  <td><span class="status-badge average">Average</span></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="subject-info">
+                      <strong>History</strong>
+                      <small>Tue, Thu</small>
+                    </div>
+                  </td>
+                  <td>Mrs. Brown</td>
+                  <td>30</td>
+                  <td>29</td>
+                  <td>1</td>
+                  <td>0</td>
+                  <td><span class="attendance-badge excellent">96.7%</span></td>
+                  <td><span class="status-badge excellent">Excellent</span></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="subject-info">
+                      <strong>Computer Science</strong>
+                      <small>Fri</small>
+                    </div>
+                  </td>
+                  <td>Mr. Chen</td>
+                  <td>15</td>
+                  <td>15</td>
+                  <td>0</td>
+                  <td>0</td>
+                  <td><span class="attendance-badge excellent">100%</span></td>
+                  <td><span class="status-badge excellent">Perfect</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Attendance Records -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Recent Attendance Records</h3>
+        </div>
+        <div class="card-body">
+          <div class="attendance-records">
+            <div class="attendance-record present">
+              <div class="record-date">
+                <div class="day">15</div>
+                <div class="month">Jan</div>
+              </div>
+              <div class="record-details">
+                <div class="record-status">Present</div>
+                <div class="record-time">Arrived at 8:45 AM</div>
+                <div class="record-subjects">All classes attended</div>
+              </div>
+              <div class="record-icon">
+                <i class="fas fa-check-circle text-success"></i>
+              </div>
+            </div>
+            <div class="attendance-record absent">
+              <div class="record-date">
+                <div class="day">12</div>
+                <div class="month">Jan</div>
+              </div>
+              <div class="record-details">
+                <div class="record-status">Absent</div>
+                <div class="record-time">Medical leave</div>
+                <div class="record-subjects">All classes missed</div>
+              </div>
+              <div class="record-icon">
+                <i class="fas fa-times-circle text-danger"></i>
+              </div>
+            </div>
+            <div class="attendance-record late">
+              <div class="record-date">
+                <div class="day">10</div>
+                <div class="month">Jan</div>
+              </div>
+              <div class="record-details">
+                <div class="record-status">Late</div>
+                <div class="record-time">Arrived at 9:15 AM</div>
+                <div class="record-subjects">Missed first period</div>
+              </div>
+              <div class="record-icon">
+                <i class="fas fa-clock text-warning"></i>
+              </div>
+            </div>
+            <div class="attendance-record present">
+              <div class="record-date">
+                <div class="day">08</div>
+                <div class="month">Jan</div>
+              </div>
+              <div class="record-details">
+                <div class="record-status">Present</div>
+                <div class="record-time">Arrived at 8:30 AM</div>
+                <div class="record-subjects">All classes attended</div>
+              </div>
+              <div class="record-icon">
+                <i class="fas fa-check-circle text-success"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="/assets/js/auth.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        loadAttendanceData();
+      });
+
+      function loadAttendanceData() {
+        setTimeout(() => {
+          document.getElementById("overallAttendance").textContent = "92.5%";
+          document.getElementById("presentDays").textContent = "148";
+          document.getElementById("absentDays").textContent = "8";
+          document.getElementById("lateArrivals").textContent = "4";
+        }, 1000);
+      }
+
+      function filterAttendance() {
+        const month = document.getElementById("monthFilter").value;
+        console.log("Filtering attendance by month:", month);
+        // Implement filtering logic here
+      }
+    </script>
+
+    <style>
+      .subject-info {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .subject-info small {
+        color: #666;
+        font-size: 0.85rem;
+      }
+
+      .attendance-badge {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 500;
+      }
+
+      .attendance-badge.excellent {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .attendance-badge.good {
+        background: #cce5ff;
+        color: #004085;
+      }
+
+      .attendance-badge.average {
+        background: #fff3cd;
+        color: #856404;
+      }
+
+      .attendance-badge.poor {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      .status-badge {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: uppercase;
+      }
+
+      .status-badge.excellent {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .status-badge.good {
+        background: #cce5ff;
+        color: #004085;
+      }
+
+      .status-badge.average {
+        background: #fff3cd;
+        color: #856404;
+      }
+
+      .status-badge.poor {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      .text-success {
+        color: #28a745;
+      }
+
+      .text-danger {
+        color: #dc3545;
+      }
+
+      .text-warning {
+        color: #ffc107;
+      }
+
+      .monthly-attendance {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .month-bar {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .month-label {
+        min-width: 100px;
+        font-weight: 500;
+      }
+
+      .attendance-progress {
+        flex: 1;
+        height: 20px;
+        background: #f0f0f0;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        height: 100%;
+        transition: width 0.3s ease;
+      }
+
+      .attendance-count {
+        min-width: 100px;
+        text-align: right;
+        font-weight: 500;
+      }
+
+      .attendance-records {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .attendance-record {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #667eea;
+      }
+
+      .attendance-record.present {
+        border-left-color: #28a745;
+      }
+
+      .attendance-record.absent {
+        border-left-color: #dc3545;
+      }
+
+      .attendance-record.late {
+        border-left-color: #ffc107;
+      }
+
+      .record-date {
+        text-align: center;
+        min-width: 60px;
+      }
+
+      .record-date .day {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #667eea;
+      }
+
+      .record-date .month {
+        font-size: 0.8rem;
+        color: #666;
+        text-transform: uppercase;
+      }
+
+      .record-details {
+        flex: 1;
+      }
+
+      .record-status {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.25rem;
+      }
+
+      .record-time {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+      }
+
+      .record-subjects {
+        color: #666;
+        font-size: 0.85rem;
+      }
+
+      .record-icon {
+        font-size: 1.5rem;
+      }
+
+      .header-actions select {
+        padding: 8px 12px;
+        border: 2px solid #e1e5e9;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        background: white;
+        cursor: pointer;
+      }
+
+      .header-actions select:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+    </style>
+  </body>
+</html>

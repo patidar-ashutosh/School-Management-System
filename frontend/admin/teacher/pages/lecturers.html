@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Lectures - Teacher Dashboard</title>
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <link rel="stylesheet" href="/assets/css/teacher.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="teacher-dashboard">
+    <header class="main-header">
+      <div class="header-container">
+        <div class="logo">
+          <i class="fas fa-school"></i>
+          <span>School Management System</span>
+        </div>
+        <nav class="main-nav">
+          <ul>
+            <li>
+              <a href="teacher-dashboard.html"
+                ><i class="fas fa-tachometer-alt"></i> Dashboard</a
+              >
+            </li>
+            <li>
+              <a href="lecturers.html" class="active"
+                ><i class="fas fa-chalkboard-teacher"></i> My Lectures</a
+              >
+            </li>
+            <li>
+              <a href="my-students.html"
+                ><i class="fas fa-users"></i> My Students</a
+              >
+            </li>
+            <li>
+              <a href="attendance.html"
+                ><i class="fas fa-calendar-check"></i> Attendance</a
+              >
+            </li>
+            <li>
+              <a href="assignments.html"
+                ><i class="fas fa-tasks"></i> Assignments</a
+              >
+            </li>
+          </ul>
+        </nav>
+        <div class="user-menu">
+          <div class="user-info">
+            <i class="fas fa-user-circle"></i>
+            <span id="userName">Teacher</span>
+          </div>
+          <div class="dropdown-menu">
+            <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
+            <a href="settings.html"><i class="fas fa-cog"></i> Settings</a>
+            <a href="#" onclick="logout()"
+              ><i class="fas fa-sign-out-alt"></i> Logout</a
+            >
+          </div>
+        </div>
+        <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+      <nav class="mobile-nav" id="mobileNav">
+        <ul>
+          <li>
+            <a href="teacher-dashboard.html"
+              ><i class="fas fa-tachometer-alt"></i> Dashboard</a
+            >
+          </li>
+          <li>
+            <a href="lecturers.html" class="active"
+              ><i class="fas fa-chalkboard-teacher"></i> My Lectures</a
+            >
+          </li>
+          <li>
+            <a href="my-students.html"
+              ><i class="fas fa-users"></i> My Students</a
+            >
+          </li>
+          <li>
+            <a href="attendance.html"
+              ><i class="fas fa-calendar-check"></i> Attendance</a
+            >
+          </li>
+          <li>
+            <a href="assignments.html"
+              ><i class="fas fa-tasks"></i> Assignments</a
+            >
+          </li>
+        </ul>
+      </nav>
+    </header>
+    <main class="main-content">
+      <div class="page-header">
+        <h1>My Lectures</h1>
+        <p>Manage your scheduled lectures and view lecture details</p>
+      </div>
+      <div class="dashboard-cards">
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Total Lectures</div>
+            <div class="card-icon" style="background: #667eea">
+              <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+          </div>
+          <div class="card-number" id="totalLectures">0</div>
+          <div class="card-description">Scheduled lectures</div>
+        </div>
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Ongoing</div>
+            <div class="card-icon" style="background: #ffc107">
+              <i class="fas fa-play-circle"></i>
+            </div>
+          </div>
+          <div class="card-number" id="ongoingLectures">0</div>
+          <div class="card-description">Currently ongoing</div>
+        </div>
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Completed</div>
+            <div class="card-icon" style="background: #28a745">
+              <i class="fas fa-check-circle"></i>
+            </div>
+          </div>
+          <div class="card-number" id="completedLectures">0</div>
+          <div class="card-description">Completed lectures</div>
+        </div>
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Upcoming</div>
+            <div class="card-icon" style="background: #17a2b8">
+              <i class="fas fa-hourglass-start"></i>
+            </div>
+          </div>
+          <div class="card-number" id="upcomingLectures">0</div>
+          <div class="card-description">Incoming lectures</div>
+        </div>
+      </div>
+      <!-- Search and Filter Section -->
+      <div class="search-section">
+        <div class="search-box">
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Search lectures by subject..."
+          />
+          <i class="fas fa-search"></i>
+        </div>
+        <div class="filter-options">
+          <select id="statusFilter">
+            <option value="">All Status</option>
+            <option value="incoming">Incoming</option>
+            <option value="ongoing">Ongoing</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h3>Lecture List</h3>
+          <div class="header-actions">
+            <button class="btn btn-primary" onclick="openAddLectureModal()">
+              <i class="fas fa-plus"></i> Add Lecture
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Subject</th>
+                  <th>Class</th>
+                  <th>Start Time</th>
+                  <th>End Time</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="lecturesTableBody">
+                <!-- Dynamic rows go here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- Pagination -->
+      <div class="pagination">
+        <button class="btn btn-secondary" onclick="previousPage()">
+          <i class="fas fa-chevron-left"></i> Previous
+        </button>
+        <span id="pageInfo">Page 1 of 1</span>
+        <button class="btn btn-secondary" onclick="nextPage()">
+          Next <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </main>
+    <!-- Add/Edit Lecture Modal -->
+    <div id="lectureModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="modalTitle">Add New Lecture</h2>
+          <span class="close" onclick="closeLectureModal()">&times;</span>
+        </div>
+        <form id="lectureForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="subject">Subject</label>
+              <select id="subject" name="subject" required></select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="class">Class</label>
+              <select id="class" name="class" required></select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="startTime">Start Time</label>
+              <input
+                type="datetime-local"
+                id="startTime"
+                name="startTime"
+                required
+              />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="endTime">End Time</label>
+              <input
+                type="datetime-local"
+                id="endTime"
+                name="endTime"
+                required
+              />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="status">Status</label>
+              <select id="status" name="status" required>
+                <option value="incoming">Incoming</option>
+                <option value="ongoing">Ongoing</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="closeLectureModal()"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">Save Lecture</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+      <div class="modal-content delete-modal">
+        <div class="modal-header">
+          <h2>Confirm Delete</h2>
+          <span class="close" onclick="closeDeleteModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to delete this lecture?</p>
+          <p><strong id="deleteLectureSubject"></strong></p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeDeleteModal()">
+            Cancel
+          </button>
+          <button class="btn btn-danger" onclick="confirmDelete()">
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+    <script src="/assets/js/auth.js"></script>
+    <script>
+      let lectures = [];
+      let filteredLectures = [];
+      let currentPage = 1;
+      let itemsPerPage = 10;
+      let editingLectureId = null;
+      let deleteLectureId = null;
+      let deleteLectureSubject = "";
+
+      document.addEventListener("DOMContentLoaded", function () {
+        fetchLecturesFromDB();
+        loadSubjectsDropdown();
+        loadClassesDropdown();
+        setupLectureEventListeners();
+      });
+
+      function setupLectureEventListeners() {
+        document
+          .getElementById("lectureForm")
+          .addEventListener("submit", handleLectureFormSubmit);
+        document
+          .getElementById("searchInput")
+          .addEventListener("input", filterLectures);
+        document
+          .getElementById("statusFilter")
+          .addEventListener("change", filterLectures);
+      }
+
+      function fetchLecturesFromDB() {
+        const user = localStorage.getItem("user");
+        const teacher = user ? JSON.parse(user) : null;
+        if (!teacher) return;
+        fetch(`/backend/controllers/lecturers.php`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "get_by_teacher",
+            teacher_id: teacher.id,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success && data.data) {
+              lectures = data.data;
+              filterLectures();
+              updateLectureStats();
+            } else {
+              lectures = [];
+              filterLectures();
+              updateLectureStats();
+            }
+          })
+          .catch((error) => {
+            lectures = [];
+            filterLectures();
+            updateLectureStats();
+          });
+      }
+
+      function filterLectures() {
+        const searchTerm = document
+          .getElementById("searchInput")
+          .value.toLowerCase();
+        const statusFilter = document.getElementById("statusFilter").value;
+        filteredLectures = lectures.filter((lec) => {
+          const matchesSearch = (lec.subject_name || "")
+            .toLowerCase()
+            .includes(searchTerm);
+          const matchesStatus = !statusFilter || lec.status === statusFilter;
+          return matchesSearch && matchesStatus;
+        });
+        currentPage = 1;
+        loadLectures();
+      }
+
+      function loadLectures() {
+        const tbody = document.getElementById("lecturesTableBody");
+        tbody.innerHTML = "";
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const pageLectures = filteredLectures.slice(startIndex, endIndex);
+        pageLectures.forEach((lec) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${lec.subject_name || ""}</td>
+            <td>${lec.class_name || ""}</td>
+            <td>${formatDateTime(lec.start_time)}</td>
+            <td>${formatDateTime(lec.end_time)}</td>
+            <td><span class="status-badge ${lec.status}">${capitalize(
+            lec.status
+          )}</span></td>
+            <td>
+              <button class="btn btn-sm btn-primary" onclick="editLecture('${
+                lec.id
+              }')"><i class="fas fa-edit"></i></button>
+              <button class="btn btn-sm btn-danger" onclick="deleteLecture('${
+                lec.id
+              }', '${lec.subject_name}')"><i class="fas fa-trash"></i></button>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+        updateLecturePagination();
+      }
+
+      function updateLectureStats() {
+        document.getElementById("totalLectures").textContent = lectures.length;
+        document.getElementById("ongoingLectures").textContent =
+          lectures.filter((l) => l.status === "ongoing").length;
+        document.getElementById("completedLectures").textContent =
+          lectures.filter((l) => l.status === "completed").length;
+        document.getElementById("upcomingLectures").textContent =
+          lectures.filter((l) => l.status === "incoming").length;
+      }
+
+      function updateLecturePagination() {
+        const totalPages =
+          Math.ceil(filteredLectures.length / itemsPerPage) || 1;
+        document.getElementById(
+          "pageInfo"
+        ).textContent = `Page ${currentPage} of ${totalPages}`;
+      }
+
+      function previousPage() {
+        if (currentPage > 1) {
+          currentPage--;
+          loadLectures();
+        }
+      }
+
+      function nextPage() {
+        const totalPages =
+          Math.ceil(filteredLectures.length / itemsPerPage) || 1;
+        if (currentPage < totalPages) {
+          currentPage++;
+          loadLectures();
+        }
+      }
+
+      function openAddLectureModal() {
+        editingLectureId = null;
+        document.getElementById("modalTitle").textContent = "Add New Lecture";
+        document.getElementById("lectureForm").reset();
+        document.getElementById("lectureModal").style.display = "block";
+      }
+
+      function editLecture(lectureId) {
+        fetch(`/backend/controllers/lecturers.php`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get", id: lectureId }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success && data.data) {
+              editingLectureId = lectureId;
+              document.getElementById("modalTitle").textContent =
+                "Edit Lecture";
+              document.getElementById("subject").value = data.data.subject_id;
+              document.getElementById("class").value = data.data.class_id;
+              document.getElementById("startTime").value =
+                data.data.start_time.slice(0, 16);
+              document.getElementById("endTime").value =
+                data.data.end_time.slice(0, 16);
+              document.getElementById("status").value = data.data.status;
+              document.getElementById("lectureModal").style.display = "block";
+            } else {
+              showLectureNotification(
+                data.message || "Failed to load lecture data",
+                "error"
+              );
+            }
+          })
+          .catch((error) => {
+            showLectureNotification(
+              "Network error. Please try again.",
+              "error"
+            );
+          });
+      }
+
+      function closeLectureModal() {
+        document.getElementById("lectureModal").style.display = "none";
+        editingLectureId = null;
+      }
+
+      function handleLectureFormSubmit(e) {
+        e.preventDefault();
+        const user = localStorage.getItem("user");
+        const teacher = user ? JSON.parse(user) : null;
+        if (!teacher) return;
+        const formData = new FormData(e.target);
+        const lectureData = {
+          subject_id: formData.get("subject"),
+          class_id: formData.get("class"),
+          start_time: formData.get("startTime"),
+          end_time: formData.get("endTime"),
+          status: formData.get("status"),
+          teacher_id: teacher.id,
+        };
+        fetch(`/backend/controllers/lecturers.php`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: editingLectureId ? "edit" : "add",
+            id: editingLectureId,
+            ...lectureData,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              closeLectureModal();
+              fetchLecturesFromDB();
+              showLectureNotification("Lecture saved successfully!", "success");
+            } else {
+              showLectureNotification(
+                data.message || "Failed to save lecture",
+                "error"
+              );
+            }
+          })
+          .catch((error) => {
+            showLectureNotification(
+              "Network error. Please try again.",
+              "error"
+            );
+          });
+      }
+
+      function deleteLecture(lectureId, subjectName) {
+        deleteLectureId = lectureId;
+        deleteLectureSubject = subjectName;
+        document.getElementById("deleteLectureSubject").textContent =
+          subjectName;
+        document.getElementById("deleteModal").style.display = "block";
+      }
+
+      function closeDeleteModal() {
+        document.getElementById("deleteModal").style.display = "none";
+        deleteLectureId = null;
+        deleteLectureSubject = "";
+      }
+
+      function confirmDelete() {
+        if (!deleteLectureId) return;
+        fetch(`/backend/controllers/lecturers.php`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "delete", id: deleteLectureId }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              closeDeleteModal();
+              fetchLecturesFromDB();
+              showLectureNotification(
+                "Lecture deleted successfully!",
+                "success"
+              );
+            } else {
+              showLectureNotification(
+                data.message || "Failed to delete lecture",
+                "error"
+              );
+            }
+          })
+          .catch((error) => {
+            showLectureNotification(
+              "Network error. Please try again.",
+              "error"
+            );
+          });
+      }
+
+      function loadSubjectsDropdown() {
+        fetch(`/backend/controllers/subjects.php`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_all" }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            const subjectDropdown = document.getElementById("subject");
+            if (subjectDropdown) {
+              subjectDropdown.innerHTML = "";
+              (data.data || []).forEach((subject) => {
+                const option = document.createElement("option");
+                option.value = subject.id;
+                option.textContent = subject.name;
+                subjectDropdown.appendChild(option);
+              });
+            }
+          });
+      }
+
+      function loadClassesDropdown() {
+        fetch(`/backend/controllers/classes.php`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_all" }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            const classDropdown = document.getElementById("class");
+            if (classDropdown) {
+              classDropdown.innerHTML = "";
+              (data.data || []).forEach((cls) => {
+                const option = document.createElement("option");
+                option.value = cls.id;
+                option.textContent = cls.name;
+                classDropdown.appendChild(option);
+              });
+            }
+          });
+      }
+
+      function formatDateTime(dt) {
+        if (!dt) return "";
+        const d = new Date(dt);
+        return d.toLocaleString();
+      }
+
+      function capitalize(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+      }
+
+      function showLectureNotification(message, type) {
+        alert(message); // Replace with a better notification if desired
+      }
+
+      // Close modal when clicking outside
+      window.onclick = function (event) {
+        const modal = document.getElementById("lectureModal");
+        const deleteModal = document.getElementById("deleteModal");
+        if (event.target === modal) {
+          closeLectureModal();
+        }
+        if (event.target === deleteModal) {
+          closeDeleteModal();
+        }
+      };
+    </script>
+  </body>
+</html>

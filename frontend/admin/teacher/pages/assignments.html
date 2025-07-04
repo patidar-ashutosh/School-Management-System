@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Assignments - Teacher Dashboard</title>
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <link rel="stylesheet" href="/assets/css/principal.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="teacher-dashboard">
+    <header class="main-header">
+      <div class="header-container">
+        <div class="logo">
+          <i class="fas fa-school"></i>
+          <span>School Management System</span>
+        </div>
+
+        <nav class="main-nav">
+          <ul>
+            <li>
+              <a href="teacher-dashboard.html"
+                ><i class="fas fa-tachometer-alt"></i> Dashboard</a
+              >
+            </li>
+            <li>
+              <a href="lecturers.html"
+                ><i class="fas fa-chalkboard-teacher"></i> My Lectures</a
+              >
+            </li>
+            <li>
+              <a href="my-students.html"
+                ><i class="fas fa-users"></i> My Students</a
+              >
+            </li>
+            <li>
+              <a href="attendance.html"
+                ><i class="fas fa-calendar-check"></i> Attendance</a
+              >
+            </li>
+            <li>
+              <a href="assignments.html" class="active"
+                ><i class="fas fa-tasks"></i> Assignments</a
+              >
+            </li>
+          </ul>
+        </nav>
+
+        <div class="user-menu">
+          <div class="user-info">
+            <i class="fas fa-user-circle"></i>
+            <span id="userName">Teacher</span>
+          </div>
+          <div class="dropdown-menu">
+            <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
+            <a href="settings.html"><i class="fas fa-cog"></i> Settings</a>
+            <a href="#" onclick="logout()"
+              ><i class="fas fa-sign-out-alt"></i> Logout</a
+            >
+          </div>
+        </div>
+
+        <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+
+      <!-- Mobile Navigation -->
+      <nav class="mobile-nav" id="mobileNav">
+        <ul>
+          <li>
+            <a href="teacher-dashboard.html"
+              ><i class="fas fa-tachometer-alt"></i> Dashboard</a
+            >
+          </li>
+          <li>
+            <a href="lecturers.html"
+              ><i class="fas fa-chalkboard-teacher"></i> My Lectures</a
+            >
+          </li>
+          <li>
+            <a href="my-students.html"
+              ><i class="fas fa-users"></i> My Students</a
+            >
+          </li>
+          <li>
+            <a href="attendance.html"
+              ><i class="fas fa-calendar-check"></i> Attendance</a
+            >
+          </li>
+          <li>
+            <a href="assignments.html" class="active"
+              ><i class="fas fa-tasks"></i> Assignments</a
+            >
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <main class="main-content">
+      <div class="page-header">
+        <h1>Assignment Management</h1>
+        <p>Create and manage assignments for your classes</p>
+      </div>
+
+      <!-- Assignment Statistics -->
+      <div class="dashboard-cards">
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Total Assignments</div>
+            <div class="card-icon" style="background: #667eea">
+              <i class="fas fa-tasks"></i>
+            </div>
+          </div>
+          <div class="card-number" id="totalAssignments">15</div>
+          <div class="card-description">Active assignments</div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Due This Week</div>
+            <div class="card-icon" style="background: #ffc107">
+              <i class="fas fa-clock"></i>
+            </div>
+          </div>
+          <div class="card-number" id="dueThisWeek">3</div>
+          <div class="card-description">Assignments due</div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Average Submission</div>
+            <div class="card-icon" style="background: #28a745">
+              <i class="fas fa-check-circle"></i>
+            </div>
+          </div>
+          <div class="card-number" id="avgSubmission">85%</div>
+          <div class="card-description">Submission rate</div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Pending Reviews</div>
+            <div class="card-icon" style="background: #17a2b8">
+              <i class="fas fa-eye"></i>
+            </div>
+          </div>
+          <div class="card-number" id="pendingReviews">12</div>
+          <div class="card-description">Need grading</div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Quick Actions</h3>
+        </div>
+        <div class="card-body">
+          <div class="quick-actions">
+            <button class="btn btn-primary" onclick="createAssignment()">
+              <i class="fas fa-plus"></i> Create Assignment
+            </button>
+            <button class="btn btn-success" onclick="bulkCreate()">
+              <i class="fas fa-tasks"></i> Bulk Create
+            </button>
+            <button class="btn btn-info" onclick="viewSubmissions()">
+              <i class="fas fa-file-alt"></i> View Submissions
+            </button>
+            <button class="btn btn-warning" onclick="gradeAssignments()">
+              <i class="fas fa-chart-line"></i> Grade Assignments
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search and Filter -->
+      <div class="search-section">
+        <div class="search-box">
+          <input
+            type="text"
+            id="assignmentSearch"
+            placeholder="Search assignments..."
+          />
+          <i class="fas fa-search"></i>
+        </div>
+        <div class="filter-options">
+          <select id="classFilter">
+            <option value="">All Classes</option>
+            <option value="10A">Class 10A</option>
+            <option value="9B">Class 9B</option>
+            <option value="11A">Class 11A</option>
+          </select>
+          <select id="statusFilter">
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="draft">Draft</option>
+            <option value="completed">Completed</option>
+          </select>
+          <select id="typeFilter">
+            <option value="">All Types</option>
+            <option value="homework">Homework</option>
+            <option value="quiz">Quiz</option>
+            <option value="exam">Exam</option>
+            <option value="project">Project</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Assignments List -->
+      <div class="card">
+        <div class="card-header">
+          <h3>My Assignments</h3>
+          <div class="header-actions">
+            <button class="btn btn-primary" onclick="exportAssignments()">
+              <i class="fas fa-download"></i> Export
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Assignment</th>
+                  <th>Class</th>
+                  <th>Type</th>
+                  <th>Due Date</th>
+                  <th>Submissions</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="assignmentsTableBody">
+                <tr>
+                  <td>
+                    <div class="assignment-info">
+                      <strong>Algebra Problem Set 1</strong>
+                      <small>Solving linear equations and inequalities</small>
+                    </div>
+                  </td>
+                  <td>Class 10A</td>
+                  <td><span class="type-badge homework">Homework</span></td>
+                  <td>2024-01-20</td>
+                  <td>28/32 (87.5%)</td>
+                  <td><span class="status-badge active">Active</span></td>
+                  <td>
+                    <div class="action-buttons">
+                      <button
+                        class="btn btn-sm btn-primary"
+                        onclick="viewAssignment('1')"
+                      >
+                        <i class="fas fa-eye"></i>
+                      </button>
+                      <button
+                        class="btn btn-sm btn-success"
+                        onclick="editAssignment('1')"
+                      >
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <button
+                        class="btn btn-sm btn-info"
+                        onclick="viewSubmissions('1')"
+                      >
+                        <i class="fas fa-file-alt"></i>
+                      </button>
+                      <button
+                        class="btn btn-sm btn-warning"
+                        onclick="gradeAssignment('1')"
+                      >
+                        <i class="fas fa-chart-line"></i>
+                      </button>
+                      <button
+                        class="btn btn-sm btn-danger"
+                        onclick="deleteAssignment('1')"
+                      >
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="assignment-info">
+                      <strong>Geometry Quiz</strong>
+                      <small>Properties of triangles and circles</small>
+                    </div>
+                  </td>
+                  <td>Class 9B</td>
+                  <td><span class="type-badge quiz">Quiz</span></td>
+                  <td>2024-01-18</td>
+                  <td>25/28 (89.3%)</td>
+                  <td><span class="status-badge active">Active</span></td>
+                  <td>
+                    <div class="action-buttons">
+                      <button
+                        class="btn btn-sm btn-primary"
+                        onclick="viewAssignment('2')"
+                      >
+                        <i class="fas fa-eye"></i>
+                      </button>
+                      <button
+                        class="btn btn-sm btn-success"
+                        onclick="editAssignment('2')"
+                      >
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <button
+                        class="btn btn-sm btn-info"
+                        onclick="viewSubmissions('2')"
+                      >
+                        <i class="fas fa-file-alt"></i>
+                      </button>
+                      <button
+                        class="btn btn-sm btn-warning"
+                        onclick="gradeAssignment('2')"
+                      >
+                        <i class="fas fa-chart-line"></i>
+                      </button>
+                      <button
+                        class="btn btn-sm btn-danger"
+                        onclick="deleteAssignment('2')"
+                      >
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="assignment-info">
+                      <strong>Calculus Midterm</strong>
+                      <small>Derivatives and applications</small>
+                    </div>
+                  </td>
+                  <td>Class 11A</td>
+                  <td><span class="type-badge exam">Exam</span></td>
+                  <td>2024-01-25</td>
+                  <td>0/25 (0%)</td>
+                  <td><span class="status-badge draft">Draft</span></td>
+                  <td>
+                    <div class="action-buttons">
+                      <button
+                        class="btn btn-sm btn-primary"
+                        onclick="viewAssignment('3')"
+                      >
+                        <i class="fas fa-eye"></i>
+                      </button>
+                      <button
+                        class="btn btn-sm btn-success"
+                        onclick="editAssignment('3')"
+                      >
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <button
+                        class="btn btn-sm btn-info"
+                        onclick="viewSubmissions('3')"
+                      >
+                        <i class="fas fa-file-alt"></i>
+                      </button>
+                      <button
+                        class="btn btn-sm btn-warning"
+                        onclick="gradeAssignment('3')"
+                      >
+                        <i class="fas fa-chart-line"></i>
+                      </button>
+                      <button
+                        class="btn btn-sm btn-danger"
+                        onclick="deleteAssignment('3')"
+                      >
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Create/Edit Assignment Modal -->
+    <div id="assignmentModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="assignmentModalTitle">Create Assignment</h2>
+          <span class="close" onclick="closeAssignmentModal()">&times;</span>
+        </div>
+        <form id="assignmentForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="assignmentTitle">Assignment Title</label>
+              <input type="text" id="assignmentTitle" name="title" required />
+            </div>
+            <div class="form-group">
+              <label for="assignmentType">Type</label>
+              <select id="assignmentType" name="type" required>
+                <option value="">Select type...</option>
+                <option value="homework">Homework</option>
+                <option value="quiz">Quiz</option>
+                <option value="exam">Exam</option>
+                <option value="project">Project</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="assignmentClass">Class</label>
+              <select id="assignmentClass" name="class" required>
+                <option value="">Select class...</option>
+                <option value="10A">Class 10A</option>
+                <option value="9B">Class 9B</option>
+                <option value="11A">Class 11A</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="assignmentDueDate">Due Date</label>
+              <input
+                type="date"
+                id="assignmentDueDate"
+                name="dueDate"
+                required
+              />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="assignmentDescription">Description</label>
+            <textarea
+              id="assignmentDescription"
+              name="description"
+              rows="4"
+              required
+            ></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="assignmentPoints">Total Points</label>
+              <input
+                type="number"
+                id="assignmentPoints"
+                name="points"
+                min="1"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="assignmentWeight">Weight (%)</label>
+              <input
+                type="number"
+                id="assignmentWeight"
+                name="weight"
+                min="1"
+                max="100"
+                required
+              />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="assignmentInstructions">Instructions</label>
+            <textarea
+              id="assignmentInstructions"
+              name="instructions"
+              rows="3"
+            ></textarea>
+          </div>
+          <div class="form-actions">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="closeAssignmentModal()"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">
+              Save Assignment
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="/assets/js/auth.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        loadAssignmentData();
+        setupSearchAndFilter();
+      });
+
+      // Mobile menu toggle function
+      function toggleMobileMenu() {
+        const mobileNav = document.getElementById("mobileNav");
+        const toggleBtn = document.querySelector(".mobile-menu-toggle i");
+
+        if (mobileNav.classList.contains("active")) {
+          mobileNav.classList.remove("active");
+          toggleBtn.className = "fas fa-bars";
+        } else {
+          mobileNav.classList.add("active");
+          toggleBtn.className = "fas fa-times";
+        }
+      }
+
+      // Close mobile menu when clicking outside
+      document.addEventListener("click", function (event) {
+        const mobileNav = document.getElementById("mobileNav");
+        const toggleBtn = document.querySelector(".mobile-menu-toggle");
+
+        if (
+          mobileNav.classList.contains("active") &&
+          !mobileNav.contains(event.target) &&
+          !toggleBtn.contains(event.target)
+        ) {
+          mobileNav.classList.remove("active");
+          toggleBtn.querySelector("i").className = "fas fa-bars";
+        }
+      });
+
+      function loadAssignmentData() {
+        setTimeout(() => {
+          document.getElementById("totalAssignments").textContent = "15";
+          document.getElementById("dueThisWeek").textContent = "3";
+          document.getElementById("avgSubmission").textContent = "85%";
+          document.getElementById("pendingReviews").textContent = "12";
+        }, 1000);
+      }
+
+      function setupSearchAndFilter() {
+        document
+          .getElementById("assignmentSearch")
+          .addEventListener("input", filterAssignments);
+        document
+          .getElementById("classFilter")
+          .addEventListener("change", filterAssignments);
+        document
+          .getElementById("statusFilter")
+          .addEventListener("change", filterAssignments);
+        document
+          .getElementById("typeFilter")
+          .addEventListener("change", filterAssignments);
+      }
+
+      function filterAssignments() {
+        const searchTerm = document
+          .getElementById("assignmentSearch")
+          .value.toLowerCase();
+        const classFilter = document.getElementById("classFilter").value;
+        const statusFilter = document.getElementById("statusFilter").value;
+        const typeFilter = document.getElementById("typeFilter").value;
+
+        console.log("Filtering assignments:", {
+          searchTerm,
+          classFilter,
+          statusFilter,
+          typeFilter,
+        });
+      }
+
+      function createAssignment() {
+        document.getElementById("assignmentModalTitle").textContent =
+          "Create Assignment";
+        document.getElementById("assignmentForm").reset();
+        document.getElementById("assignmentModal").style.display = "block";
+      }
+
+      function editAssignment(assignmentId) {
+        document.getElementById("assignmentModalTitle").textContent =
+          "Edit Assignment";
+        // Load assignment data for editing
+        document.getElementById("assignmentModal").style.display = "block";
+      }
+
+      function viewAssignment(assignmentId) {
+        alert(`Viewing assignment ${assignmentId}`);
+      }
+
+      function viewSubmissions(assignmentId) {
+        alert(`Viewing submissions for assignment ${assignmentId}`);
+      }
+
+      function gradeAssignment(assignmentId) {
+        alert(`Grading assignment ${assignmentId}`);
+      }
+
+      function deleteAssignment(assignmentId) {
+        if (confirm("Are you sure you want to delete this assignment?")) {
+          console.log(`Deleting assignment ${assignmentId}`);
+          alert("Assignment deleted successfully!");
+        }
+      }
+
+      function bulkCreate() {
+        alert("Bulk assignment creation feature coming soon!");
+      }
+
+      function gradeAssignments() {
+        alert("Opening assignment grading interface...");
+      }
+
+      function exportAssignments() {
+        alert("Exporting assignments...");
+      }
+
+      function closeAssignmentModal() {
+        document.getElementById("assignmentModal").style.display = "none";
+      }
+
+      // Handle form submission
+      document
+        .getElementById("assignmentForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          alert("Assignment saved successfully!");
+          closeAssignmentModal();
+        });
+
+      // Close modal when clicking outside
+      window.onclick = function (event) {
+        const modal = document.getElementById("assignmentModal");
+        if (event.target === modal) {
+          closeAssignmentModal();
+        }
+      };
+    </script>
+
+    <style>
+      .quick-actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+
+      .assignment-info {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .assignment-info small {
+        color: #666;
+        font-size: 0.85rem;
+      }
+
+      .type-badge {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 500;
+      }
+
+      .type-badge.homework {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .type-badge.quiz {
+        background: #cce5ff;
+        color: #004085;
+      }
+
+      .type-badge.exam {
+        background: #fff3cd;
+        color: #856404;
+      }
+
+      .type-badge.project {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 5px;
+      }
+
+      .action-buttons .btn {
+        padding: 4px 8px;
+        font-size: 0.8rem;
+      }
+    </style>
+  </body>
+</html>

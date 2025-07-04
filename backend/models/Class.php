@@ -9,37 +9,69 @@ class ClassModel {
     }
 
     public function getAll() {
-        $sql = "SELECT * FROM classes ORDER BY class_name";
+        $sql = "SELECT c.*, CONCAT(t.first_name, ' ', t.last_name) as teacher_name 
+                FROM classes c 
+                LEFT JOIN teachers t ON c.teacher_id = t.id 
+                ORDER BY c.created_at DESC";
         return $this->db->fetchAll($sql);
     }
 
     public function getById($id) {
-        $sql = "SELECT * FROM classes WHERE id = ?";
+        $sql = "SELECT c.*, CONCAT(t.first_name, ' ', t.last_name) as teacher_name 
+                FROM classes c 
+                LEFT JOIN teachers t ON c.teacher_id = t.id 
+                WHERE c.id = ?";
         return $this->db->fetch($sql, [$id]);
     }
 
     public function create($data) {
-        $sql = "INSERT INTO classes (class_name) VALUES (?)";
-        $this->db->query($sql, [$data['class_name']]);
-        return $this->db->lastInsertId();
+        error_log('ClassModel::create SQL data: ' . json_encode($data));
+        $dbName = $this->db->getConnection()->query('SELECT DATABASE()')->fetchColumn();
+        error_log('ClassModel::create CURRENT DATABASE: ' . $dbName);
+        $sql = "INSERT INTO classes (name, teacher_id, room_number, capacity) 
+                VALUES (?, ?, ?, ?)";
+        $this->db->query($sql, [
+            $data['name'],
+            $data['teacher_id'] ?? null,
+            $data['room_number'] ?? null,
+            $data['capacity'] ?? 30
+        ]);
+        $id = $this->db->lastInsertId();
+        error_log('ClassModel::create lastInsertId: ' . print_r($id, true));
+        return $id;
     }
 
     public function update($id, $data) {
-        $sql = "UPDATE classes SET class_name = ? WHERE id = ?";
-        return $this->db->query($sql, [$data['class_name'], $id]);
+        $sql = "UPDATE classes SET name = ?, teacher_id = ?, room_number = ?, capacity = ? WHERE id = ?";
+        return $this->db->query($sql, [
+            $data['name'],
+            $data['teacher_id'] ?? null,
+            $data['room_number'] ?? null,
+            $data['capacity'] ?? 30,
+            $id
+        ]);
     }
 
     public function delete($id) {
-        // Check if class has students
-        $sql = "SELECT COUNT(*) as count FROM students WHERE class_id = ?";
-        $result = $this->db->fetch($sql, [$id]);
-        
-        if ($result['count'] > 0) {
-            throw new Exception("Cannot delete class with existing students");
-        }
-        
         $sql = "DELETE FROM classes WHERE id = ?";
         return $this->db->query($sql, [$id]);
+    }
+
+    public function getByTeacher($teacherId) {
+        $sql = "SELECT c.*, CONCAT(t.first_name, ' ', t.last_name) as teacher_name 
+                FROM classes c 
+                LEFT JOIN teachers t ON c.teacher_id = t.id 
+                WHERE c.teacher_id = ? 
+                ORDER BY c.name";
+        return $this->db->fetchAll($sql, [$teacherId]);
+    }
+
+    public function getActiveClasses() {
+        $sql = "SELECT c.*, CONCAT(t.first_name, ' ', t.last_name) as teacher_name 
+                FROM classes c 
+                LEFT JOIN teachers t ON c.teacher_id = t.id 
+                ORDER BY c.name";
+        return $this->db->fetchAll($sql);
     }
 
     public function getCount() {
@@ -48,13 +80,27 @@ class ClassModel {
         return $result['count'];
     }
 
-    public function getWithStudentCount() {
-        $sql = "SELECT c.*, COUNT(s.id) as student_count 
-                FROM classes c 
-                LEFT JOIN students s ON c.id = s.class_id 
-                GROUP BY c.id 
-                ORDER BY c.class_name";
-        return $this->db->fetchAll($sql);
+    public function getCountByTeacher($teacherId) {
+        $sql = "SELECT COUNT(*) as count FROM classes WHERE teacher_id = ?";
+        $result = $this->db->fetch($sql, [$teacherId]);
+        return $result['count'];
+    }
+
+    public function getStudentCount($classId) {
+        $sql = "SELECT COUNT(*) as count FROM students WHERE class_id = ?";
+        $result = $this->db->fetch($sql, [$classId]);
+        return $result['count'];
+    }
+
+    public function nameExists($name, $excludeId = null) {
+        $sql = "SELECT COUNT(*) as count FROM classes WHERE name = ?";
+        $params = [$name];
+        if ($excludeId) {
+            $sql .= " AND id != ?";
+            $params[] = $excludeId;
+        }
+        $result = $this->db->fetch($sql, $params);
+        return $result['count'] > 0;
     }
 }
 ?> 

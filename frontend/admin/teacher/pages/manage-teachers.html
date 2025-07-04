@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manage Teachers - School Management System</title>
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <link rel="stylesheet" href="/assets/css/teacher.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="teacher-page">
+    <div class="container">
+      <div class="page-header">
+        <h1><i class="fas fa-chalkboard-teacher"></i> Manage Teachers</h1>
+        <nav class="breadcrumb">
+          <a href="teacher-dashboard.html">Dashboard</a> /
+          <span>Manage Teachers</span>
+        </nav>
+      </div>
+
+      <div class="content-card">
+        <div class="card-header">
+          <div class="header-actions">
+            <a href="add-teacher.html" class="btn btn-primary">
+              <i class="fas fa-plus"></i> Add New Teacher
+            </a>
+          </div>
+          <div class="search-box">
+            <input
+              type="text"
+              id="searchInput"
+              placeholder="Search teachers..."
+            />
+            <i class="fas fa-search"></i>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table id="teachersTable" class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Qualification</th>
+                <th>Experience</th>
+                <th>Salary</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="teachersTableBody">
+              <!-- Teachers data will be loaded here -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pagination" id="pagination">
+          <!-- Pagination will be generated here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3><i class="fas fa-exclamation-triangle"></i> Confirm Delete</h3>
+          <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to delete this teacher?</p>
+          <p><strong>Name:</strong> <span id="deleteTeacherName"></span></p>
+          <p><strong>Email:</strong> <span id="deleteTeacherEmail"></span></p>
+        </div>
+        <div class="modal-footer">
+          <button id="confirmDelete" class="btn btn-danger">
+            <i class="fas fa-trash"></i> Delete
+          </button>
+          <button class="btn btn-secondary" onclick="closeDeleteModal()">
+            <i class="fas fa-times"></i> Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="/assets/js/auth.js"></script>
+    <script src="/assets/js/teacher.js"></script>
+  </body>
+</html>

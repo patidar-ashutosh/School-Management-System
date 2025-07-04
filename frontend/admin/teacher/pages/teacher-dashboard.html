@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teacher Dashboard - School Management System</title>
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <link rel="stylesheet" href="/assets/css/teacher.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="teacher-dashboard">
+    <header class="main-header">
+      <div class="header-container">
+        <div class="logo">
+          <i class="fas fa-school"></i>
+          <span>School Management System</span>
+        </div>
+
+        <nav class="main-nav">
+          <ul>
+            <li>
+              <a href="teacher-dashboard.html" class="active"
+                ><i class="fas fa-tachometer-alt"></i> Dashboard</a
+              >
+            </li>
+            <li>
+              <a href="lecturers.html"
+                ><i class="fas fa-chalkboard-teacher"></i> My Lectures</a
+              >
+            </li>
+            <li>
+              <a href="my-students.html"
+                ><i class="fas fa-users"></i> My Students</a
+              >
+            </li>
+            <li>
+              <a href="attendance.html"
+                ><i class="fas fa-calendar-check"></i> Attendance</a
+              >
+            </li>
+            <li>
+              <a href="assignments.html"
+                ><i class="fas fa-tasks"></i> Assignments</a
+              >
+            </li>
+          </ul>
+        </nav>
+
+        <div class="user-menu">
+          <div class="user-info">
+            <i class="fas fa-user-circle"></i>
+            <span id="userName">Teacher</span>
+          </div>
+          <div class="dropdown-menu">
+            <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
+            <a href="settings.html"><i class="fas fa-cog"></i> Settings</a>
+            <a href="#" onclick="logout()"
+              ><i class="fas fa-sign-out-alt"></i> Logout</a
+            >
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="page-header">
+        <h1>Teacher Dashboard</h1>
+        <p>Welcome to the School Management System Teacher Panel</p>
+      </div>
+
+      <!-- Statistics Cards -->
+      <div class="dashboard-cards">
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">My Lectures</div>
+            <div class="card-icon" style="background: #667eea">
+              <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+          </div>
+          <div class="card-number" id="totalLectures">Loading...</div>
+          <div class="card-description">Lectures assigned to you</div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">My Students</div>
+            <div class="card-icon" style="background: #28a745">
+              <i class="fas fa-users"></i>
+            </div>
+          </div>
+          <div class="card-number" id="totalStudents">Loading...</div>
+          <div class="card-description">Students in your classes</div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Active Assignments</div>
+            <div class="card-icon" style="background: #ffc107">
+              <i class="fas fa-tasks"></i>
+            </div>
+          </div>
+          <div class="card-number" id="totalAssignments">Loading...</div>
+          <div class="card-description">Pending assignments</div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Attendance Rate</div>
+            <div class="card-icon" style="background: #dc3545">
+              <i class="fas fa-calendar-check"></i>
+            </div>
+          </div>
+          <div class="card-number" id="attendanceRate">Loading...</div>
+          <div class="card-description">Average attendance</div>
+        </div>
+      </div>
+
+      <!-- My Classes -->
+      <div class="card">
+        <div class="card-header">
+          <h3>My Lectures</h3>
+          <a href="lecturers.html" class="btn btn-primary btn-sm">View All</a>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Subject</th>
+                  <th>Start Time</th>
+                  <th>End Time</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="myLectures">
+                <tr>
+                  <td colspan="5" class="text-center">Loading lectures...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Students -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Recent Students</h3>
+          <a href="my-students.html" class="btn btn-primary btn-sm">View All</a>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Student ID</th>
+                  <th>Name</th>
+                  <th>Class</th>
+                  <th>Attendance</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="recentStudents">
+                <tr>
+                  <td colspan="5" class="text-center">Loading students...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="/assets/js/auth.js"></script>
+    <script>
+      // Load dashboard data
+      document.addEventListener("DOMContentLoaded", function () {
+        loadDashboardData();
+        loadMyClasses();
+        loadRecentStudents();
+        updateUserName();
+      });
+
+      async function loadDashboardData() {
+        try {
+          const auth = new Auth();
+          const user = auth.getCurrentUser();
+
+          if (!user) {
+            console.error("User not authenticated");
+            return;
+          }
+
+          const response = await fetch(
+            "/backend/controllers/teacher_dashboard.php",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                action: "get_dashboard_stats",
+                teacher_id: user.id,
+              }),
+            }
+          );
+
+          const data = await response.json();
+
+          if (data.success) {
+            document.getElementById("totalLectures").textContent =
+              data.stats.total_lectures || 0;
+            document.getElementById("totalStudents").textContent =
+              data.stats.total_students || 0;
+            document.getElementById("totalAssignments").textContent =
+              data.stats.total_assignments || 0;
+            document.getElementById("attendanceRate").textContent = `${
+              data.stats.attendance_rate || 0
+            }%`;
+          } else {
+            console.error("Failed to load dashboard stats:", data.message);
+            showError("Failed to load dashboard statistics");
+          }
+        } catch (error) {
+          console.error("Error loading dashboard data:", error);
+          showError("Error loading dashboard data");
+        }
+      }
+
+      async function loadMyClasses() {
+        try {
+          const auth = new Auth();
+          const user = auth.getCurrentUser();
+
+          if (!user) return;
+
+          const response = await fetch("/backend/controllers/classes.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              action: "get_by_teacher",
+              teacher_id: user.id,
+              limit: 5,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            const tbody = document.getElementById("myLectures");
+            tbody.innerHTML = "";
+
+            if (data.data.length === 0) {
+              tbody.innerHTML =
+                '<tr><td colspan="5" class="text-center">No lectures assigned</td></tr>';
+              return;
+            }
+
+            data.data.forEach((classItem) => {
+              const row = document.createElement("tr");
+              row.innerHTML = `
+                <td>${classItem.subject_name || "Not assigned"}</td>
+                <td>${classItem.start_time || "Not set"}</td>
+                <td>${classItem.end_time || "Not set"}</td>
+                <td><span class="badge bg-${
+                  classItem.status === "active" ? "success" : "secondary"
+                }">${classItem.status}</span></td>
+                <td>
+                  <a href="lecturers.html" class="btn btn-sm btn-primary">View</a>
+                </td>
+              `;
+              tbody.appendChild(row);
+            });
+          } else {
+            document.getElementById("myLectures").innerHTML =
+              '<tr><td colspan="5" class="text-center text-danger">Failed to load lectures</td></tr>';
+          }
+        } catch (error) {
+          console.error("Error loading lectures:", error);
+          document.getElementById("myLectures").innerHTML =
+            '<tr><td colspan="5" class="text-center text-danger">Error loading lectures</td></tr>';
+        }
+      }
+
+      async function loadRecentStudents() {
+        try {
+          const auth = new Auth();
+          const user = auth.getCurrentUser();
+
+          if (!user) return;
+
+          const response = await fetch("/backend/controllers/students.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              action: "get_by_teacher",
+              teacher_id: user.id,
+              limit: 5,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            const tbody = document.getElementById("recentStudents");
+            tbody.innerHTML = "";
+
+            if (data.data.length === 0) {
+              tbody.innerHTML =
+                '<tr><td colspan="5" class="text-center">No students found</td></tr>';
+              return;
+            }
+
+            data.data.forEach((student) => {
+              const row = document.createElement("tr");
+              row.innerHTML = `
+                <td>${student.roll_number || "N/A"}</td>
+                <td>${student.first_name} ${student.last_name}</td>
+                <td>${student.class_name || "Not Assigned"}</td>
+                <td>${student.attendance_percentage || 0}%</td>
+                <td><span class="badge bg-${
+                  student.status === "active" ? "success" : "secondary"
+                }">${student.status}</span></td>
+              `;
+              tbody.appendChild(row);
+            });
+          } else {
+            document.getElementById("recentStudents").innerHTML =
+              '<tr><td colspan="5" class="text-center text-danger">Failed to load students</td></tr>';
+          }
+        } catch (error) {
+          console.error("Error loading students:", error);
+          document.getElementById("recentStudents").innerHTML =
+            '<tr><td colspan="5" class="text-center text-danger">Error loading students</td></tr>';
+        }
+      }
+
+      function updateUserName() {
+        const auth = new Auth();
+        const user = auth.getCurrentUser();
+        if (user) {
+          document.getElementById(
+            "userName"
+          ).textContent = `${user.first_name} ${user.last_name}`;
+        }
+      }
+
+      function formatDate(dateString) {
+        if (!dateString) return "N/A";
+        const date = new Date(dateString);
+        return date.toLocaleDateString();
+      }
+
+      function showError(message) {
+        console.error(message);
+      }
+
+      function logout() {
+        fetch("/backend/controllers/auth.php", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "logout" }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              window.location.href = "../index.html";
+            } else {
+              alert("Logout failed: " + data.message);
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("Logout failed. Please try again.");
+          });
+      }
+    </script>
+  </body>
+</html>

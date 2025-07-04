@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Principal Dashboard - School Management System</title>
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <link rel="stylesheet" href="/assets/css/principal.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="principal-dashboard">
+    <header class="main-header">
+      <div class="header-container">
+        <div class="logo">
+          <i class="fas fa-school"></i>
+          <span>School Management System</span>
+        </div>
+
+        <nav class="main-nav">
+          <ul>
+            <li>
+              <a href="principal-dashboard.html" class="active"
+                ><i class="fas fa-tachometer-alt"></i> Dashboard</a
+              >
+            </li>
+            <li>
+              <a href="students.html"><i class="fas fa-users"></i> Students</a>
+            </li>
+            <li>
+              <a href="teachers.html"
+                ><i class="fas fa-chalkboard-teacher"></i> Teachers</a
+              >
+            </li>
+            <li>
+              <a href="classes.html"
+                ><i class="fas fa-chalkboard"></i> Classes</a
+              >
+            </li>
+            <li>
+              <a href="subjects.html"><i class="fas fa-book"></i> Subjects</a>
+            </li>
+            <li>
+              <a href="exams.html"><i class="fas fa-file-alt"></i> Exams</a>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="user-menu">
+          <div class="user-info">
+            <i class="fas fa-user-circle"></i>
+            <span id="userName">Principal</span>
+          </div>
+          <div class="dropdown-menu">
+            <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
+            <a href="settings.html"><i class="fas fa-cog"></i> Settings</a>
+            <a href="#" onclick="logout()"
+              ><i class="fas fa-sign-out-alt"></i> Logout</a
+            >
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="page-header">
+        <h1>Principal Dashboard</h1>
+        <p>Welcome to the School Management System Principal Panel</p>
+      </div>
+
+      <!-- Statistics Cards -->
+      <div class="dashboard-cards">
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Total Students</div>
+            <div class="card-icon" style="background: #667eea">
+              <i class="fas fa-users"></i>
+            </div>
+          </div>
+          <div class="card-number" id="totalStudents">Loading...</div>
+          <div class="card-description">Registered students</div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Total Teachers</div>
+            <div class="card-icon" style="background: #28a745">
+              <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+          </div>
+          <div class="card-number" id="totalTeachers">Loading...</div>
+          <div class="card-description">Active teachers</div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Total Classes</div>
+            <div class="card-icon" style="background: #ffc107">
+              <i class="fas fa-school"></i>
+            </div>
+          </div>
+          <div class="card-number" id="totalClasses">Loading...</div>
+          <div class="card-description">Active classes</div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Total Subjects</div>
+            <div class="card-icon" style="background: #dc3545">
+              <i class="fas fa-book"></i>
+            </div>
+          </div>
+          <div class="card-number" id="totalSubjects">Loading...</div>
+          <div class="card-description">Active subjects</div>
+        </div>
+      </div>
+
+      <!-- Recent Students -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Recent Students</h3>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Student ID</th>
+                  <th>Name</th>
+                  <th>Class</th>
+                  <th>Admission Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="recentStudents">
+                <tr>
+                  <td colspan="5" class="text-center">Loading students...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Teachers -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Recent Teachers</h3>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Teacher ID</th>
+                  <th>Name</th>
+                  <th>Subject</th>
+                  <th>Joining Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="recentTeachers">
+                <tr>
+                  <td colspan="5" class="text-center">Loading teachers...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="/assets/js/auth.js"></script>
+    <script>
+      // Load dashboard data
+      document.addEventListener("DOMContentLoaded", function () {
+        loadDashboardData();
+        loadRecentStudents();
+        loadRecentTeachers();
+        updateUserName();
+      });
+
+      async function loadDashboardData() {
+        try {
+          const response = await fetch("/backend/controllers/statistics.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ action: "get_dashboard_stats" }),
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            document.getElementById("totalStudents").textContent =
+              data.stats.total_students || 0;
+            document.getElementById("totalTeachers").textContent =
+              data.stats.total_teachers || 0;
+            document.getElementById("totalClasses").textContent =
+              data.stats.total_classes || 0;
+            document.getElementById("totalSubjects").textContent =
+              data.stats.total_subjects || 0;
+          } else {
+            console.error("Failed to load dashboard stats:", data.message);
+            showError("Failed to load dashboard statistics");
+          }
+        } catch (error) {
+          console.error("Error loading dashboard data:", error);
+          showError("Error loading dashboard data");
+        }
+      }
+
+      async function loadRecentStudents() {
+        try {
+          const response = await fetch("/backend/controllers/students.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ action: "get_recent" }),
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            const tbody = document.getElementById("recentStudents");
+            tbody.innerHTML = "";
+
+            if (data.data.length === 0) {
+              tbody.innerHTML =
+                '<tr><td colspan="5" class="text-center">No students found</td></tr>';
+              return;
+            }
+
+            data.data.forEach((student) => {
+              const row = document.createElement("tr");
+              row.innerHTML = `
+                <td>${student.roll_number || "N/A"}</td>
+                <td>${student.first_name} ${student.last_name}</td>
+                <td>${student.class_name || "Not Assigned"}</td>
+                <td>${formatDate(student.admission_date)}</td>
+                <td><span class="badge bg-${
+                  student.status === "active" ? "success" : "secondary"
+                }">${student.status}</span></td>
+              `;
+              tbody.appendChild(row);
+            });
+          } else {
+            document.getElementById("recentStudents").innerHTML =
+              '<tr><td colspan="5" class="text-center text-danger">Failed to load students</td></tr>';
+          }
+        } catch (error) {
+          console.error("Error loading recent students:", error);
+          document.getElementById("recentStudents").innerHTML =
+            '<tr><td colspan="5" class="text-center text-danger">Error loading students</td></tr>';
+        }
+      }
+
+      async function loadRecentTeachers() {
+        try {
+          const response = await fetch("/backend/controllers/teachers.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ action: "get_recent" }),
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            const tbody = document.getElementById("recentTeachers");
+            tbody.innerHTML = "";
+
+            if (data.data.length === 0) {
+              tbody.innerHTML =
+                '<tr><td colspan="5" class="text-center">No teachers found</td></tr>';
+              return;
+            }
+
+            data.data.forEach((teacher) => {
+              const row = document.createElement("tr");
+              row.innerHTML = `
+                <td>${teacher.id}</td>
+                <td>${teacher.first_name} ${teacher.last_name}</td>
+                <td>${teacher.qualification || "Not specified"}</td>
+                <td>${formatDate(teacher.joining_date)}</td>
+                <td><span class="badge bg-${
+                  teacher.status === "active" ? "success" : "secondary"
+                }">${teacher.status}</span></td>
+              `;
+              tbody.appendChild(row);
+            });
+          } else {
+            document.getElementById("recentTeachers").innerHTML =
+              '<tr><td colspan="5" class="text-center text-danger">Failed to load teachers</td></tr>';
+          }
+        } catch (error) {
+          console.error("Error loading recent teachers:", error);
+          document.getElementById("recentTeachers").innerHTML =
+            '<tr><td colspan="5" class="text-center text-danger">Error loading teachers</td></tr>';
+        }
+      }
+
+      function updateUserName() {
+        const auth = new Auth();
+        const user = auth.getCurrentUser();
+        if (user) {
+          document.getElementById(
+            "userName"
+          ).textContent = `${user.first_name} ${user.last_name}`;
+        }
+      }
+
+      function formatDate(dateString) {
+        if (!dateString) return "N/A";
+        const date = new Date(dateString);
+        return date.toLocaleDateString();
+      }
+
+      function showError(message) {
+        // You can implement a proper error notification system here
+        console.error(message);
+      }
+
+      function logout() {
+        fetch("/backend/controllers/auth.php", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "logout" }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              window.location.href = "../index.html";
+            } else {
+              alert("Logout failed: " + data.message);
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("Logout failed. Please try again.");
+          });
+      }
+    </script>
+  </body>
+</html>

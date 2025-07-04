@@ -9,42 +9,49 @@ class Subject {
     }
 
     public function getAll() {
-        $sql = "SELECT s.*, c.class_name, t.name as teacher_name 
-                FROM subjects s 
-                LEFT JOIN classes c ON s.class_id = c.id 
-                LEFT JOIN teachers t ON s.teacher_id = t.id 
-                ORDER BY s.subject_name";
+        $sql = "SELECT s.id, s.code, s.name, s.description FROM subjects s ORDER BY s.name";
         return $this->db->fetchAll($sql);
     }
 
     public function getById($id) {
-        $sql = "SELECT s.*, c.class_name, t.name as teacher_name 
-                FROM subjects s 
-                LEFT JOIN classes c ON s.class_id = c.id 
-                LEFT JOIN teachers t ON s.teacher_id = t.id 
-                WHERE s.id = ?";
+        $sql = "SELECT s.* FROM subjects s WHERE s.id = ?";
         return $this->db->fetch($sql, [$id]);
     }
 
     public function create($data) {
-        $sql = "INSERT INTO subjects (subject_name, class_id, teacher_id) VALUES (?, ?, ?)";
-        
+        // Check for duplicate name
+        if ($this->nameExists($data['name'])) {
+            throw new Exception('Subject name must be unique');
+        }
+        // Generate code from name if not provided
+        if (!isset($data['code']) || empty($data['code'])) {
+            $data['code'] = $this->generateCode($data['name']);
+        }
+        $sql = "INSERT INTO subjects (name, code, description, status) VALUES (?, ?, ?, ?)";
         $this->db->query($sql, [
-            $data['subject_name'],
-            $data['class_id'],
-            $data['teacher_id'] ?? null
+            $data['name'],
+            $data['code'],
+            $data['description'] ?? null,
+            $data['status'] ?? 'active'
         ]);
-        
         return $this->db->lastInsertId();
     }
 
     public function update($id, $data) {
-        $sql = "UPDATE subjects SET subject_name = ?, class_id = ?, teacher_id = ? WHERE id = ?";
-        
+        // Check for duplicate name (excluding current id)
+        if ($this->nameExists($data['name'], $id)) {
+            throw new Exception('Subject name must be unique');
+        }
+        // Generate code from name if not provided
+        if (!isset($data['code']) || empty($data['code'])) {
+            $data['code'] = $this->generateCode($data['name']);
+        }
+        $sql = "UPDATE subjects SET name = ?, code = ?, description = ?, status = ? WHERE id = ?";
         return $this->db->query($sql, [
-            $data['subject_name'],
-            $data['class_id'],
-            $data['teacher_id'] ?? null,
+            $data['name'],
+            $data['code'],
+            $data['description'] ?? null,
+            $data['status'] ?? 'active',
             $id
         ]);
     }
@@ -54,22 +61,23 @@ class Subject {
         return $this->db->query($sql, [$id]);
     }
 
-    public function getByClass($classId) {
-        $sql = "SELECT s.*, t.name as teacher_name 
+    public function getByTeacher($teacherId) {
+        $sql = "SELECT s.* 
                 FROM subjects s 
-                LEFT JOIN teachers t ON s.teacher_id = t.id 
-                WHERE s.class_id = ? 
-                ORDER BY s.subject_name";
-        return $this->db->fetchAll($sql, [$classId]);
+                INNER JOIN teachers t ON s.id = t.subject_id 
+                WHERE t.id = ? AND s.status = 'active' 
+                ORDER BY s.name";
+        return $this->db->fetchAll($sql, [$teacherId]);
     }
 
-    public function getByTeacher($teacherId) {
-        $sql = "SELECT s.*, c.class_name 
+    public function getByClass($classId) {
+        $sql = "SELECT DISTINCT s.code, s.name, s.description
                 FROM subjects s 
-                LEFT JOIN classes c ON s.class_id = c.id 
-                WHERE s.teacher_id = ? 
-                ORDER BY s.subject_name";
-        return $this->db->fetchAll($sql, [$teacherId]);
+                INNER JOIN teachers t ON s.id = t.subject_id 
+                INNER JOIN schedule sch ON s.id = sch.subject_id 
+                WHERE sch.class_id = ? AND s.status = 'active' 
+                ORDER BY s.name";
+        return $this->db->fetchAll($sql, [$classId]);
     }
 
     public function getCount() {
@@ -78,10 +86,55 @@ class Subject {
         return $result['count'];
     }
 
-    public function getCountByClass($classId) {
-        $sql = "SELECT COUNT(*) as count FROM subjects WHERE class_id = ?";
-        $result = $this->db->fetch($sql, [$classId]);
-        return $result['count'];
+    public function getActiveSubjects() {
+        $sql = "SELECT s.* FROM subjects s WHERE s.status = 'active' ORDER BY s.name";
+        return $this->db->fetchAll($sql);
+    }
+
+    public function codeExists($code, $excludeId = null) {
+        $sql = "SELECT COUNT(*) as count FROM subjects WHERE code = ?";
+        if ($excludeId) {
+            $sql .= " AND id != ?";
+            $result = $this->db->fetch($sql, [$code, $excludeId]);
+        } else {
+            $result = $this->db->fetch($sql, [$code]);
+        }
+        return $result['count'] > 0;
+    }
+
+    public function nameExists($name, $excludeId = null) {
+        $sql = "SELECT COUNT(*) as count FROM subjects WHERE name = ?";
+        $params = [$name];
+        if ($excludeId) {
+            $sql .= " AND id != ?";
+            $params[] = $excludeId;
+        }
+        $result = $this->db->fetch($sql, $params);
+        return $result['count'] > 0;
+    }
+
+    private function generateCode($name) {
+        // Remove special characters and convert to uppercase
+        $code = strtoupper(preg_replace('/[^a-zA-Z0-9]/', '', $name));
+        
+        // Take first 3-6 characters
+        $code = substr($code, 0, 6);
+        
+        // Add a number if code already exists
+        $baseCode = $code;
+        $counter = 1;
+        
+        while ($this->codeExists($code)) {
+            $code = $baseCode . $counter;
+            $counter++;
+        }
+        
+        return $code;
+    }
+
+    public function getByCode($code) {
+        $sql = "SELECT * FROM subjects WHERE code = ?";
+        return $this->db->fetch($sql, [$code]);
     }
 }
 ?> 
