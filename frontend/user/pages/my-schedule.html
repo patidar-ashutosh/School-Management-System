@@ -26,11 +26,6 @@
               >
             </li>
             <li>
-              <a href="my-grades.html"
-                ><i class="fas fa-chart-line"></i> My Grades</a
-              >
-            </li>
-            <li>
               <a href="my-attendance.html"
                 ><i class="fas fa-calendar-check"></i> My Attendance</a
               >
@@ -79,7 +74,7 @@
               <i class="fas fa-calendar-day"></i>
             </div>
           </div>
-          <div class="card-number" id="todayClasses">5</div>
+          <div class="card-number" id="todayClasses">--</div>
           <div class="card-description">Classes scheduled</div>
         </div>
 
@@ -90,8 +85,8 @@
               <i class="fas fa-clock"></i>
             </div>
           </div>
-          <div class="card-number" id="nextClass">Mathematics</div>
-          <div class="card-description">In 15 minutes</div>
+          <div class="card-number" id="nextClass">--</div>
+          <div class="card-description" id="nextClassTime">--</div>
         </div>
 
         <div class="dashboard-card">
@@ -101,7 +96,7 @@
               <i class="fas fa-calendar-week"></i>
             </div>
           </div>
-          <div class="card-number" id="weekClasses">25</div>
+          <div class="card-number" id="weekClasses">--</div>
           <div class="card-description">Total classes</div>
         </div>
 
@@ -112,7 +107,7 @@
               <i class="fas fa-calendar-plus"></i>
             </div>
           </div>
-          <div class="card-number" id="upcomingEvents">3</div>
+          <div class="card-number" id="upcomingEvents">--</div>
           <div class="card-description">This week</div>
         </div>
       </div>
@@ -122,12 +117,7 @@
         <div class="card-header">
           <h3>Weekly Schedule</h3>
           <div class="header-actions">
-            <button class="btn btn-primary" onclick="downloadSchedule()">
-              <i class="fas fa-download"></i> Download
-            </button>
-            <button class="btn btn-success" onclick="printSchedule()">
-              <i class="fas fa-print"></i> Print
-            </button>
+            <!-- Removed Download and Print buttons -->
           </div>
         </div>
         <div class="card-body">
@@ -140,125 +130,8 @@
               <div class="day-slot">Thursday</div>
               <div class="day-slot">Friday</div>
             </div>
-            <div class="schedule-body">
-              <div class="schedule-row">
-                <div class="time-slot">8:00 - 9:00</div>
-                <div class="class-slot mathematics">
-                  <div class="class-name">Mathematics</div>
-                  <div class="class-teacher">Mr. Johnson</div>
-                  <div class="class-room">Room 101</div>
-                </div>
-                <div class="class-slot english">
-                  <div class="class-name">English</div>
-                  <div class="class-teacher">Ms. Davis</div>
-                  <div class="class-room">Room 102</div>
-                </div>
-                <div class="class-slot mathematics">
-                  <div class="class-name">Mathematics</div>
-                  <div class="class-teacher">Mr. Johnson</div>
-                  <div class="class-room">Room 101</div>
-                </div>
-                <div class="class-slot english">
-                  <div class="class-name">English</div>
-                  <div class="class-teacher">Ms. Davis</div>
-                  <div class="class-room">Room 102</div>
-                </div>
-                <div class="class-slot mathematics">
-                  <div class="class-name">Mathematics</div>
-                  <div class="class-teacher">Mr. Johnson</div>
-                  <div class="class-room">Room 101</div>
-                </div>
-              </div>
-              <div class="schedule-row">
-                <div class="time-slot">9:00 - 10:00</div>
-                <div class="class-slot physics">
-                  <div class="class-name">Physics</div>
-                  <div class="class-teacher">Dr. Wilson</div>
-                  <div class="class-room">Lab 201</div>
-                </div>
-                <div class="class-slot history">
-                  <div class="class-name">History</div>
-                  <div class="class-teacher">Mrs. Brown</div>
-                  <div class="class-room">Room 103</div>
-                </div>
-                <div class="class-slot physics">
-                  <div class="class-name">Physics</div>
-                  <div class="class-teacher">Dr. Wilson</div>
-                  <div class="class-room">Lab 201</div>
-                </div>
-                <div class="class-slot history">
-                  <div class="class-name">History</div>
-                  <div class="class-teacher">Mrs. Brown</div>
-                  <div class="class-room">Room 103</div>
-                </div>
-                <div class="class-slot computer-science">
-                  <div class="class-name">Computer Science</div>
-                  <div class="class-teacher">Mr. Chen</div>
-                  <div class="class-room">Lab 301</div>
-                </div>
-              </div>
-              <div class="schedule-row">
-                <div class="time-slot">10:00 - 10:15</div>
-                <div class="break-slot" colspan="5">
-                  <div class="break-text">Morning Break</div>
-                </div>
-              </div>
-              <div class="schedule-row">
-                <div class="time-slot">10:15 - 11:15</div>
-                <div class="class-slot english">
-                  <div class="class-name">English</div>
-                  <div class="class-teacher">Ms. Davis</div>
-                  <div class="class-room">Room 102</div>
-                </div>
-                <div class="class-slot mathematics">
-                  <div class="class-name">Mathematics</div>
-                  <div class="class-teacher">Mr. Johnson</div>
-                  <div class="class-room">Room 101</div>
-                </div>
-                <div class="class-slot english">
-                  <div class="class-name">English</div>
-                  <div class="class-teacher">Ms. Davis</div>
-                  <div class="class-room">Room 102</div>
-                </div>
-                <div class="class-slot mathematics">
-                  <div class="class-name">Mathematics</div>
-                  <div class="class-teacher">Mr. Johnson</div>
-                  <div class="class-room">Room 101</div>
-                </div>
-                <div class="class-slot physics">
-                  <div class="class-name">Physics</div>
-                  <div class="class-teacher">Dr. Wilson</div>
-                  <div class="class-room">Lab 201</div>
-                </div>
-              </div>
-              <div class="schedule-row">
-                <div class="time-slot">11:15 - 12:15</div>
-                <div class="class-slot history">
-                  <div class="class-name">History</div>
-                  <div class="class-teacher">Mrs. Brown</div>
-                  <div class="class-room">Room 103</div>
-                </div>
-                <div class="class-slot physics">
-                  <div class="class-name">Physics</div>
-                  <div class="class-teacher">Dr. Wilson</div>
-                  <div class="class-room">Lab 201</div>
-                </div>
-                <div class="class-slot history">
-                  <div class="class-name">History</div>
-                  <div class="class-teacher">Mrs. Brown</div>
-                  <div class="class-room">Room 103</div>
-                </div>
-                <div class="class-slot physics">
-                  <div class="class-name">Physics</div>
-                  <div class="class-teacher">Dr. Wilson</div>
-                  <div class="class-room">Lab 201</div>
-                </div>
-                <div class="class-slot history">
-                  <div class="class-name">History</div>
-                  <div class="class-teacher">Mrs. Brown</div>
-                  <div class="class-room">Room 103</div>
-                </div>
-              </div>
+            <div class="schedule-body" id="scheduleBody">
+              <!-- Dynamic schedule rows -->
             </div>
           </div>
         </div>
@@ -267,7 +140,18 @@
       <!-- Today's Schedule -->
       <div class="card">
         <div class="card-header">
-          <h3>Today's Schedule</h3>
+          <h3>
+            Today's Schedule
+            <span
+              id="currentTime"
+              style="
+                font-size: 1rem;
+                font-weight: 400;
+                margin-left: 10px;
+                color: #888;
+              "
+            ></span>
+          </h3>
           <div class="header-actions">
             <span class="current-date" id="currentDate"
               >Monday, January 15, 2024</span
@@ -275,47 +159,8 @@
           </div>
         </div>
         <div class="card-body">
-          <div class="today-schedule">
-            <div class="schedule-item completed">
-              <div class="schedule-time">8:00 - 9:00</div>
-              <div class="schedule-content">
-                <div class="schedule-subject">Mathematics</div>
-                <div class="schedule-details">Mr. Johnson • Room 101</div>
-              </div>
-              <div class="schedule-status">
-                <i class="fas fa-check-circle text-success"></i>
-              </div>
-            </div>
-            <div class="schedule-item completed">
-              <div class="schedule-time">9:00 - 10:00</div>
-              <div class="schedule-content">
-                <div class="schedule-subject">Physics</div>
-                <div class="schedule-details">Dr. Wilson • Lab 201</div>
-              </div>
-              <div class="schedule-status">
-                <i class="fas fa-check-circle text-success"></i>
-              </div>
-            </div>
-            <div class="schedule-item current">
-              <div class="schedule-time">10:15 - 11:15</div>
-              <div class="schedule-content">
-                <div class="schedule-subject">English</div>
-                <div class="schedule-details">Ms. Davis • Room 102</div>
-              </div>
-              <div class="schedule-status">
-                <i class="fas fa-play-circle text-primary"></i>
-              </div>
-            </div>
-            <div class="schedule-item upcoming">
-              <div class="schedule-time">11:15 - 12:15</div>
-              <div class="schedule-content">
-                <div class="schedule-subject">History</div>
-                <div class="schedule-details">Mrs. Brown • Room 103</div>
-              </div>
-              <div class="schedule-status">
-                <i class="fas fa-clock text-muted"></i>
-              </div>
-            </div>
+          <div class="today-schedule" id="todayScheduleBody">
+            <!-- Dynamic today's schedule will be rendered here -->
           </div>
         </div>
       </div>
@@ -326,53 +171,8 @@
           <h3>Upcoming Events</h3>
         </div>
         <div class="card-body">
-          <div class="events-list">
-            <div class="event-item">
-              <div class="event-date">
-                <div class="event-day">18</div>
-                <div class="event-month">Jan</div>
-              </div>
-              <div class="event-content">
-                <div class="event-title">Mathematics Quiz</div>
-                <div class="event-details">Chapter 5 - Algebra • Room 101</div>
-                <div class="event-time">10:00 AM - 11:00 AM</div>
-              </div>
-              <div class="event-type quiz">
-                <i class="fas fa-question-circle"></i>
-              </div>
-            </div>
-            <div class="event-item">
-              <div class="event-date">
-                <div class="event-day">20</div>
-                <div class="event-month">Jan</div>
-              </div>
-              <div class="event-content">
-                <div class="event-title">Science Fair</div>
-                <div class="event-details">
-                  Annual Science Exhibition • Gymnasium
-                </div>
-                <div class="event-time">2:00 PM - 5:00 PM</div>
-              </div>
-              <div class="event-type event">
-                <i class="fas fa-calendar-alt"></i>
-              </div>
-            </div>
-            <div class="event-item">
-              <div class="event-date">
-                <div class="event-day">25</div>
-                <div class="event-month">Jan</div>
-              </div>
-              <div class="event-content">
-                <div class="event-title">English Essay Due</div>
-                <div class="event-details">
-                  Shakespeare Analysis • Submit Online
-                </div>
-                <div class="event-time">11:59 PM</div>
-              </div>
-              <div class="event-type assignment">
-                <i class="fas fa-file-alt"></i>
-              </div>
-            </div>
+          <div class="events-list" id="upcomingEventsList">
+            <!-- Dynamic upcoming events will be rendered here -->
           </div>
         </div>
       </div>
@@ -385,13 +185,201 @@
         updateCurrentDate();
       });
 
+      let cachedScheduleData = null;
+      let cachedEventsData = null;
       function loadScheduleData() {
-        setTimeout(() => {
-          document.getElementById("todayClasses").textContent = "5";
-          document.getElementById("nextClass").textContent = "Mathematics";
-          document.getElementById("weekClasses").textContent = "25";
-          document.getElementById("upcomingEvents").textContent = "3";
-        }, 1000);
+        const auth = new Auth();
+        const user = auth.getCurrentUser();
+        if (!user) return;
+        fetch("/backend/controllers/students.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_by_id", id: user.id }),
+        })
+          .then((res) => res.json())
+          .then((studentRes) => {
+            if (
+              !studentRes.success ||
+              !studentRes.data ||
+              !studentRes.data.class_id
+            ) {
+              document.getElementById("scheduleBody").innerHTML =
+                '<div style="text-align:center;color:#b94a48;font-weight:500;">No schedule found for your class.</div>';
+              document.getElementById("todayScheduleBody").innerHTML =
+                '<div style="text-align:center;color:#b94a48;font-weight:500;">No schedule found for your class.</div>';
+              document.getElementById("upcomingEventsList").innerHTML =
+                '<div style="text-align:center;color:#b94a48;font-weight:500;">No events found for your class.</div>';
+              return;
+            }
+            const classId = studentRes.data.class_id;
+            // Fetch dashboard stats
+            fetch("/backend/controllers/student_dashboard.php", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                action: "get_dashboard_data",
+                student_id: user.id,
+              }),
+            })
+              .then((res) => res.json())
+              .then((dashboardRes) => {
+                if (dashboardRes.success && dashboardRes.stats) {
+                  // You can use dashboardRes.stats if needed
+                }
+              });
+            // Fetch schedule
+            fetch("/backend/controllers/subjects.php", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                action: "get_schedule_by_class",
+                class_id: classId,
+              }),
+            })
+              .then((res) => res.json())
+              .then((scheduleRes) => {
+                if (
+                  !scheduleRes.success ||
+                  !Array.isArray(scheduleRes.data) ||
+                  !scheduleRes.data.length
+                ) {
+                  document.getElementById("scheduleBody").innerHTML =
+                    '<div style="text-align:center;color:#b94a48;font-weight:500;">No schedule found for your class.</div>';
+                  document.getElementById("todayScheduleBody").innerHTML =
+                    '<div style="text-align:center;color:#b94a48;font-weight:500;">No schedule found for your class.</div>';
+                }
+                cachedScheduleData = scheduleRes.data;
+                renderWeeklySchedule(scheduleRes.data);
+                renderTodaySchedule(scheduleRes.data);
+                updateScheduleStatistics();
+              });
+            // Fetch upcoming events (exams)
+            fetch("/backend/controllers/exams.php", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                action: "get_by_class",
+                class_id: classId,
+              }),
+            })
+              .then((res) => res.json())
+              .then((examRes) => {
+                if (
+                  !examRes.success ||
+                  !Array.isArray(examRes.data) ||
+                  !examRes.data.length
+                ) {
+                  document.getElementById("upcomingEventsList").innerHTML =
+                    '<div style="text-align:center;color:#b94a48;font-weight:500;">No events found for your class.</div>';
+                  cachedEventsData = [];
+                  updateScheduleStatistics();
+                  return;
+                }
+                cachedEventsData = examRes.data;
+                renderUpcomingEvents(examRes.data);
+                updateScheduleStatistics();
+              });
+          });
+      }
+
+      function renderWeeklySchedule(scheduleData) {
+        // Build a map: { timeSlot: { dayOfWeek: scheduleObj } }
+        const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+        // Collect all unique time slots
+        const timeSlotsSet = new Set();
+        scheduleData.forEach((item) => {
+          timeSlotsSet.add(item.start_time + "-" + item.end_time);
+        });
+        const timeSlots = Array.from(timeSlotsSet).sort();
+        // Build a map for quick lookup
+        const scheduleMap = {};
+        scheduleData.forEach((item) => {
+          const slot = item.start_time + "-" + item.end_time;
+          if (!scheduleMap[slot]) scheduleMap[slot] = {};
+          scheduleMap[slot][item.day_of_week] = item;
+        });
+        // Render rows
+        let html = "";
+        timeSlots.forEach((slot) => {
+          html += `<div class="schedule-row">`;
+          html += `<div class="time-slot">${slot}</div>`;
+          days.forEach((day) => {
+            const entry = scheduleMap[slot][day];
+            if (entry) {
+              html += `<div class="class-slot">
+                <div class="class-name">${entry.subject_name || "-"}</div>
+                <div class="class-teacher">${
+                  (entry.teacher_first_name || "") +
+                  " " +
+                  (entry.teacher_last_name || "")
+                }</div>
+                <div class="class-room">${entry.room_number || ""}</div>
+              </div>`;
+            } else {
+              html += `<div class="class-slot" style="background:#f0f0f0;color:#bbb;">-</div>`;
+            }
+          });
+          html += `</div>`;
+        });
+        document.getElementById("scheduleBody").innerHTML = html;
+      }
+
+      function renderTodaySchedule(scheduleData) {
+        const today = new Date();
+        const days = [
+          "Sunday",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+        ];
+        const todayName = days[today.getDay()];
+        // Filter today's classes
+        const todaysClasses = scheduleData.filter(
+          (item) => item.day_of_week === todayName
+        );
+        if (!todaysClasses.length) {
+          document.getElementById("todayScheduleBody").innerHTML =
+            '<div style="text-align:center;color:#b94a48;font-weight:500;">No classes scheduled for today.</div>';
+          return;
+        }
+        // Sort by start_time
+        todaysClasses.sort((a, b) => a.start_time.localeCompare(b.start_time));
+        // Determine current time for status
+        const now = today.getHours() + today.getMinutes() / 60;
+        let html = "";
+        todaysClasses.forEach((cls) => {
+          const start = parseTime(cls.start_time);
+          const end = parseTime(cls.end_time);
+          let statusClass = "upcoming";
+          let statusIcon = '<i class="fas fa-clock text-muted"></i>';
+          if (now > end) {
+            statusClass = "completed";
+            statusIcon = '<i class="fas fa-check-circle text-success"></i>';
+          } else if (now >= start && now <= end) {
+            statusClass = "current";
+            statusIcon = '<i class="fas fa-play-circle text-primary"></i>';
+          }
+          html += `<div class="schedule-item ${statusClass}">
+            <div class="schedule-time">${cls.start_time} - ${cls.end_time}</div>
+            <div class="schedule-content">
+              <div class="schedule-subject">${cls.subject_name}</div>
+              <div class="schedule-details">${cls.teacher_first_name || ""} ${
+            cls.teacher_last_name || ""
+          } • ${cls.room_number || ""}</div>
+            </div>
+            <div class="schedule-status">${statusIcon}</div>
+          </div>`;
+        });
+        document.getElementById("todayScheduleBody").innerHTML = html;
+      }
+
+      function parseTime(timeStr) {
+        // timeStr: "HH:MM" -> float hours
+        const [h, m] = timeStr.split(":").map(Number);
+        return h + m / 60;
       }
 
       function updateCurrentDate() {
@@ -404,7 +392,16 @@
         };
         const dateString = today.toLocaleDateString("en-US", options);
         document.getElementById("currentDate").textContent = dateString;
+        updateCurrentTime();
       }
+
+      function updateCurrentTime() {
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, "0");
+        const mm = String(now.getMinutes()).padStart(2, "0");
+        document.getElementById("currentTime").textContent = `${hh}:${mm}`;
+      }
+      setInterval(updateCurrentTime, 60000);
 
       function downloadSchedule() {
         alert("Downloading schedule...");
@@ -412,6 +409,120 @@
 
       function printSchedule() {
         window.print();
+      }
+
+      function renderUpcomingEvents(events) {
+        // Only show events that are today or in the future
+        const today = new Date();
+        const upcoming = events.filter((ev) => new Date(ev.date) >= today);
+        if (!upcoming.length) {
+          document.getElementById("upcomingEventsList").innerHTML =
+            '<div style="text-align:center;color:#b94a48;font-weight:500;">No events found for your class.</div>';
+          return;
+        }
+        // Sort by date ascending
+        upcoming.sort((a, b) => new Date(a.date) - new Date(b.date));
+        let html = "";
+        upcoming.slice(0, 5).forEach((ev) => {
+          const dateObj = new Date(ev.date);
+          const day = String(dateObj.getDate()).padStart(2, "0");
+          const month = dateObj.toLocaleString("default", { month: "short" });
+          html += `<div class="event-item">
+            <div class="event-date">
+              <div class="event-day">${day}</div>
+              <div class="event-month">${month}</div>
+            </div>
+            <div class="event-content">
+              <div class="event-title">${ev.name || ev.title || "Exam"}</div>
+              <div class="event-details">${ev.subject_name || ""} • ${
+            ev.class_name || ""
+          }</div>
+              <div class="event-time">${
+                ev.start_time ? ev.start_time + " - " + ev.end_time : ""
+              }</div>
+            </div>
+            <div class="event-type event">
+              <i class="fas fa-calendar-alt"></i>
+            </div>
+          </div>`;
+        });
+        document.getElementById("upcomingEventsList").innerHTML = html;
+      }
+
+      function updateScheduleStatistics() {
+        // Today's Classes
+        const today = new Date();
+        const days = [
+          "Sunday",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+        ];
+        const todayName = days[today.getDay()];
+        let todaysClasses = [];
+        let weekClasses = 0;
+        let nextClass = null;
+        let nextClassTime = "--";
+        if (cachedScheduleData && Array.isArray(cachedScheduleData)) {
+          todaysClasses = cachedScheduleData.filter(
+            (item) => item.day_of_week === todayName
+          );
+          // Count all classes in the week (Monday-Friday)
+          weekClasses = cachedScheduleData.filter((item) =>
+            ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].includes(
+              item.day_of_week
+            )
+          ).length;
+          // Find next class
+          const now = today.getHours() + today.getMinutes() / 60;
+          const sortedToday = [...todaysClasses].sort((a, b) =>
+            a.start_time.localeCompare(b.start_time)
+          );
+          for (const cls of sortedToday) {
+            const start = parseTime(cls.start_time);
+            if (start > now) {
+              nextClass = cls;
+              break;
+            }
+          }
+          if (nextClass) {
+            document.getElementById("nextClass").textContent =
+              nextClass.subject_name || "-";
+            document.getElementById(
+              "nextClassTime"
+            ).textContent = `${nextClass.start_time} - ${nextClass.end_time}`;
+          } else if (sortedToday.length) {
+            // If all classes are over, show last class
+            const last = sortedToday[sortedToday.length - 1];
+            document.getElementById("nextClass").textContent =
+              last.subject_name || "-";
+            document.getElementById(
+              "nextClassTime"
+            ).textContent = `Ended at ${last.end_time}`;
+          } else {
+            document.getElementById("nextClass").textContent = "-";
+            document.getElementById("nextClassTime").textContent = "-";
+          }
+        }
+        document.getElementById("todayClasses").textContent =
+          todaysClasses.length;
+        document.getElementById("weekClasses").textContent = weekClasses;
+        // Upcoming Events (this week)
+        let eventsThisWeek = 0;
+        if (cachedEventsData && Array.isArray(cachedEventsData)) {
+          const startOfWeek = new Date(today);
+          startOfWeek.setDate(today.getDate() - today.getDay() + 1); // Monday
+          const endOfWeek = new Date(startOfWeek);
+          endOfWeek.setDate(startOfWeek.getDate() + 6); // Sunday
+          eventsThisWeek = cachedEventsData.filter((ev) => {
+            const evDate = new Date(ev.date);
+            return evDate >= startOfWeek && evDate <= endOfWeek;
+          }).length;
+        }
+        document.getElementById("upcomingEvents").textContent = eventsThisWeek;
       }
     </script>
 

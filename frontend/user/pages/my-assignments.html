@@ -26,11 +26,6 @@
               >
             </li>
             <li>
-              <a href="my-grades.html"
-                ><i class="fas fa-chart-line"></i> My Grades</a
-              >
-            </li>
-            <li>
               <a href="my-attendance.html"
                 ><i class="fas fa-calendar-check"></i> My Attendance</a
               >
@@ -141,13 +136,10 @@
             <option value="pending">Pending</option>
             <option value="submitted">Submitted</option>
             <option value="graded">Graded</option>
-            <option value="overdue">Overdue</option>
           </select>
           <select id="typeFilter">
             <option value="">All Types</option>
-            <option value="homework">Homework</option>
             <option value="quiz">Quiz</option>
-            <option value="exam">Exam</option>
             <option value="project">Project</option>
           </select>
         </div>
@@ -158,9 +150,7 @@
         <div class="card-header">
           <h3>My Assignments</h3>
           <div class="header-actions">
-            <button class="btn btn-primary" onclick="submitAssignment()">
-              <i class="fas fa-upload"></i> Submit Assignment
-            </button>
+            <!-- Removed Submit Assignment button -->
           </div>
         </div>
         <div class="card-body">
@@ -178,151 +168,7 @@
                 </tr>
               </thead>
               <tbody id="assignmentsTableBody">
-                <tr>
-                  <td>
-                    <div class="assignment-info">
-                      <strong>Algebra Problem Set 1</strong>
-                      <small>Solving linear equations and inequalities</small>
-                    </div>
-                  </td>
-                  <td>Mathematics</td>
-                  <td><span class="type-badge homework">Homework</span></td>
-                  <td>2024-01-20</td>
-                  <td><span class="status-badge pending">Pending</span></td>
-                  <td>-</td>
-                  <td>
-                    <div class="action-buttons">
-                      <button
-                        class="btn btn-sm btn-primary"
-                        onclick="viewAssignment('1')"
-                      >
-                        <i class="fas fa-eye"></i>
-                      </button>
-                      <button
-                        class="btn btn-sm btn-success"
-                        onclick="submitAssignment('1')"
-                      >
-                        <i class="fas fa-upload"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="assignment-info">
-                      <strong>Shakespeare Essay</strong>
-                      <small>Analysis of Hamlet's soliloquy</small>
-                    </div>
-                  </td>
-                  <td>English</td>
-                  <td><span class="type-badge project">Project</span></td>
-                  <td>2024-01-25</td>
-                  <td><span class="status-badge submitted">Submitted</span></td>
-                  <td>-</td>
-                  <td>
-                    <div class="action-buttons">
-                      <button
-                        class="btn btn-sm btn-primary"
-                        onclick="viewAssignment('2')"
-                      >
-                        <i class="fas fa-eye"></i>
-                      </button>
-                      <button
-                        class="btn btn-sm btn-info"
-                        onclick="viewSubmission('2')"
-                      >
-                        <i class="fas fa-file-alt"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="assignment-info">
-                      <strong>Physics Lab Report</strong>
-                      <small>Experiment on Newton's Laws</small>
-                    </div>
-                  </td>
-                  <td>Physics</td>
-                  <td><span class="type-badge project">Project</span></td>
-                  <td>2024-01-18</td>
-                  <td><span class="status-badge overdue">Overdue</span></td>
-                  <td>-</td>
-                  <td>
-                    <div class="action-buttons">
-                      <button
-                        class="btn btn-sm btn-primary"
-                        onclick="viewAssignment('3')"
-                      >
-                        <i class="fas fa-eye"></i>
-                      </button>
-                      <button
-                        class="btn btn-sm btn-warning"
-                        onclick="submitAssignment('3')"
-                      >
-                        <i class="fas fa-upload"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="assignment-info">
-                      <strong>History Quiz</strong>
-                      <small>World War II - Chapters 5-7</small>
-                    </div>
-                  </td>
-                  <td>History</td>
-                  <td><span class="type-badge quiz">Quiz</span></td>
-                  <td>2024-01-15</td>
-                  <td><span class="status-badge graded">Graded</span></td>
-                  <td><span class="grade-badge good">87%</span></td>
-                  <td>
-                    <div class="action-buttons">
-                      <button
-                        class="btn btn-sm btn-primary"
-                        onclick="viewAssignment('4')"
-                      >
-                        <i class="fas fa-eye"></i>
-                      </button>
-                      <button
-                        class="btn btn-sm btn-info"
-                        onclick="viewGrade('4')"
-                      >
-                        <i class="fas fa-chart-line"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="assignment-info">
-                      <strong>Programming Assignment</strong>
-                      <small>Create a simple calculator in Python</small>
-                    </div>
-                  </td>
-                  <td>Computer Science</td>
-                  <td><span class="type-badge project">Project</span></td>
-                  <td>2024-01-22</td>
-                  <td><span class="status-badge pending">Pending</span></td>
-                  <td>-</td>
-                  <td>
-                    <div class="action-buttons">
-                      <button
-                        class="btn btn-sm btn-primary"
-                        onclick="viewAssignment('5')"
-                      >
-                        <i class="fas fa-eye"></i>
-                      </button>
-                      <button
-                        class="btn btn-sm btn-success"
-                        onclick="submitAssignment('5')"
-                      >
-                        <i class="fas fa-upload"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                <!-- Dynamic assignment rows will be rendered here -->
               </tbody>
             </table>
           </div>
@@ -351,7 +197,7 @@
                 </div>
               </div>
               <div class="submission-status">
-                <span class="status-badge submitted">Submitted</span>
+                <span class="status-badge running">Running</span>
               </div>
             </div>
             <div class="submission-item">
@@ -367,7 +213,7 @@
                 <div class="submission-file">Online Quiz • Score: 87%</div>
               </div>
               <div class="submission-status">
-                <span class="status-badge graded">Graded</span>
+                <span class="status-badge completed">Completed</span>
               </div>
             </div>
             <div class="submission-item">
@@ -383,7 +229,7 @@
                 <div class="submission-file">math_homework.pdf (1.1 MB)</div>
               </div>
               <div class="submission-status">
-                <span class="status-badge graded">Graded</span>
+                <span class="status-badge completed">Completed</span>
               </div>
             </div>
           </div>
@@ -436,17 +282,100 @@
     <script src="/assets/js/auth.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
-        loadAssignmentData();
+        loadAndRenderAssignments();
         setupSearchAndFilter();
       });
 
-      function loadAssignmentData() {
-        setTimeout(() => {
-          document.getElementById("totalAssignments").textContent = "12";
-          document.getElementById("completedAssignments").textContent = "8";
-          document.getElementById("pendingAssignments").textContent = "3";
-          document.getElementById("overdueAssignments").textContent = "1";
-        }, 1000);
+      function loadAndRenderAssignments(filters = {}) {
+        const auth = new Auth();
+        const user = auth.getCurrentUser();
+        if (!user) return;
+        const payload = {
+          action: "get_assignments",
+          student_id: user.id,
+        };
+        if (filters.status) payload.status = filters.status;
+        if (filters.type) payload.type = filters.type;
+        if (filters.subject_id) payload.subject_id = filters.subject_id;
+        fetch("/backend/controllers/students.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (
+              !data.success ||
+              !Array.isArray(data.assignments) ||
+              !data.assignments.length
+            ) {
+              document.getElementById("assignmentsTableBody").innerHTML =
+                '<tr><td colspan="7" class="text-center text-danger">No assignments found.</td></tr>';
+              return;
+            }
+            renderAssignmentsTable(data.assignments, user.id);
+          });
+      }
+
+      function renderAssignmentsTable(assignments, studentId) {
+        let html = "";
+        assignments.forEach((row) => {
+          // Only show assignments for this student
+          if (row.student_id !== studentId) return;
+          html += `<tr>
+            <td>
+              <div class="assignment-info">
+                <strong>${row.assignment_title || "-"}</strong>
+                <small>${row.description || ""}</small>
+              </div>
+            </td>
+            <td>${row.subject_name || "-"}</td>
+            <td><span class="type-badge ${row.assignment_type}">${capitalize(
+            row.assignment_type
+          )}</span></td>
+            <td>${row.due_date || "-"}</td>
+            <td><span class="status-badge ${row.status}">${capitalize(
+            row.status
+          )}</span></td>
+            <td>${
+              row.marks_obtained !== null && row.marks_obtained !== undefined
+                ? `<span class="grade-badge">${row.marks_obtained}</span>`
+                : "-"
+            }</td>
+            <td>
+              <div class="action-buttons">
+                <button class="btn btn-sm btn-primary" onclick="viewAssignment('${
+                  row.assignment_id
+                }')"><i class="fas fa-eye"></i></button>
+                ${
+                  row.status === "pending" || row.status === "coming"
+                    ? `<button class="btn btn-sm btn-success" onclick="submitAssignment('${row.assignment_id}')"><i class="fas fa-upload"></i></button>`
+                    : ""
+                }
+                ${
+                  row.status === "submitted" || row.status === "graded"
+                    ? `<button class="btn btn-sm btn-info" onclick="viewSubmission('${row.assignment_id}')"><i class="fas fa-file-alt"></i></button>`
+                    : ""
+                }
+                ${
+                  row.status === "graded"
+                    ? `<button class="btn btn-sm btn-info" onclick="viewGrade('${row.assignment_id}')"><i class="fas fa-chart-line"></i></button>`
+                    : ""
+                }
+              </div>
+            </td>
+          </tr>`;
+        });
+        if (!html) {
+          html =
+            '<tr><td colspan="7" class="text-center text-danger">No assignments found.</td></tr>';
+        }
+        document.getElementById("assignmentsTableBody").innerHTML = html;
+      }
+
+      function capitalize(str) {
+        if (!str) return "";
+        return str.charAt(0).toUpperCase() + str.slice(1);
       }
 
       function setupSearchAndFilter() {
@@ -471,13 +400,12 @@
         const subjectFilter = document.getElementById("subjectFilter").value;
         const statusFilter = document.getElementById("statusFilter").value;
         const typeFilter = document.getElementById("typeFilter").value;
-
-        console.log("Filtering assignments:", {
-          searchTerm,
-          subjectFilter,
-          statusFilter,
-          typeFilter,
-        });
+        const filters = {};
+        if (statusFilter) filters.status = statusFilter;
+        if (typeFilter) filters.type = typeFilter;
+        if (subjectFilter) filters.subject_id = subjectFilter;
+        // Fetch filtered assignments from backend
+        loadAndRenderAssignments(filters);
       }
 
       function viewAssignment(assignmentId) {
@@ -593,6 +521,21 @@
       .status-badge.overdue {
         background: #f8d7da;
         color: #721c24;
+      }
+
+      .status-badge.coming {
+        background: #fff3cd;
+        color: #856404;
+      }
+
+      .status-badge.running {
+        background: #cce5ff;
+        color: #004085;
+      }
+
+      .status-badge.completed {
+        background: #d4edda;
+        color: #155724;
       }
 
       .grade-badge {

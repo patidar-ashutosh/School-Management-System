@@ -73,9 +73,8 @@ class Subject {
     public function getByClass($classId) {
         $sql = "SELECT DISTINCT s.code, s.name, s.description
                 FROM subjects s 
-                INNER JOIN teachers t ON s.id = t.subject_id 
-                INNER JOIN schedule sch ON s.id = sch.subject_id 
-                WHERE sch.class_id = ? AND s.status = 'active' 
+                INNER JOIN lecturers l ON s.id = l.subject_id 
+                WHERE l.class_id = ? AND s.status = 'active' 
                 ORDER BY s.name";
         return $this->db->fetchAll($sql, [$classId]);
     }

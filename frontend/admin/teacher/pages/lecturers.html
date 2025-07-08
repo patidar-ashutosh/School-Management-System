@@ -155,7 +155,6 @@
           <select id="statusFilter">
             <option value="">All Status</option>
             <option value="incoming">Incoming</option>
-            <option value="ongoing">Ongoing</option>
             <option value="completed">Completed</option>
           </select>
         </div>
@@ -176,6 +175,7 @@
                 <tr>
                   <th>Subject</th>
                   <th>Class</th>
+                  <th>Day</th>
                   <th>Start Time</th>
                   <th>End Time</th>
                   <th>Status</th>
@@ -222,24 +222,27 @@
           </div>
           <div class="form-row">
             <div class="form-group">
+              <label for="day">Day</label>
+              <select id="day" name="day" required>
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
               <label for="startTime">Start Time</label>
-              <input
-                type="datetime-local"
-                id="startTime"
-                name="startTime"
-                required
-              />
+              <input type="time" id="startTime" name="startTime" required />
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
               <label for="endTime">End Time</label>
-              <input
-                type="datetime-local"
-                id="endTime"
-                name="endTime"
-                required
-              />
+              <input type="time" id="endTime" name="endTime" required />
             </div>
           </div>
           <div class="form-row">
@@ -247,7 +250,6 @@
               <label for="status">Status</label>
               <select id="status" name="status" required>
                 <option value="incoming">Incoming</option>
-                <option value="ongoing">Ongoing</option>
                 <option value="completed">Completed</option>
               </select>
             </div>
@@ -373,8 +375,9 @@
           row.innerHTML = `
             <td>${lec.subject_name || ""}</td>
             <td>${lec.class_name || ""}</td>
-            <td>${formatDateTime(lec.start_time)}</td>
-            <td>${formatDateTime(lec.end_time)}</td>
+            <td>${lec.day_of_week || ""}</td>
+            <td>${lec.start_time || ""}</td>
+            <td>${lec.end_time || ""}</td>
             <td><span class="status-badge ${lec.status}">${capitalize(
             lec.status
           )}</span></td>
@@ -447,10 +450,11 @@
                 "Edit Lecture";
               document.getElementById("subject").value = data.data.subject_id;
               document.getElementById("class").value = data.data.class_id;
+              document.getElementById("day").value = data.data.day_of_week;
               document.getElementById("startTime").value =
-                data.data.start_time.slice(0, 16);
+                data.data.start_time.slice(0, 5);
               document.getElementById("endTime").value =
-                data.data.end_time.slice(0, 16);
+                data.data.end_time.slice(0, 5);
               document.getElementById("status").value = data.data.status;
               document.getElementById("lectureModal").style.display = "block";
             } else {
@@ -482,6 +486,7 @@
         const lectureData = {
           subject_id: formData.get("subject"),
           class_id: formData.get("class"),
+          day_of_week: formData.get("day"),
           start_time: formData.get("startTime"),
           end_time: formData.get("endTime"),
           status: formData.get("status"),

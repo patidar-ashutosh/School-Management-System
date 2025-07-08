@@ -43,11 +43,23 @@ try {
                     $subjects = $subject->getByClass($studentData['class_id']);
                 }
                 
-                // Calculate statistics
+                // Count pending assignments by type
+                $pendingAssignments = 0;
+                $pendingAssignmentsByType = ['quiz' => 0, 'project' => 0];
+                if ($studentData['class_id']) {
+                    $db = $student->getDb();
+                    $sql = "SELECT type, COUNT(*) as count FROM assignments WHERE class_id = ? AND status = 'active' GROUP BY type";
+                    $result = $db->fetchAll($sql, [$studentData['class_id']]);
+                    foreach ($result as $row) {
+                        $pendingAssignments += $row['count'];
+                        $pendingAssignmentsByType[$row['type']] = $row['count'];
+                    }
+                }
                 $stats = [
                     'total_subjects' => count($subjects),
                     'attendance_percentage' => 0, // Placeholder - implement based on attendance table
-                    'pending_assignments' => 0 // Placeholder - implement based on assignments table
+                    'pending_assignments' => $pendingAssignments,
+                    'pending_assignments_by_type' => $pendingAssignmentsByType
                 ];
                 
                 echo json_encode([

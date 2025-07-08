@@ -179,6 +179,68 @@ try {
                 ]);
                 break;
                 
+            case 'get_monthly_attendance_by_student':
+                $student_id = $input['student_id'] ?? null;
+                $months = isset($input['months']) ? (int)$input['months'] : 4;
+                if (!$student_id) {
+                    echo json_encode(['success' => false, 'message' => 'Student ID is required']);
+                    return;
+                }
+                $db = db();
+                $sql = "SELECT YEAR(date) as year, MONTH(date) as month, COUNT(*) as total_days, SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END) as present_days
+                        FROM attendance
+                        WHERE student_id = ? AND date >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)
+                        GROUP BY YEAR(date), MONTH(date)
+                        ORDER BY year DESC, month DESC
+                        LIMIT ?";
+                $rows = $db->fetchAll($sql, [$student_id, $months, $months]);
+                $result = [];
+                foreach ($rows as $row) {
+                    $percent = $row['total_days'] > 0 ? round(($row['present_days'] / $row['total_days']) * 100) : 0;
+                    $result[] = [
+                        'year' => $row['year'],
+                        'month' => $row['month'],
+                        'present_days' => (int)$row['present_days'],
+                        'total_days' => (int)$row['total_days'],
+                        'percent' => $percent
+                    ];
+                }
+                echo json_encode(['success' => true, 'data' => $result]);
+                return;
+                
+            case 'get_recent_attendance_by_student':
+                $student_id = $input['student_id'] ?? null;
+                $days = isset($input['days']) ? (int)$input['days'] : 6;
+                if (!$student_id) {
+                    echo json_encode(['success' => false, 'message' => 'Student ID is required']);
+                    return;
+                }
+                $db = db();
+                $sql = "SELECT date, status FROM attendance WHERE student_id = ? AND (status = 'present' OR status = 'absent') ORDER BY date DESC LIMIT ?";
+                $rows = $db->fetchAll($sql, [$student_id, $days]);
+                echo json_encode(['success' => true, 'data' => $rows]);
+                return;
+                
+            case 'get_student_attendance_stats':
+                if (!isset($input['student_id'])) {
+                    throw new Exception('Student ID is required');
+                }
+                $studentId = $input['student_id'];
+                $total = $attendance->getTotalAttendanceCount($studentId);
+                $present = $attendance->getPresentAttendanceCount($studentId);
+                $absent = $total - $present;
+                $percent = ($total > 0) ? round(($present / $total) * 100, 1) : 0;
+                echo json_encode([
+                    'success' => true,
+                    'data' => [
+                        'total' => $total,
+                        'present' => $present,
+                        'absent' => $absent,
+                        'percent' => $percent
+                    ]
+                ]);
+                return;
+                
             default:
                 throw new Exception('Invalid action');
         }

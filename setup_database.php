@@ -102,9 +102,10 @@ $tables = [
         subject_id INT NOT NULL,
         teacher_id INT NOT NULL,
         class_id INT NOT NULL,
-        start_time DATETIME NOT NULL,
-        end_time DATETIME NOT NULL,
-        status ENUM('incoming', 'ongoing', 'completed') DEFAULT 'incoming',
+        day_of_week ENUM('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') NOT NULL,
+        start_time TIME NOT NULL,
+        end_time TIME NOT NULL,
+        status ENUM('completed', 'incoming') DEFAULT 'incoming',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
@@ -157,7 +158,8 @@ $tables = [
         due_date DATE,
         total_marks INT DEFAULT 100,
         teacher_id INT,
-        status ENUM('active', 'inactive') DEFAULT 'active',
+        type ENUM('quiz', 'project') NOT NULL DEFAULT 'quiz',
+        status ENUM('coming', 'running', 'completed') DEFAULT 'coming',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
@@ -194,22 +196,6 @@ $tables = [
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
         FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE
-    )",
-    
-    'schedule' => "CREATE TABLE schedule (
-        id INT PRIMARY KEY AUTO_INCREMENT,
-        class_id INT,
-        subject_id INT,
-        teacher_id INT,
-        day_of_week ENUM('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') NOT NULL,
-        start_time TIME,
-        end_time TIME,
-        room_number VARCHAR(20),
-        status ENUM('active', 'inactive') DEFAULT 'active',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE,
-        FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
-        FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE SET NULL
     )",
     
     'password_resets' => "CREATE TABLE password_resets (
@@ -344,10 +330,10 @@ try {
     echo "✓ Sample attendance created\n";
     
     // Insert sample assignments (updated to use teacher_id instead of created_by)
-    $stmt = $pdo->prepare("INSERT IGNORE INTO assignments (title, description, subject_id, class_id, due_date, total_marks, teacher_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute(['Algebra Problem Set 1', 'Solving linear equations and inequalities', $mathSubjectId, $class10AId, '2024-01-20', 100, $teacherIds[0]]);
-    $stmt->execute(['Shakespeare Essay', 'Analysis of Hamlet soliloquy', $englishSubjectId, $class10AId, '2024-01-25', 50, $teacherIds[1]]);
-    $stmt->execute(['Physics Lab Report', 'Experiment on Newton Laws', $physicsSubjectId, $class9BId, '2024-01-18', 75, $teacherIds[2]]);
+    $stmt = $pdo->prepare("INSERT IGNORE INTO assignments (title, description, subject_id, class_id, due_date, total_marks, teacher_id, type, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->execute(['Algebra Problem Set 1', 'Solving linear equations and inequalities', $mathSubjectId, $class10AId, '2024-01-20', 100, $teacherIds[0], 'quiz', 'completed']);
+    $stmt->execute(['Shakespeare Essay', 'Analysis of Hamlet soliloquy', $englishSubjectId, $class10AId, '2024-01-25', 50, $teacherIds[1], 'project', 'running']);
+    $stmt->execute(['Physics Lab Report', 'Experiment on Newton Laws', $physicsSubjectId, $class9BId, '2024-01-18', 75, $teacherIds[2], 'project', 'coming']);
     echo "✓ Sample assignments created\n";
     
     // Get assignment IDs
@@ -363,18 +349,11 @@ try {
     $stmt->execute([$englishAssignmentId, $student2Id, '2024-01-23 20:15:00', 92, 'Excellent analysis and writing', 'graded']);
     echo "✓ Sample student assignments created\n";
     
-    // Insert sample schedule
-    $stmt = $pdo->prepare("INSERT IGNORE INTO schedule (class_id, subject_id, teacher_id, day_of_week, start_time, end_time, room_number) VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute([$class10AId, $mathSubjectId, $teacherIds[0], 'Monday', '08:00:00', '09:00:00', 'Room 101']);
-    $stmt->execute([$class10AId, $englishSubjectId, $teacherIds[1], 'Tuesday', '09:00:00', '10:00:00', 'Room 101']);
-    $stmt->execute([$class9BId, $physicsSubjectId, $teacherIds[2], 'Wednesday', '10:00:00', '11:00:00', 'Room 91']);
-    echo "✓ Sample schedule created\n";
-    
-    // Insert sample lecturers (now as lecture sessions)
-    $stmt = $pdo->prepare("INSERT IGNORE INTO lecturers (subject_id, teacher_id, class_id, start_time, end_time, status) VALUES (?, ?, ?, ?, ?, ?)");
-    $stmt->execute([$subjectIds[0], $teacherIds[0], $class10AId, '2024-06-01 09:00:00', '2024-06-01 10:00:00', 'completed']);
-    $stmt->execute([$subjectIds[1], $teacherIds[1], $class10AId, '2024-06-02 11:00:00', '2024-06-02 12:00:00', 'ongoing']);
-    $stmt->execute([$subjectIds[2], $teacherIds[2], $class9BId, '2024-06-03 13:00:00', '2024-06-03 14:00:00', 'incoming']);
+    // Insert sample lecturers (now as weekly schedule)
+    $stmt = $pdo->prepare("INSERT IGNORE INTO lecturers (subject_id, teacher_id, class_id, day_of_week, start_time, end_time, status) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $stmt->execute([$mathSubjectId, $teacherIds[0], $class10AId, 'Monday', '08:00:00', '09:00:00', 'incoming']);
+    $stmt->execute([$englishSubjectId, $teacherIds[1], $class10AId, 'Tuesday', '09:00:00', '10:00:00', 'incoming']);
+    $stmt->execute([$physicsSubjectId, $teacherIds[2], $class9BId, 'Wednesday', '10:00:00', '11:00:00', 'incoming']);
     echo "✓ Sample lecturer sessions created\n";
     
     // After class IDs are fetched, update teachers to set class_teacher_of

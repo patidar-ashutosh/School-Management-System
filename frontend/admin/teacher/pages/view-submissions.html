@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>View Submissions - Teacher Dashboard</title>
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <link rel="stylesheet" href="/assets/css/principal.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="teacher-dashboard">
+    <header class="main-header">
+      <div class="header-container">
+        <div class="logo">
+          <i class="fas fa-school"></i>
+          <span>School Management System</span>
+        </div>
+        <nav class="main-nav">
+          <ul>
+            <li>
+              <a href="teacher-dashboard.html"
+                ><i class="fas fa-tachometer-alt"></i> Dashboard</a
+              >
+            </li>
+            <li>
+              <a href="lecturers.html"
+                ><i class="fas fa-chalkboard-teacher"></i> My Lectures</a
+              >
+            </li>
+            <li>
+              <a href="my-students.html"
+                ><i class="fas fa-users"></i> My Students</a
+              >
+            </li>
+            <li>
+              <a href="attendance.html"
+                ><i class="fas fa-calendar-check"></i> Attendance</a
+              >
+            </li>
+            <li>
+              <a href="assignments.html"
+                ><i class="fas fa-tasks"></i> Assignments</a
+              >
+            </li>
+            <li>
+              <a href="view-submissions.html" class="active"
+                ><i class="fas fa-file-alt"></i> View Submissions</a
+              >
+            </li>
+          </ul>
+        </nav>
+        <div class="user-menu">
+          <div class="user-info">
+            <i class="fas fa-user-circle"></i>
+            <span id="userName">Teacher</span>
+          </div>
+          <div class="dropdown-menu">
+            <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
+            <a href="settings.html"><i class="fas fa-cog"></i> Settings</a>
+            <a href="#" onclick="logout()"
+              ><i class="fas fa-sign-out-alt"></i> Logout</a
+            >
+          </div>
+        </div>
+        <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+      <nav class="mobile-nav" id="mobileNav">
+        <ul>
+          <li>
+            <a href="teacher-dashboard.html"
+              ><i class="fas fa-tachometer-alt"></i> Dashboard</a
+            >
+          </li>
+          <li>
+            <a href="lecturers.html"
+              ><i class="fas fa-chalkboard-teacher"></i> My Lectures</a
+            >
+          </li>
+          <li>
+            <a href="my-students.html"
+              ><i class="fas fa-users"></i> My Students</a
+            >
+          </li>
+          <li>
+            <a href="attendance.html"
+              ><i class="fas fa-calendar-check"></i> Attendance</a
+            >
+          </li>
+          <li>
+            <a href="assignments.html"
+              ><i class="fas fa-tasks"></i> Assignments</a
+            >
+          </li>
+          <li>
+            <a href="view-submissions.html" class="active"
+              ><i class="fas fa-file-alt"></i> View Submissions</a
+            >
+          </li>
+        </ul>
+      </nav>
+    </header>
+    <main class="main-content">
+      <div class="page-header">
+        <h1>View Assignment Submissions</h1>
+        <p>Filter and review student submissions for your assignments</p>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h3>Filters</h3>
+        </div>
+        <div class="card-body">
+          <div class="filter-section">
+            <select id="subjectFilter">
+              <option value="">All Subjects</option>
+              <!-- Populated by JS -->
+            </select>
+            <select id="classFilter">
+              <option value="">All Classes</option>
+              <!-- Populated by JS -->
+            </select>
+            <select id="statusFilter">
+              <option value="">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="submitted">Submitted</option>
+              <option value="graded">Graded</option>
+            </select>
+            <select id="typeFilter">
+              <option value="">All Types</option>
+              <option value="quiz">Quiz</option>
+              <option value="project">Project</option>
+            </select>
+          </div>
+          <div
+            id="noAssignmentsMsg"
+            style="
+              display: none;
+              text-align: center;
+              color: #b94a48;
+              font-weight: 500;
+              margin-top: 1rem;
+            "
+          >
+            No assignment created yet.
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h3>Submissions</h3>
+        </div>
+        <div class="card-body">
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Assignment</th>
+                  <th>Subject</th>
+                  <th>Class</th>
+                  <th>Status</th>
+                  <th>Type</th>
+                  <th>Submitted Date</th>
+                  <th>Marks Obtained</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="submissionsTableBody">
+                <!-- Dynamic rows by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+    <script src="/assets/js/auth.js"></script>
+    <script>
+      let allAssignments = [];
+      let allSubjects = [];
+      let allClasses = [];
+      let allSubmissions = [];
+      document.addEventListener("DOMContentLoaded", function () {
+        fetchAssignmentsForFilters();
+        setupFilterListeners();
+        fetchAndRenderSubmissions();
+      });
+
+      function fetchAssignmentsForFilters() {
+        fetch("/backend/controllers/teacher_dashboard.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_assignments" }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (!data.success || !Array.isArray(data.assignments)) return;
+            allAssignments = data.assignments;
+            // Unique subjects and classes from assignments
+            const subjectMap = {};
+            const classMap = {};
+            data.assignments.forEach((a) => {
+              if (a.subject_id && a.subject_name)
+                subjectMap[a.subject_id] = a.subject_name;
+              if (a.class_id && a.class_name)
+                classMap[a.class_id] = a.class_name;
+            });
+            allSubjects = Object.entries(subjectMap).map(([id, name]) => ({
+              id,
+              name,
+            }));
+            allClasses = Object.entries(classMap).map(([id, name]) => ({
+              id,
+              name,
+            }));
+            populateFilterOptions();
+          });
+      }
+
+      function populateFilterOptions() {
+        const subjectFilter = document.getElementById("subjectFilter");
+        const classFilter = document.getElementById("classFilter");
+        const noAssignmentsMsg = document.getElementById("noAssignmentsMsg");
+        if (allSubjects.length === 0 || allClasses.length === 0) {
+          subjectFilter.innerHTML = '<option value="">All Subjects</option>';
+          classFilter.innerHTML = '<option value="">All Classes</option>';
+          noAssignmentsMsg.style.display = "block";
+          subjectFilter.disabled = true;
+          classFilter.disabled = true;
+          document.getElementById("statusFilter").disabled = true;
+          document.getElementById("typeFilter").disabled = true;
+          return;
+        }
+        noAssignmentsMsg.style.display = "none";
+        subjectFilter.disabled = false;
+        classFilter.disabled = false;
+        document.getElementById("statusFilter").disabled = false;
+        document.getElementById("typeFilter").disabled = false;
+        subjectFilter.innerHTML = allSubjects
+          .map(
+            (s, i) =>
+              `<option value="${s.id}"${i === 0 ? " selected" : ""}>${
+                s.name
+              }</option>`
+          )
+          .join("");
+        classFilter.innerHTML = allClasses
+          .map(
+            (c, i) =>
+              `<option value="${c.id}"${i === 0 ? " selected" : ""}>${
+                c.name
+              }</option>`
+          )
+          .join("");
+        // Trigger fetch with new defaults
+        fetchAndRenderSubmissions();
+      }
+
+      function setupFilterListeners() {
+        ["subjectFilter", "classFilter", "statusFilter", "typeFilter"].forEach(
+          (id) => {
+            document
+              .getElementById(id)
+              .addEventListener("change", fetchAndRenderSubmissions);
+          }
+        );
+      }
+
+      function fetchAndRenderSubmissions() {
+        const subject_id = document.getElementById("subjectFilter").value;
+        const class_id = document.getElementById("classFilter").value;
+        const status = document.getElementById("statusFilter").value;
+        const type = document.getElementById("typeFilter").value;
+        fetch("/backend/controllers/teacher_dashboard.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "get_assignment_submissions",
+            subject_id,
+            class_id,
+            status,
+            type,
+          }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (!data.success || !Array.isArray(data.submissions)) {
+              renderSubmissions([]);
+              return;
+            }
+            allSubmissions = data.submissions;
+            renderSubmissions(allSubmissions);
+          });
+      }
+
+      function renderSubmissions(submissions) {
+        const tbody = document.getElementById("submissionsTableBody");
+        if (!submissions.length) {
+          tbody.innerHTML =
+            '<tr><td colspan="9" style="text-align:center;">No submissions found.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = submissions
+          .map(
+            (sub) => `
+          <tr>
+            <td>${sub.first_name} ${sub.last_name}</td>
+            <td>${sub.assignment_title}</td>
+            <td>${sub.subject_name || ""}</td>
+            <td>${sub.class_name || ""}</td>
+            <td>${capitalize(sub.status)}</td>
+            <td>${capitalize(sub.assignment_type)}</td>
+            <td>${sub.submitted_date ? sub.submitted_date : "-"}</td>
+            <td>${sub.marks_obtained !== null ? sub.marks_obtained : "-"}</td>
+            <td><!-- Actions can go here --></td>
+          </tr>
+        `
+          )
+          .join("");
+      }
+
+      function capitalize(str) {
+        if (!str) return "";
+        return str.charAt(0).toUpperCase() + str.slice(1);
+      }
+    </script>
+    <style>
+      .filter-section {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+      }
+      .data-table th,
+      .data-table td {
+        text-align: left;
+        padding: 8px 10px;
+      }
+      .data-table th {
+        background: #f8f9fa;
+        color: #333;
+      }
+      .data-table tr:nth-child(even) {
+        background: #f2f2f2;
+      }
+      .table-container {
+        overflow-x: auto;
+      }
+    </style>
+  </body>
+</html>

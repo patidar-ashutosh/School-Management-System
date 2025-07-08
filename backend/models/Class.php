@@ -58,10 +58,12 @@ class ClassModel {
     }
 
     public function getByTeacher($teacherId) {
-        $sql = "SELECT c.*, CONCAT(t.first_name, ' ', t.last_name) as teacher_name 
+        // Return all classes where the teacher is assigned as a lecturer (many-to-many)
+        $sql = "SELECT DISTINCT c.*, CONCAT(t.first_name, ' ', t.last_name) as teacher_name 
                 FROM classes c 
                 LEFT JOIN teachers t ON c.teacher_id = t.id 
-                WHERE c.teacher_id = ? 
+                INNER JOIN lecturers l ON l.class_id = c.id 
+                WHERE l.teacher_id = ? 
                 ORDER BY c.name";
         return $this->db->fetchAll($sql, [$teacherId]);
     }

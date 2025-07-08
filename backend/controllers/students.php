@@ -138,6 +138,38 @@ try {
                 ]);
                 break;
                 
+            case 'get_assignments':
+                if (!isset($input['student_id'])) {
+                    throw new Exception('Student ID is required');
+                }
+                $studentId = $input['student_id'];
+                $status = $input['status'] ?? null;
+                $type = $input['type'] ?? null;
+                $subject_id = $input['subject_id'] ?? null;
+                $db = $student->getDb();
+                $sql = "SELECT sa.*, a.title as assignment_title, a.description, a.type as assignment_type, a.due_date, a.total_marks, a.subject_id, a.class_id, a.status as assignment_status, sub.name as subject_name
+                        FROM student_assignments sa
+                        JOIN assignments a ON sa.assignment_id = a.id
+                        LEFT JOIN subjects sub ON a.subject_id = sub.id
+                        WHERE sa.student_id = ?";
+                $params = [$studentId];
+                if ($status) {
+                    $sql .= " AND sa.status = ?";
+                    $params[] = $status;
+                }
+                if ($type) {
+                    $sql .= " AND a.type = ?";
+                    $params[] = $type;
+                }
+                if ($subject_id) {
+                    $sql .= " AND a.subject_id = ?";
+                    $params[] = $subject_id;
+                }
+                $sql .= " ORDER BY a.due_date DESC, sa.id DESC";
+                $rows = $db->fetchAll($sql, $params);
+                echo json_encode(['success' => true, 'assignments' => $rows]);
+                break;
+                
             default:
                 throw new Exception('Invalid action');
         }

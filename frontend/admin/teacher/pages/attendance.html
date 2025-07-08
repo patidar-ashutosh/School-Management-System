@@ -176,7 +176,7 @@
         </div>
         <div class="card-body">
           <div class="class-selection">
-            <input type="date" id="viewAttendanceDate" value="" />
+            <input type="date" id="viewAttendanceDate" value="" min="" max="" />
           </div>
         </div>
         <div
@@ -184,38 +184,6 @@
           id="viewAttendanceFormContainer"
           style="display: none"
         ></div>
-      </div>
-
-      <!-- Attendance Table -->
-      <div class="card" id="attendanceCard" style="display: none">
-        <div class="card-header">
-          <h3 id="attendanceTitle">Class Attendance</h3>
-          <div class="header-actions">
-            <button class="btn btn-success" onclick="saveAttendance()">
-              <i class="fas fa-save"></i> Save Attendance
-            </button>
-            <button class="btn btn-primary" onclick="markAllPresent()">
-              <i class="fas fa-check-double"></i> Mark All Present
-            </button>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="table-container">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Student</th>
-                  <th>Student ID</th>
-                  <th>Status</th>
-                  <th>Date</th>
-                </tr>
-              </thead>
-              <tbody id="attendanceTableBody">
-                <!-- Attendance data will be loaded here -->
-              </tbody>
-            </table>
-          </div>
-        </div>
       </div>
     </main>
 
@@ -225,8 +193,15 @@
       let currentClassId = null;
 
       document.addEventListener("DOMContentLoaded", function () {
-        const today = new Date().toISOString().split("T")[0];
-        document.getElementById("viewAttendanceDate").value = today;
+        const today = new Date();
+        const todayStr = today.toISOString().split("T")[0];
+        const minDate = new Date(today);
+        minDate.setDate(today.getDate() - 30);
+        const minDateStr = minDate.toISOString().split("T")[0];
+        const dateInput = document.getElementById("viewAttendanceDate");
+        dateInput.value = todayStr;
+        dateInput.min = minDateStr;
+        dateInput.max = todayStr;
         // Get teacher ID from session
         let teacherData = JSON.parse(localStorage.getItem("userData") || "{}");
         if (!teacherData.id) {
@@ -250,7 +225,7 @@
                 return;
               currentClassId = teacherRes.data.class_teacher_of;
               // Check if today's attendance is already marked
-              checkAndHideTodayAttendanceSection(currentClassId, today);
+              checkAndHideTodayAttendanceSection(currentClassId, todayStr);
             });
 
           loadTeacherClassesForToday();
@@ -470,7 +445,7 @@
       }
 
       function renderAttendanceTable(students, classId, date, editable) {
-        let html = `<table class="data-table"><thead><tr><th>Student</th><th>Student ID</th><th>Status</th><th>Date</th></tr></thead><tbody>`;
+        let html = `<table class="data-table"><thead><tr><th>Student</th><th>Student ID</th><th>Status</th></tr></thead><tbody>`;
         students.forEach((student) => {
           html += `<tr>
             <td><div class="student-info"><div class="student-avatar">${student.first_name.charAt(
@@ -488,13 +463,6 @@
           } else {
             html += `${student.status || "-"}`;
           }
-          html += `</td>
-            <td>`;
-          if (editable) {
-            html += `${date}`;
-          } else {
-            html += `${student.time || "-"}`;
-          }
           html += `</td></tr>`;
         });
         html += `</tbody></table>`;
@@ -506,6 +474,12 @@
           if (headerActions) {
             headerActions.innerHTML = `<button class="btn btn-success" onclick="saveAttendanceTable(${classId}, '${date}')"><i class="fas fa-save"></i> Save Attendance</button>
             <button class="btn btn-primary" onclick="markAllPresentTable()"><i class="fas fa-check-double"></i> Mark All Present</button>`;
+          } else {
+            html =
+              `<div style="margin-bottom: 15px; text-align: right;">
+              <button class="btn btn-success" onclick="saveAttendanceTable(${classId}, '${date}')"><i class="fas fa-save"></i> Save Attendance</button>
+              <button class="btn btn-primary" onclick="markAllPresentTable()"><i class="fas fa-check-double"></i> Mark All Present</button>
+            </div>` + html;
           }
           document.getElementById("todayAttendanceFormContainer").innerHTML =
             html;
@@ -546,69 +520,6 @@
           })
           .catch((error) => {
             console.error("Error:", error);
-          });
-      }
-
-      function markAllPresent() {
-        const statusSelects = document.querySelectorAll(".attendance-status");
-        statusSelects.forEach((select) => {
-          select.value = "present";
-        });
-
-        // Save attendance immediately
-        saveAttendance();
-      }
-
-      function saveAttendance() {
-        const selectedClass = document.getElementById("classSelect").value;
-        const selectedDate = document.getElementById("attendanceDate").value;
-
-        if (!selectedClass || !selectedDate || !currentTeacherId) {
-          alert("Please select a class and ensure teacher is logged in");
-          return;
-        }
-
-        // Collect attendance data
-        const attendanceData = [];
-        const statusSelects = document.querySelectorAll(".attendance-status");
-        const timeInputs = document.querySelectorAll(".attendance-time");
-
-        statusSelects.forEach((select) => {
-          const studentId = select.getAttribute("data-student-id");
-          const status = select.value;
-
-          attendanceData.push({
-            student_id: studentId,
-            status: status,
-          });
-        });
-
-        // Save to database
-        fetch("/backend/controllers/attendance.php", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            action: "save_attendance",
-            class_id: selectedClass,
-            date: selectedDate,
-            teacher_id: currentTeacherId,
-            attendance_data: attendanceData,
-          }),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.success) {
-              alert("Attendance saved successfully!");
-              loadAttendanceData(); // Refresh stats
-            } else {
-              alert("Error saving attendance: " + data.message);
-            }
-          })
-          .catch((error) => {
-            console.error("Error:", error);
-            alert("Error saving attendance. Please try again.");
           });
       }
 
@@ -668,15 +579,59 @@
 
       // Mark all students as present in the editable attendance table
       function markAllPresentTable() {
-        const selects = document.querySelectorAll(
+        console.log("markAllPresentTable called");
+
+        // Try multiple selectors to find attendance dropdowns
+        let selects = document.querySelectorAll(
           "#todayAttendanceFormContainer .attendance-status"
         );
-        selects.forEach((select) => {
-          select.value = "present";
+
+        if (selects.length === 0) {
+          // Fallback: try to find any attendance status selects
+          selects = document.querySelectorAll(".attendance-status");
+          console.log("Using fallback selector, found:", selects.length);
+        }
+
+        console.log("Found selects:", selects.length);
+
+        if (selects.length === 0) {
+          alert(
+            "No attendance dropdowns found. Please make sure the attendance form is loaded and visible."
+          );
+          return;
+        }
+
+        let changedCount = 0;
+        selects.forEach((select, index) => {
+          console.log(`Setting select ${index} to present`);
+          if (select.value !== "present") {
+            select.value = "present";
+            changedCount++;
+          }
+
+          // Add visual feedback by changing background color temporarily
+          select.style.backgroundColor = "#d4edda";
+          select.style.borderColor = "#28a745";
+
           // Trigger change event for UI update/consistency
           const event = new Event("change", { bubbles: true });
           select.dispatchEvent(event);
         });
+
+        // Reset background colors after a short delay
+        setTimeout(() => {
+          selects.forEach((select) => {
+            select.style.backgroundColor = "";
+            select.style.borderColor = "";
+          });
+        }, 1000);
+
+        console.log("markAllPresentTable completed");
+        if (changedCount > 0) {
+          alert(`Marked ${changedCount} students as present!`);
+        } else {
+          alert("All students were already marked as present.");
+        }
       }
 
       // Check if today's attendance is already marked and hide section if so

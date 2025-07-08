@@ -275,9 +275,10 @@ function handleDeleteClass($classModel, $input) {
         }
         
         // Check if class has subjects (should check assignments and exams, not subjects)
+        // This check includes all assignment types (quiz and project). To restrict, add AND type = 'project' or 'quiz'.
         $assignmentCheck = $db->fetch("SELECT COUNT(*) as count FROM assignments WHERE class_id = ?", [$id]);
         if ($assignmentCheck['count'] > 0) {
-            echo json_encode(['success' => false, 'message' => 'Cannot delete class. It has assignments assigned.']);
+            echo json_encode(['success' => false, 'message' => 'Cannot delete class. It has assignments assigned (quiz or project).']);
             return;
         }
         $examCheck = $db->fetch("SELECT COUNT(*) as count FROM exams WHERE class_id = ?", [$id]);

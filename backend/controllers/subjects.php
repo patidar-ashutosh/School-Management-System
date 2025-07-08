@@ -183,6 +183,22 @@ try {
                 ]);
                 break;
                 
+            case 'get_schedule_by_class':
+                if (!isset($input['class_id'])) {
+                    throw new Exception('Class ID is required');
+                }
+                $class_id = $input['class_id'];
+                $db = db();
+                $sql = "SELECT l.*, s.name as subject_name, t.first_name as teacher_first_name, t.last_name as teacher_last_name
+                        FROM lecturers l
+                        LEFT JOIN subjects s ON l.subject_id = s.id
+                        LEFT JOIN teachers t ON l.teacher_id = t.id
+                        WHERE l.class_id = ? AND l.status IN ('completed', 'incoming')
+                        ORDER BY FIELD(l.day_of_week, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'), l.start_time";
+                $rows = $db->fetchAll($sql, [$class_id]);
+                echo json_encode(['success' => true, 'data' => $rows]);
+                return;
+                
             default:
                 throw new Exception('Invalid action');
         }
