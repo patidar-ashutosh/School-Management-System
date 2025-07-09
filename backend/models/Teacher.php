@@ -9,7 +9,7 @@ class Teacher {
     }
 
     public function getAll() {
-        $sql = "SELECT t.*, s.name as subject_name, c.name as class_teacher_name 
+        $sql = "SELECT t.*, s.name as subject_name, s.code as subject_code, c.name as class_teacher_name 
                 FROM teachers t 
                 LEFT JOIN subjects s ON t.subject_id = s.id 
                 LEFT JOIN classes c ON t.class_teacher_of = c.id 

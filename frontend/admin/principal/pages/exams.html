@@ -34,25 +34,24 @@
           <input
             type="text"
             id="searchInput"
-            placeholder="Search exams by name, subject, or grade..."
+            placeholder="Search exams by name or subject..."
           />
           <i class="fas fa-search"></i>
         </div>
         <div class="filter-options">
+          <select id="classFilter">
+            <option value="">All Classes</option>
+            <!-- Classes will be loaded from database -->
+          </select>
           <select id="subjectFilter">
             <option value="">All Subjects</option>
-            <option value="Mathematics">Mathematics</option>
-            <option value="Science">Science</option>
-            <option value="English">English</option>
-            <option value="History">History</option>
-            <option value="Geography">Geography</option>
+            <!-- Subjects will be loaded from database -->
           </select>
           <select id="statusFilter">
             <option value="">All Status</option>
             <option value="Scheduled">Scheduled</option>
             <option value="Ongoing">Ongoing</option>
             <option value="Completed">Completed</option>
-            <option value="Cancelled">Cancelled</option>
           </select>
         </div>
       </div>
@@ -151,8 +150,6 @@
                 <option value="">Select Type</option>
                 <option value="midterm">Midterm</option>
                 <option value="final">Final</option>
-                <option value="quiz">Quiz</option>
-                <option value="assignment">Assignment</option>
               </select>
             </div>
             <div class="form-group">
@@ -209,6 +206,8 @@
       let editingExamId = null;
 
       document.addEventListener("DOMContentLoaded", function () {
+        loadClassFilterDropdown();
+        loadSubjectFilterDropdown();
         setExamDateLimits();
         fetchExamsFromDB();
         setupEventListeners();
@@ -237,6 +236,12 @@
         document
           .getElementById("searchInput")
           .addEventListener("input", filterExams);
+        document
+          .getElementById("classFilter")
+          .addEventListener("change", function () {
+            updateSubjectFilterByClass();
+            filterExams();
+          });
         document
           .getElementById("subjectFilter")
           .addEventListener("change", filterExams);
@@ -269,7 +274,11 @@
                     }</td>
                     <td>${exam.total_marks || "-"}</td>
                     <td><span class="type-badge ${exam.exam_type || ""}">${
-            exam.exam_type || "-"
+            exam.exam_type === "midterm"
+              ? "Midterm"
+              : exam.exam_type === "final"
+              ? "Final"
+              : "-"
           }</span></td>
                     <td><span class="status-badge ${
                       exam.status ? exam.status.toLowerCase() : ""
@@ -296,20 +305,30 @@
         const searchTerm = document
           .getElementById("searchInput")
           .value.toLowerCase();
+        const classFilter = document.getElementById("classFilter").value;
         const subjectFilter = document.getElementById("subjectFilter").value;
         const statusFilter = document.getElementById("statusFilter").value;
 
         const filteredExams = exams.filter((exam) => {
           const matchesSearch =
             exam.name.toLowerCase().includes(searchTerm) ||
-            exam.id.toLowerCase().includes(searchTerm) ||
-            exam.subject_name.toLowerCase().includes(searchTerm) ||
-            exam.class_name.toLowerCase().includes(searchTerm);
+            String(exam.id).toLowerCase().includes(searchTerm) ||
+            (exam.subject_name &&
+              exam.subject_name.toLowerCase().includes(searchTerm)) ||
+            (exam.class_name &&
+              exam.class_name.toLowerCase().includes(searchTerm));
+          const matchesClass =
+            !classFilter || String(exam.class_id) === String(classFilter);
           const matchesSubject =
             !subjectFilter || exam.subject_name === subjectFilter;
-          const matchesStatus = !statusFilter || exam.status === statusFilter;
+          const matchesStatus =
+            !statusFilter ||
+            (exam.status &&
+              exam.status.toLowerCase() === statusFilter.toLowerCase());
 
-          return matchesSearch && matchesSubject && matchesStatus;
+          return (
+            matchesSearch && matchesClass && matchesSubject && matchesStatus
+          );
         });
 
         displayFilteredExams(filteredExams);
@@ -338,7 +357,11 @@
                     }</td>
                     <td>${exam.total_marks || "-"}</td>
                     <td><span class="type-badge ${exam.exam_type || ""}">${
-            exam.exam_type || "-"
+            exam.exam_type === "midterm"
+              ? "Midterm"
+              : exam.exam_type === "final"
+              ? "Final"
+              : "-"
           }</span></td>
                     <td><span class="status-badge ${
                       exam.status ? exam.status.toLowerCase() : ""
@@ -424,31 +447,7 @@
         selectedClassId,
         selectedSubjectId
       ) {
-        // Load subjects
-        await fetch("/backend/controllers/subjects.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "get_all" }),
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            const subjectSelect = document.getElementById("subject");
-            subjectSelect.innerHTML =
-              '<option value="">Select Subject</option>';
-            if (data.success && data.data) {
-              data.data.forEach((subject) => {
-                const option = document.createElement("option");
-                option.value = subject.id;
-                option.textContent = subject.name;
-                subjectSelect.appendChild(option);
-              });
-              if (selectedSubjectId) {
-                subjectSelect.value = selectedSubjectId;
-              }
-            }
-          });
-
-        // Load classes
+        // Load classes first
         await fetch("/backend/controllers/classes.php", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -468,6 +467,43 @@
               if (selectedClassId) {
                 classSelect.value = selectedClassId;
               }
+            }
+          });
+        // Now load subjects for the selected class
+        const subjectSelect = document.getElementById("subject");
+        if (!selectedClassId) {
+          subjectSelect.innerHTML =
+            '<option value="">Please select class first</option>';
+          subjectSelect.disabled = true;
+          return;
+        }
+        await fetch("/backend/controllers/subjects.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "get_by_class",
+            class_id: selectedClassId,
+          }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            subjectSelect.innerHTML =
+              '<option value="">Select Subject</option>';
+            if (data.success && data.data) {
+              data.data.forEach((subject) => {
+                const option = document.createElement("option");
+                option.value = subject.id;
+                option.textContent = subject.name;
+                subjectSelect.appendChild(option);
+              });
+              subjectSelect.disabled = false;
+              if (selectedSubjectId) {
+                subjectSelect.value = selectedSubjectId;
+              }
+            } else {
+              subjectSelect.innerHTML =
+                '<option value="">No subjects found</option>';
+              subjectSelect.disabled = true;
             }
           });
       }
@@ -585,28 +621,7 @@
       }
 
       function loadDropdowns() {
-        // Load subjects
-        fetch("/backend/controllers/subjects.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "get_all" }),
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            const subjectSelect = document.getElementById("subject");
-            subjectSelect.innerHTML =
-              '<option value="">Select Subject</option>';
-            if (data.success && data.data) {
-              data.data.forEach((subject) => {
-                const option = document.createElement("option");
-                option.value = subject.id;
-                option.textContent = subject.name;
-                subjectSelect.appendChild(option);
-              });
-            }
-          });
-
-        // Load classes
+        // Load classes first
         fetch("/backend/controllers/classes.php", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -624,7 +639,51 @@
                 classSelect.appendChild(option);
               });
             }
+            // After loading classes, set up subject dropdown logic
+            setupSubjectDropdown();
           });
+      }
+
+      function setupSubjectDropdown() {
+        const classSelect = document.getElementById("class");
+        const subjectSelect = document.getElementById("subject");
+        // Initial state: disabled
+        subjectSelect.innerHTML =
+          '<option value="">Please select class first</option>';
+        subjectSelect.disabled = true;
+        classSelect.addEventListener("change", function () {
+          const classId = this.value;
+          if (!classId) {
+            subjectSelect.innerHTML =
+              '<option value="">Please select class first</option>';
+            subjectSelect.disabled = true;
+            return;
+          }
+          // Fetch subjects for the selected class
+          fetch("/backend/controllers/subjects.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "get_by_class", class_id: classId }),
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              subjectSelect.innerHTML =
+                '<option value="">Select Subject</option>';
+              if (data.success && data.data) {
+                data.data.forEach((subject) => {
+                  const option = document.createElement("option");
+                  option.value = subject.id;
+                  option.textContent = subject.name;
+                  subjectSelect.appendChild(option);
+                });
+                subjectSelect.disabled = false;
+              } else {
+                subjectSelect.innerHTML =
+                  '<option value="">No subjects found</option>';
+                subjectSelect.disabled = true;
+              }
+            });
+        });
       }
 
       function setExamDateLimits() {
@@ -638,6 +697,62 @@
           examDateInput.setAttribute("min", minDate);
           examDateInput.setAttribute("max", maxDate);
         }
+      }
+
+      function loadClassFilterDropdown() {
+        fetch("/backend/controllers/classes.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_all" }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            const classFilterDropdown = document.getElementById("classFilter");
+            if (classFilterDropdown) {
+              classFilterDropdown.innerHTML =
+                "<option value=''>All Classes</option>";
+              (data.data || []).forEach((cls) => {
+                const option = document.createElement("option");
+                option.value = cls.id;
+                option.textContent = cls.name;
+                classFilterDropdown.appendChild(option);
+              });
+            }
+          });
+      }
+
+      let allSubjects = [];
+      function loadSubjectFilterDropdown() {
+        fetch("/backend/controllers/subjects.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_all" }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              allSubjects = data.data;
+              updateSubjectFilterByClass();
+            }
+          });
+      }
+
+      function updateSubjectFilterByClass() {
+        const classId = document.getElementById("classFilter").value;
+        const subjectFilterDropdown = document.getElementById("subjectFilter");
+        subjectFilterDropdown.innerHTML =
+          '<option value="">All Subjects</option>';
+        allSubjects.forEach((subject) => {
+          if (
+            subject.status === "active" &&
+            (!classId || String(subject.class_id) === String(classId))
+          ) {
+            const option = document.createElement("option");
+            option.value = subject.name;
+            option.textContent = subject.name;
+            subjectFilterDropdown.appendChild(option);
+          }
+        });
       }
 
       // Close modal when clicking outside

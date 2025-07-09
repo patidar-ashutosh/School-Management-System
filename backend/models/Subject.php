@@ -19,9 +19,11 @@ class Subject {
     }
 
     public function create($data) {
-        // Check for duplicate name
-        if ($this->nameExists($data['name'])) {
-            throw new Exception('Subject name must be unique');
+        // Always store subject name in lowercase
+        $data['name'] = strtolower(trim($data['name']));
+        // Check for duplicate name in the same class
+        if ($this->nameExists($data['name'], $data['class_id'])) {
+            throw new Exception('Subject name must be unique within the same class');
         }
         // Generate code from name if not provided
         if (!isset($data['code']) || empty($data['code'])) {
@@ -39,9 +41,11 @@ class Subject {
     }
 
     public function update($id, $data) {
-        // Check for duplicate name (excluding current id)
-        if ($this->nameExists($data['name'], $id)) {
-            throw new Exception('Subject name must be unique');
+        // Always store subject name in lowercase
+        $data['name'] = strtolower(trim($data['name']));
+        // Check for duplicate name in the same class (excluding current id)
+        if ($this->nameExists($data['name'], $data['class_id'], $id)) {
+            throw new Exception('Subject name must be unique within the same class');
         }
         // Generate code from name if not provided
         if (!isset($data['code']) || empty($data['code'])) {
@@ -99,9 +103,9 @@ class Subject {
         return $result['count'] > 0;
     }
 
-    public function nameExists($name, $excludeId = null) {
-        $sql = "SELECT COUNT(*) as count FROM subjects WHERE name = ?";
-        $params = [$name];
+    public function nameExists($name, $class_id, $excludeId = null) {
+        $sql = "SELECT COUNT(*) as count FROM subjects WHERE name = ? AND class_id = ?";
+        $params = [$name, $class_id];
         if ($excludeId) {
             $sql .= " AND id != ?";
             $params[] = $excludeId;

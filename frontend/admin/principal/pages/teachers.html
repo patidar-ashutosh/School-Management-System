@@ -39,6 +39,10 @@
           <i class="fas fa-search"></i>
         </div>
         <div class="filter-options">
+          <select id="classFilter">
+            <option value="">All Classes</option>
+            <!-- Classes will be loaded from database -->
+          </select>
           <select id="subjectFilter">
             <option value="">All Subjects</option>
             <!-- Subjects will be loaded from database -->
@@ -105,12 +109,11 @@
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label for="email">Email *</label>
-              <input type="email" id="email" name="email" required />
-            </div>
-            <div class="form-group">
-              <label for="phone">Phone</label>
-              <input type="tel" id="phone" name="phone" />
+              <label for="class_teacher_of">Class Teacher Of</label>
+              <select id="class_teacher_of" name="class_teacher_of">
+                <option value="">None</option>
+                <!-- Classes will be loaded by JS -->
+              </select>
             </div>
             <div class="form-group">
               <label for="subject_id">Subject *</label>
@@ -120,14 +123,13 @@
               </select>
             </div>
           </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="class_teacher_of">Class Teacher Of</label>
-              <select id="class_teacher_of" name="class_teacher_of">
-                <option value="">None</option>
-                <!-- Classes will be loaded by JS -->
-              </select>
-            </div>
+          <div class="form-group">
+            <label for="email">Email *</label>
+            <input type="email" id="email" name="email" required />
+          </div>
+          <div class="form-group">
+            <label for="phone">Phone *</label>
+            <input type="tel" id="phone" name="phone" required />
           </div>
           <div class="form-group">
             <label for="address">Address</label>
@@ -158,7 +160,12 @@
           <div class="form-row">
             <div class="form-group">
               <label for="joining_date">Joining Date</label>
-              <input type="date" id="joining_date" name="joining_date" />
+              <input
+                type="date"
+                id="joining_date"
+                name="joining_date"
+                disabled
+              />
             </div>
             <div class="form-group">
               <label for="salary">Salary</label>
@@ -225,9 +232,10 @@
 
       // Initialize page
       document.addEventListener("DOMContentLoaded", function () {
+        loadClassesDropdown();
+        loadClassFilterDropdown();
         loadTeachers();
         loadSubjects();
-        loadClassesDropdown();
         setupEventListeners();
       });
 
@@ -235,6 +243,12 @@
         document
           .getElementById("searchInput")
           .addEventListener("input", filterTeachers);
+        document
+          .getElementById("classFilter")
+          .addEventListener("change", function () {
+            updateSubjectFilterByClass();
+            filterTeachers();
+          });
         document
           .getElementById("subjectFilter")
           .addEventListener("change", filterTeachers);
@@ -284,6 +298,7 @@
             .then((response) => response.json())
             .then((data) => {
               if (data.success) {
+                allSubjects = data.data; // Store all subjects globally
                 populateSubjectDropdowns(data.data);
               } else {
                 console.error("Failed to load subjects:", data.message);
@@ -305,29 +320,58 @@
           subjects.forEach((subject) => {
             if (subject.status === "active") {
               const option = document.createElement("option");
-              option.value = subject.name;
+              option.value = subject.code; // Use code as unique value
               option.textContent = subject.name;
               subjectFilterDropdown.appendChild(option);
             }
           });
         }
-        // For modal form
-        const subjectFormDropdown = document.getElementById("subject_id");
-        if (subjectFormDropdown) {
-          const defaultOption =
-            subjectFormDropdown.querySelector('option[value=""]');
-          subjectFormDropdown.innerHTML = "";
-          if (defaultOption) subjectFormDropdown.appendChild(defaultOption);
-          subjects.forEach((subject) => {
-            if (subject.status === "active") {
-              const option = document.createElement("option");
-              option.value = subject.id;
-              option.textContent = subject.name;
-              subjectFormDropdown.appendChild(option);
-            }
-          });
-        }
+        // For modal form: now handled by filterSubjectsByClass
       }
+
+      // Filter subjects for the selected class in the modal
+      function filterSubjectsByClass(
+        selectedClassId,
+        selectedSubjectId = null
+      ) {
+        const subjectFormDropdown = document.getElementById("subject_id");
+        if (!selectedClassId) {
+          subjectFormDropdown.innerHTML =
+            '<option value="">Please select class first</option>';
+          subjectFormDropdown.disabled = true;
+          return;
+        }
+        subjectFormDropdown.disabled = false;
+        subjectFormDropdown.innerHTML =
+          '<option value="">Select Subject</option>';
+        allSubjects.forEach((subject) => {
+          if (
+            subject.status === "active" &&
+            String(subject.class_id) === String(selectedClassId)
+          ) {
+            const option = document.createElement("option");
+            option.value = subject.id;
+            option.textContent = subject.name;
+            if (
+              selectedSubjectId &&
+              String(subject.id) === String(selectedSubjectId)
+            ) {
+              option.selected = true;
+            }
+            subjectFormDropdown.appendChild(option);
+          }
+        });
+      }
+
+      // Update class dropdown to trigger subject filtering
+      document.addEventListener("DOMContentLoaded", function () {
+        document
+          .getElementById("class_teacher_of")
+          .addEventListener("change", function () {
+            filterSubjectsByClass(this.value);
+            handleClassChangeForSubjects();
+          });
+      });
 
       function displayTeachers() {
         const tbody = document.getElementById("teachersTableBody");
@@ -379,6 +423,7 @@
         const searchTerm = document
           .getElementById("searchInput")
           .value.toLowerCase();
+        const classFilter = document.getElementById("classFilter").value;
         const subjectFilter = document.getElementById("subjectFilter").value;
         const statusFilter = document.getElementById("statusFilter").value;
 
@@ -389,13 +434,18 @@
             teacher.id.toString().includes(searchTerm) ||
             (teacher.qualification &&
               teacher.qualification.toLowerCase().includes(searchTerm));
+          const matchesClass =
+            !classFilter ||
+            String(teacher.class_teacher_of) === String(classFilter);
           const matchesSubject =
-            !subjectFilter || teacher.subject_name === subjectFilter;
+            !subjectFilter || teacher.subject_code === subjectFilter;
           const matchesStatus =
             !statusFilter ||
             teacher.status.toLowerCase() === statusFilter.toLowerCase();
 
-          return matchesSearch && matchesSubject && matchesStatus;
+          return (
+            matchesSearch && matchesClass && matchesSubject && matchesStatus
+          );
         });
 
         displayFilteredTeachers(filteredTeachers);
@@ -473,7 +523,14 @@
         editingTeacherId = null;
         document.getElementById("modalTitle").textContent = "Add New Teacher";
         document.getElementById("teacherForm").reset();
+        loadClassesDropdown();
+        const joiningDateInput = document.getElementById("joining_date");
+        const todayStr = new Date().toISOString().split("T")[0];
+        joiningDateInput.value = todayStr;
+        joiningDateInput.disabled = true;
         document.getElementById("teacherModal").style.display = "block";
+        filterSubjectsByClass(""); // Clear subject dropdown
+        handleClassChangeForSubjects();
       }
 
       function editTeacher(teacherId) {
@@ -490,15 +547,18 @@
             teacher.qualification || "";
           document.getElementById("experience_years").value =
             teacher.experience_years || 0;
-          document.getElementById("joining_date").value =
-            teacher.joining_date || "";
+          const joiningDateInput = document.getElementById("joining_date");
+          joiningDateInput.value =
+            teacher.joining_date || new Date().toISOString().split("T")[0];
+          joiningDateInput.disabled = true;
           document.getElementById("salary").value = teacher.salary || "";
           document.getElementById("status").value = teacher.status || "active";
-          document.getElementById("subject_id").value =
-            teacher.subject_id || "";
+          loadClassesDropdown(teacher.class_teacher_of);
           document.getElementById("class_teacher_of").value =
             teacher.class_teacher_of || "";
+          filterSubjectsByClass(teacher.class_teacher_of, teacher.subject_id);
           document.getElementById("teacherModal").style.display = "block";
+          handleClassChangeForSubjects();
         }
       }
 
@@ -632,24 +692,16 @@
           }"></i>
           ${message}
         `;
+        document.body.appendChild(notification);
 
-        // Insert at the top of the content
-        const contentCard = document.querySelector(".content-card");
-        if (contentCard) {
-          contentCard.insertBefore(notification, contentCard.firstChild);
-        } else {
-          document.body.insertBefore(notification, document.body.firstChild);
-        }
-
-        // Auto-dismiss after 5 seconds
+        // Auto-remove notification after 5 seconds
         setTimeout(() => {
-          if (notification.parentNode) {
-            notification.remove();
-          }
+          notification.remove();
         }, 5000);
       }
 
-      function loadClassesDropdown() {
+      // Add this function to load classes and always show them in the dropdown
+      function loadClassesDropdown(selectedClassId = null) {
         fetch("/backend/controllers/classes.php", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -664,23 +716,59 @@
                 const option = document.createElement("option");
                 option.value = cls.id;
                 option.textContent = cls.name;
+                if (
+                  selectedClassId &&
+                  String(cls.id) === String(selectedClassId)
+                ) {
+                  option.selected = true;
+                }
                 classDropdown.appendChild(option);
               });
             }
           });
       }
 
-      // Close modal when clicking outside
-      window.onclick = function (event) {
-        const modal = document.getElementById("teacherModal");
-        const deleteModal = document.getElementById("deleteModal");
-        if (event.target === modal) {
-          closeModal();
-        }
-        if (event.target === deleteModal) {
-          closeDeleteModal();
-        }
-      };
+      // On page load, also load classes for filter
+      function loadClassFilterDropdown() {
+        fetch("/backend/controllers/classes.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_all" }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            const classFilterDropdown = document.getElementById("classFilter");
+            if (classFilterDropdown) {
+              classFilterDropdown.innerHTML =
+                "<option value=''>All Classes</option>";
+              (data.data || []).forEach((cls) => {
+                const option = document.createElement("option");
+                option.value = cls.id;
+                option.textContent = cls.name;
+                classFilterDropdown.appendChild(option);
+              });
+            }
+          });
+      }
+
+      // When class filter changes, update subject filter options
+      function updateSubjectFilterByClass() {
+        const classId = document.getElementById("classFilter").value;
+        const subjectFilterDropdown = document.getElementById("subjectFilter");
+        subjectFilterDropdown.innerHTML =
+          '<option value="">All Subjects</option>';
+        allSubjects.forEach((subject) => {
+          if (
+            subject.status === "active" &&
+            (!classId || String(subject.class_id) === String(classId))
+          ) {
+            const option = document.createElement("option");
+            option.value = subject.code;
+            option.textContent = subject.name;
+            subjectFilterDropdown.appendChild(option);
+          }
+        });
+      }
     </script>
   </body>
 </html>

@@ -57,9 +57,8 @@ $tables = [
 
     'classes' => "CREATE TABLE classes (
         id INT PRIMARY KEY AUTO_INCREMENT,
-        name VARCHAR(100) NOT NULL,
-        teacher_id INT,
-        room_number VARCHAR(20),
+        name VARCHAR(100) NOT NULL UNIQUE,
+        room_number INT(20),
         capacity INT DEFAULT 30,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -67,7 +66,7 @@ $tables = [
 
     'subjects' => "CREATE TABLE subjects (
         id INT PRIMARY KEY AUTO_INCREMENT,
-        name VARCHAR(100) UNIQUE NOT NULL,
+        name VARCHAR(100) NOT NULL, -- not unique, can repeat in different classes
         code VARCHAR(20) UNIQUE NOT NULL,
         description TEXT,
         class_id INT,
@@ -176,7 +175,7 @@ $tables = [
         start_time TIME,
         end_time TIME,
         total_marks INT DEFAULT 100,
-        exam_type ENUM('midterm', 'final', 'quiz', 'assignment') NOT NULL,
+        exam_type ENUM('midterm', 'final') NOT NULL,
         status ENUM('scheduled', 'ongoing', 'completed') DEFAULT 'scheduled',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -209,7 +208,7 @@ foreach ($tables as $tableName => $sql) {
 // Step 2: Add all foreign keys after all tables are created
 $foreignKeys = [
     // classes
-    "ALTER TABLE classes ADD CONSTRAINT fk_classes_teacher FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE SET NULL",
+    // REMOVED: "ALTER TABLE classes ADD CONSTRAINT fk_classes_teacher FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE SET NULL",
     // subjects
     "ALTER TABLE subjects ADD CONSTRAINT fk_subjects_class FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE SET NULL",
     // teachers
@@ -260,26 +259,26 @@ try {
     echo "✓ Principal admin created\n";
     
     // Insert sample classes first
-    $stmt = $pdo->prepare("INSERT IGNORE INTO classes (name, teacher_id, room_number, capacity) VALUES (?, ?, ?, ?)");
-    $stmt->execute(['Class 10', null, 'Room 101', 35]);
-    $stmt->execute(['Class 9', null, 'Room 91', 32]);
-    $stmt->execute(['Class 11', null, 'Room 111', 30]);
+    $stmt = $pdo->prepare("INSERT IGNORE INTO classes (name, room_number, capacity) VALUES (?, ?, ?)");
+    $stmt->execute(['class 10', 101, 35]);
+    $stmt->execute(['class 9', 91, 32]);
+    $stmt->execute(['class 11', 111, 30]);
     echo "✓ Sample classes created\n";
 
     // Get class IDs
     $stmt = $pdo->prepare("SELECT id FROM classes WHERE name = ?");
-    $stmt->execute(['Class 10']);
+    $stmt->execute(['class 10']);
     $class10AId = $stmt->fetchColumn();
-    $stmt->execute(['Class 9']);
+    $stmt->execute(['class 9']);
     $class9BId = $stmt->fetchColumn();
-    $stmt->execute(['Class 11']);
+    $stmt->execute(['class 11']);
     $class11AId = $stmt->fetchColumn();
 
     // Insert sample subjects using class IDs
     $stmt = $pdo->prepare("INSERT IGNORE INTO subjects (name, code, description, class_id) VALUES (?, ?, ?, ?)");
-    $stmt->execute(['Mathematics', 'MATH101', 'Advanced Mathematics including Algebra and Calculus', $class10AId]);
-    $stmt->execute(['English Literature', 'ENG101', 'English Literature and Composition', $class10AId]);
-    $stmt->execute(['Physics', 'PHY101', 'Physics with Laboratory', $class9BId]);
+    $stmt->execute(['mathematics', 'MATH101', 'Advanced Mathematics including Algebra and Calculus', $class10AId]);
+    $stmt->execute(['english literature', 'ENG101', 'English Literature and Composition', $class10AId]);
+    $stmt->execute(['physics', 'PHY101', 'Physics with Laboratory', $class9BId]);
     echo "✓ Sample subjects created\n";
     
     // Get subject IDs
@@ -302,7 +301,7 @@ try {
     // Insert sample exams
     $stmt = $pdo->prepare("INSERT IGNORE INTO exams (name, subject_id, class_id, date, start_time, end_time, total_marks, exam_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
     $stmt->execute(['Mathematics Midterm', $subjectIds[0], $class10AId, '2024-01-30', '09:00:00', '11:00:00', 100, 'midterm']);
-    $stmt->execute(['English Literature Quiz', $subjectIds[1], $class10AId, '2024-02-05', '10:00:00', '12:00:00', 50, 'quiz']);
+    $stmt->execute(['English Literature Final', $subjectIds[1], $class10AId, '2024-02-05', '10:00:00', '12:00:00', 50, 'final']);
     $stmt->execute(['Physics Final Exam', $subjectIds[2], $class9BId, '2024-02-15', '14:00:00', '16:00:00', 100, 'final']);
     echo "✓ Sample exams created\n";
     

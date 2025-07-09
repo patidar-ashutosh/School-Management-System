@@ -79,23 +79,18 @@ function handleGetAllClasses($classModel) {
         $searchParams = [];
         
         if (!empty($search)) {
-            $searchCondition = "WHERE c.name LIKE ? OR c.section LIKE ? OR c.room_number LIKE ? OR t.first_name LIKE ? OR t.last_name LIKE ?";
+            $searchCondition = "WHERE c.name LIKE ? OR c.room_number LIKE ?";
             $searchTerm = "%$search%";
-            $searchParams = [$searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm];
+            $searchParams = [$searchTerm, $searchTerm];
         }
         
         // Get total count
-        $countSql = "SELECT COUNT(*) as total FROM classes c LEFT JOIN teachers t ON c.teacher_id = t.id $searchCondition";
+        $countSql = "SELECT COUNT(*) as total FROM classes c $searchCondition";
         $countStmt = $db->query($countSql, $searchParams);
         $total = $countStmt->fetch()['total'];
         
-        // Get classes with pagination and teacher info
-        $sql = "SELECT c.*, CONCAT(t.first_name, ' ', t.last_name) as teacher_name 
-                FROM classes c 
-                LEFT JOIN teachers t ON c.teacher_id = t.id 
-                $searchCondition 
-                ORDER BY c.created_at DESC 
-                LIMIT ? OFFSET ?";
+        // Get classes with pagination
+        $sql = "SELECT c.* FROM classes c $searchCondition ORDER BY c.created_at DESC LIMIT ? OFFSET ?";
         $params = array_merge($searchParams, [$limit, $offset]);
         $classes = $db->fetchAll($sql, $params);
         
@@ -131,11 +126,8 @@ function handleGetClassById($classModel) {
     try {
         $db = db();
         
-        // Get class with teacher info
-        $sql = "SELECT c.*, CONCAT(t.first_name, ' ', t.last_name) as teacher_name 
-                FROM classes c 
-                LEFT JOIN teachers t ON c.teacher_id = t.id 
-                WHERE c.id = ?";
+        // Get class
+        $sql = "SELECT c.* FROM classes c WHERE c.id = ?";
         $class = $db->fetch($sql, [$id]);
         
         if ($class) {
@@ -160,30 +152,13 @@ function handleCreateClass($classModel, $input) {
             return;
         }
     }
-    
-    // Validate teacher_id if provided
-    if (!empty($input['teacher_id'])) {
-        $db = db();
-        $teacherCheck = $db->fetch("SELECT id FROM teachers WHERE id = ? AND status = 'active'", [$input['teacher_id']]);
-        if (!$teacherCheck) {
-            echo json_encode(['success' => false, 'message' => 'Selected teacher not found or inactive']);
-            return;
-        }
-    }
-    
     try {
-        // Prepare class data
         $classData = [
-            'name' => trim($input['name']),
-            'teacher_id' => $input['teacher_id'] ?? null,
+            'name' => strtolower(trim($input['name'])),
             'room_number' => $input['room_number'] ?? null,
             'capacity' => $input['capacity'] ?? 30
         ];
-        // Debug log
-        error_log('AddClass input: ' . json_encode($classData));
-        // Create class
         $classId = $classModel->create($classData);
-        error_log('AddClass result classId: ' . print_r($classId, true));
         if (!$classId) {
             echo json_encode([
                 'success' => false,
@@ -196,8 +171,13 @@ function handleCreateClass($classModel, $input) {
             'message' => 'Class added successfully',
             'class_id' => $classId
         ]);
+    } catch (PDOException $e) {
+        if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
+            echo json_encode(['success' => false, 'message' => 'Class with this name already exists.']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to create class: ' . $e->getMessage()]);
+        }
     } catch (Exception $e) {
-        error_log('AddClass Exception: ' . $e->getMessage());
         echo json_encode(['success' => false, 'message' => 'Failed to create class: ' . $e->getMessage()]);
     }
 }
@@ -219,21 +199,10 @@ function handleUpdateClass($classModel, $input) {
         }
     }
     
-    // Validate teacher_id if provided
-    if (!empty($input['teacher_id'])) {
-        $db = db();
-        $teacherCheck = $db->fetch("SELECT id FROM teachers WHERE id = ? AND status = 'active'", [$input['teacher_id']]);
-        if (!$teacherCheck) {
-            echo json_encode(['success' => false, 'message' => 'Selected teacher not found or inactive']);
-            return;
-        }
-    }
-    
     try {
         // Prepare class data
         $classData = [
-            'name' => trim($input['name']),
-            'teacher_id' => $input['teacher_id'] ?? null,
+            'name' => strtolower(trim($input['name'])),
             'room_number' => $input['room_number'] ?? null,
             'capacity' => $input['capacity'] ?? 30
         ];

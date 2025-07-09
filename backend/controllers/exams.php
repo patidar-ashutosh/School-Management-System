@@ -56,6 +56,9 @@ try {
                     throw new Exception('Exam name, date, and class are required');
                 }
                 
+                if (!in_array($input['exam_type'], ['midterm', 'final'])) {
+                    throw new Exception('Invalid exam type. Only midterm and final are allowed.');
+                }
                 $examId = $exam->create($input);
                 echo json_encode([
                     'success' => true,
@@ -69,6 +72,9 @@ try {
                     throw new Exception('ID, exam name, date, and class are required');
                 }
                 
+                if (!in_array($input['exam_type'], ['midterm', 'final'])) {
+                    throw new Exception('Invalid exam type. Only midterm and final are allowed.');
+                }
                 $exam->update($input['id'], $input);
                 echo json_encode([
                     'success' => true,

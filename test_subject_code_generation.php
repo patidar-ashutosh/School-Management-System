@@ -40,5 +40,6 @@ try {
     echo "Error: " . $e->getMessage() . "\n";
 }
 
+echo "\nNote: Subject name is not unique. Use code or id for unique identification.\n";
 echo "\nTest completed!\n";
 ?> 

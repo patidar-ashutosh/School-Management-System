@@ -9,43 +9,30 @@ class ClassModel {
     }
 
     public function getAll() {
-        $sql = "SELECT c.*, CONCAT(t.first_name, ' ', t.last_name) as teacher_name 
-                FROM classes c 
-                LEFT JOIN teachers t ON c.teacher_id = t.id 
-                ORDER BY c.created_at DESC";
+        $sql = "SELECT c.* FROM classes c ORDER BY c.created_at DESC";
         return $this->db->fetchAll($sql);
     }
 
     public function getById($id) {
-        $sql = "SELECT c.*, CONCAT(t.first_name, ' ', t.last_name) as teacher_name 
-                FROM classes c 
-                LEFT JOIN teachers t ON c.teacher_id = t.id 
-                WHERE c.id = ?";
+        $sql = "SELECT c.* FROM classes c WHERE c.id = ?";
         return $this->db->fetch($sql, [$id]);
     }
 
     public function create($data) {
-        error_log('ClassModel::create SQL data: ' . json_encode($data));
-        $dbName = $this->db->getConnection()->query('SELECT DATABASE()')->fetchColumn();
-        error_log('ClassModel::create CURRENT DATABASE: ' . $dbName);
-        $sql = "INSERT INTO classes (name, teacher_id, room_number, capacity) 
-                VALUES (?, ?, ?, ?)";
+        $sql = "INSERT INTO classes (name, room_number, capacity) VALUES (?, ?, ?)";
         $this->db->query($sql, [
-            $data['name'],
-            $data['teacher_id'] ?? null,
+            strtolower(trim($data['name'])),
             $data['room_number'] ?? null,
             $data['capacity'] ?? 30
         ]);
         $id = $this->db->lastInsertId();
-        error_log('ClassModel::create lastInsertId: ' . print_r($id, true));
         return $id;
     }
 
     public function update($id, $data) {
-        $sql = "UPDATE classes SET name = ?, teacher_id = ?, room_number = ?, capacity = ? WHERE id = ?";
+        $sql = "UPDATE classes SET name = ?, room_number = ?, capacity = ? WHERE id = ?";
         return $this->db->query($sql, [
-            $data['name'],
-            $data['teacher_id'] ?? null,
+            strtolower(trim($data['name'])),
             $data['room_number'] ?? null,
             $data['capacity'] ?? 30,
             $id

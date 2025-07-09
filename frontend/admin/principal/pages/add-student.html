@@ -99,6 +99,7 @@
                 id="admissionDate"
                 name="admission_date"
                 required
+                disabled
               />
             </div>
           </div>
@@ -193,13 +194,12 @@
         dobInput.max = maxDob.toISOString().split("T")[0];
         dobInput.min = minDob.toISOString().split("T")[0];
 
-        // Restrict Admission Date: only allow today through 7 days from now
+        // Restrict Admission Date: only allow today
         const admissionInput = document.getElementById("admissionDate");
-        const minAdmission = today;
-        const maxAdmission = new Date(today);
-        maxAdmission.setDate(today.getDate() + 7);
-        admissionInput.min = minAdmission.toISOString().split("T")[0];
-        admissionInput.max = maxAdmission.toISOString().split("T")[0];
+        const todayStr = today.toISOString().split("T")[0];
+        admissionInput.min = todayStr;
+        admissionInput.max = todayStr;
+        admissionInput.value = todayStr;
       });
 
       function setupEventListeners() {

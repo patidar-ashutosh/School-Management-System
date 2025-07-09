@@ -62,7 +62,7 @@ try {
                     throw new Exception('Class ID is required for subject creation');
                 }
                 $subjectData = [
-                    'name' => $input['name'],
+                    'name' => strtolower(trim($input['name'])),
                     'description' => $input['description'] ?? null,
                     'status' => $input['status'] ?? 'active',
                     'class_id' => $input['class_id']
@@ -93,7 +93,7 @@ try {
                     throw new Exception('Class ID is required for subject update');
                 }
                 $subjectData = [
-                    'name' => $input['name'],
+                    'name' => strtolower(trim($input['name'])),
                     'description' => $input['description'] ?? null,
                     'status' => $input['status'] ?? 'active',
                     'class_id' => $input['class_id']

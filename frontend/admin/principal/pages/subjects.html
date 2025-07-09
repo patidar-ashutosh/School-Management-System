@@ -247,7 +247,7 @@
         e.preventDefault();
         const formData = new FormData(e.target);
         const subjectData = {
-          name: formData.get("subjectName"),
+          name: formData.get("subjectName").toLowerCase(),
           description: formData.get("description"),
           class_id: formData.get("class_id"),
         };
@@ -271,7 +271,7 @@
             } else {
               if (data.message && data.message.includes("unique")) {
                 showAlert(
-                  "Subject name already exists. Please use a different name.",
+                  "This subject already exists in the selected class. Please use a different name or class.",
                   "error"
                 );
               } else {
@@ -300,7 +300,7 @@
             } else {
               if (data.message && data.message.includes("unique")) {
                 showAlert(
-                  "Subject name already exists. Please use a different name.",
+                  "This subject already exists in the selected class. Please use a different name or class.",
                   "error"
                 );
               } else {
