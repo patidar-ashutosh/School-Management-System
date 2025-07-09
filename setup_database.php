@@ -148,7 +148,7 @@ $tables = [
         due_date DATE,
         total_marks INT DEFAULT 100,
         teacher_id INT,
-        type ENUM('quiz', 'project') NOT NULL DEFAULT 'quiz',
+        type ENUM('essays', 'reports', 'presentations') NOT NULL DEFAULT 'essays',
         status ENUM('coming', 'running', 'completed') DEFAULT 'coming',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -395,9 +395,9 @@ try {
     
     // Insert sample assignments (updated to use teacher_id instead of created_by)
     $stmt = $pdo->prepare("INSERT IGNORE INTO assignments (title, description, subject_id, class_id, due_date, total_marks, teacher_id, type, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute(['Algebra Problem Set 1', 'Solving linear equations and inequalities', $subjectIds[0], $class10AId, '2024-01-20', 100, $teacherIds[0], 'quiz', 'completed']);
-    $stmt->execute(['Shakespeare Essay', 'Analysis of Hamlet soliloquy', $subjectIds[1], $class10AId, '2024-01-25', 50, $teacherIds[1], 'project', 'running']);
-    $stmt->execute(['Physics Lab Report', 'Experiment on Newton Laws', $subjectIds[2], $class9BId, '2024-01-18', 75, $teacherIds[2], 'project', 'coming']);
+    $stmt->execute(['Algebra Problem Set 1', 'Solving linear equations and inequalities', $subjectIds[0], $class10AId, '2024-01-20', 100, $teacherIds[0], 'essays', 'completed']);
+    $stmt->execute(['Shakespeare Essay', 'Analysis of Hamlet soliloquy', $subjectIds[1], $class10AId, '2024-01-25', 50, $teacherIds[1], 'reports', 'running']);
+    $stmt->execute(['Physics Lab Report', 'Experiment on Newton Laws', $subjectIds[2], $class9BId, '2024-01-18', 75, $teacherIds[2], 'presentations', 'coming']);
     echo "✓ Sample assignments created\n";
     
     // Get assignment IDs

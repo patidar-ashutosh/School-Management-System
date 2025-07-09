@@ -127,16 +127,11 @@
               <option value="">All Classes</option>
               <!-- Populated by JS -->
             </select>
-            <select id="statusFilter">
-              <option value="">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="submitted">Submitted</option>
-              <option value="graded">Graded</option>
-            </select>
             <select id="typeFilter">
               <option value="">All Types</option>
-              <option value="quiz">Quiz</option>
-              <option value="project">Project</option>
+              <option value="essays">Essays</option>
+              <option value="reports">Reports</option>
+              <option value="presentations">Presentations</option>
             </select>
           </div>
           <div
@@ -242,14 +237,12 @@
           noAssignmentsMsg.style.display = "block";
           subjectFilter.disabled = true;
           classFilter.disabled = true;
-          document.getElementById("statusFilter").disabled = true;
           document.getElementById("typeFilter").disabled = true;
           return;
         }
         noAssignmentsMsg.style.display = "none";
         subjectFilter.disabled = false;
         classFilter.disabled = false;
-        document.getElementById("statusFilter").disabled = false;
         document.getElementById("typeFilter").disabled = false;
         subjectFilter.innerHTML = allSubjects
           .map(
@@ -272,19 +265,16 @@
       }
 
       function setupFilterListeners() {
-        ["subjectFilter", "classFilter", "statusFilter", "typeFilter"].forEach(
-          (id) => {
-            document
-              .getElementById(id)
-              .addEventListener("change", fetchAndRenderSubmissions);
-          }
-        );
+        ["subjectFilter", "classFilter", "typeFilter"].forEach((id) => {
+          document
+            .getElementById(id)
+            .addEventListener("change", fetchAndRenderSubmissions);
+        });
       }
 
       function fetchAndRenderSubmissions() {
         const subject_id = document.getElementById("subjectFilter").value;
         const class_id = document.getElementById("classFilter").value;
-        const status = document.getElementById("statusFilter").value;
         const type = document.getElementById("typeFilter").value;
         fetch("/backend/controllers/teacher_dashboard.php", {
           method: "POST",
@@ -293,7 +283,6 @@
             action: "get_assignment_submissions",
             subject_id,
             class_id,
-            status,
             type,
           }),
         })

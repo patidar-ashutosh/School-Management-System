@@ -145,6 +145,10 @@ try {
                 $studentId = $input['student_id'];
                 $status = $input['status'] ?? null;
                 $type = $input['type'] ?? null;
+                if ($type && !in_array($type, ['essays', 'reports', 'presentations'])) {
+                    echo json_encode(['success' => false, 'message' => 'Invalid assignment type.']);
+                    return;
+                }
                 $subject_id = $input['subject_id'] ?? null;
                 $db = $student->getDb();
                 $sql = "SELECT sa.*, a.title as assignment_title, a.description, a.type as assignment_type, a.due_date, a.total_marks, a.subject_id, a.class_id, a.status as assignment_status, sub.name as subject_name

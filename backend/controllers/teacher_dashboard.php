@@ -96,7 +96,7 @@ if ($method === 'POST') {
             $subject_id = $input['subject_id'] ?? null;
             $due_date = $input['due_date'] ?? null;
             $total_marks = $input['total_marks'] ?? 100;
-            $type = $input['type'] ?? 'quiz';
+            $type = $input['type'] ?? 'essays';
             $status = $input['status'] ?? 'coming';
             $teacher_id = $teacherId;
             if (!$title || !$class_id || !$subject_id || !$due_date || !$type || !$status) {
@@ -116,7 +116,7 @@ if ($method === 'POST') {
             $subject_id = $input['subject_id'] ?? null;
             $due_date = $input['due_date'] ?? null;
             $total_marks = $input['total_marks'] ?? 100;
-            $type = $input['type'] ?? 'quiz';
+            $type = $input['type'] ?? 'essays';
             $status = $input['status'] ?? 'coming';
             if (!$id || !$title || !$class_id || !$subject_id || !$due_date || !$type || !$status) {
                 echo json_encode(['success' => false, 'message' => 'All fields are required.']);

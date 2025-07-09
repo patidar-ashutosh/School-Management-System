@@ -15,4 +15,6 @@ if ($data['action'] === 'get_classes_by_teacher' && isset($data['teacher_id'])) 
 
 // Optionally, handle other actions here
 
+echo json_encode(['success' => false, 'message' => 'Invalid action or missing teacher_id']);
+exit;
 ?> 

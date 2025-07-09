@@ -194,8 +194,9 @@
           </select>
           <select id="typeFilter">
             <option value="">All Types</option>
-            <option value="quiz">Quiz</option>
-            <option value="project">Project</option>
+            <option value="essays">Essays</option>
+            <option value="reports">Reports</option>
+            <option value="presentations">Presentations</option>
           </select>
         </div>
       </div>
@@ -204,11 +205,6 @@
       <div class="card">
         <div class="card-header">
           <h3>My Assignments</h3>
-          <div class="header-actions">
-            <button class="btn btn-primary" onclick="exportAssignments()">
-              <i class="fas fa-download"></i> Export
-            </button>
-          </div>
         </div>
         <div class="card-body">
           <div class="table-container">
@@ -251,8 +247,9 @@
               <label for="assignmentType">Type</label>
               <select id="assignmentType" name="type" required>
                 <option value="">Select type...</option>
-                <option value="quiz">Quiz</option>
-                <option value="project">Project</option>
+                <option value="essays">Essays</option>
+                <option value="reports">Reports</option>
+                <option value="presentations">Presentations</option>
               </select>
             </div>
           </div>
@@ -343,6 +340,15 @@
     <script src="/assets/js/popup-alert.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
+        window.currentUser =
+          window.authManager && window.authManager.getCurrentUser
+            ? window.authManager.getCurrentUser()
+            : JSON.parse(localStorage.getItem("user"));
+        console.log(
+          "[DEBUG] On page load, teacher user.id:",
+          window.currentUser && window.currentUser.id
+        );
+        populateClassFilterDropdown();
         loadAssignmentData();
         setupSearchAndFilter();
         fetchAssignments();
@@ -409,20 +415,208 @@
         const statusFilter = document.getElementById("statusFilter").value;
         const typeFilter = document.getElementById("typeFilter").value;
 
-        console.log("Filtering assignments:", {
-          searchTerm,
-          classFilter,
-          statusFilter,
-          typeFilter,
+        // Filter assignmentsCache
+        let filtered = assignmentsCache.filter((assignment) => {
+          let matches = true;
+          if (
+            searchTerm &&
+            !(
+              assignment.title.toLowerCase().includes(searchTerm) ||
+              (assignment.description &&
+                assignment.description.toLowerCase().includes(searchTerm))
+            )
+          ) {
+            matches = false;
+          }
+          if (
+            classFilter &&
+            String(assignment.class_id) !== String(classFilter)
+          ) {
+            matches = false;
+          }
+          if (statusFilter && assignment.status !== statusFilter) {
+            matches = false;
+          }
+          if (typeFilter && assignment.type !== typeFilter) {
+            matches = false;
+          }
+          return matches;
         });
+
+        // Render filtered assignments
+        const tbody = document.getElementById("assignmentsTableBody");
+        tbody.innerHTML = "";
+        if (filtered.length > 0) {
+          filtered.forEach((assignment) => {
+            tbody.innerHTML += `
+              <tr>
+                <td>
+                  <div class="assignment-info">
+                    <strong>${assignment.title}</strong>
+                    <small>${assignment.description || ""}</small>
+                  </div>
+                </td>
+                <td>${assignment.class_name || ""}</td>
+                <td>${assignment.subject_name || ""}</td>
+                <td><span class="type-badge ${assignment.type}">${
+              assignment.type.charAt(0).toUpperCase() + assignment.type.slice(1)
+            }</span></td>
+                <td>${assignment.due_date || ""}</td>
+                <td>${assignment.total_marks || ""}</td>
+                <td><span class="status-badge ${assignment.status}">${
+              assignment.status.charAt(0).toUpperCase() +
+              assignment.status.slice(1)
+            }</span></td>
+                <td>
+                  <div class="action-buttons">
+                    <button class="btn btn-sm btn-primary" onclick="viewAssignment('${
+                      assignment.id
+                    }')"><i class="fas fa-eye"></i></button>
+                    <button class="btn btn-sm btn-success" onclick="editAssignment('${
+                      assignment.id
+                    }')"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteAssignment('${
+                      assignment.id
+                    }')"><i class="fas fa-trash"></i></button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          });
+        } else {
+          tbody.innerHTML =
+            '<tr><td colspan="8" style="text-align:center;">No assignments found.</td></tr>';
+        }
+      }
+
+      function populateClassFilterDropdown() {
+        const user = window.currentUser;
+        const classFilter = document.getElementById("classFilter");
+        if (!user || !classFilter) return;
+        fetch(`/backend/controllers/teacher_classes.php`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "get_classes_by_teacher",
+            teacher_id: user.id,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            classFilter.innerHTML = "<option value=''>All Classes</option>";
+            (data.data || []).forEach((cls) => {
+              const option = document.createElement("option");
+              option.value = cls.id;
+              option.textContent = cls.name;
+              classFilter.appendChild(option);
+            });
+          });
+      }
+
+      function fetchSubjectDropdownForTeacher(selectedSubjectId = null) {
+        const user = window.currentUser;
+        const subjectDropdown = document.getElementById("assignmentSubject");
+        if (!user || !subjectDropdown) {
+          console.log("No user or subjectDropdown");
+          return;
+        }
+        console.log("[DEBUG] fetchSubjectDropdownForTeacher user.id:", user.id);
+        fetch(`/backend/controllers/teachers.php`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_by_id", id: user.id }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log(
+              "[DEBUG] fetchSubjectDropdownForTeacher teacher response:",
+              data
+            );
+            subjectDropdown.innerHTML = "";
+            if (data.success && data.data && data.data.subject_id) {
+              fetch(`/backend/controllers/subjects.php`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  action: "get_by_id",
+                  id: data.data.subject_id,
+                }),
+              })
+                .then((response) => response.json())
+                .then((subjectData) => {
+                  console.log(
+                    "[DEBUG] fetchSubjectDropdownForTeacher subject response:",
+                    subjectData
+                  );
+                  if (
+                    subjectData.success &&
+                    subjectData.data &&
+                    subjectData.data.name
+                  ) {
+                    const option = document.createElement("option");
+                    option.value = data.data.subject_id;
+                    option.textContent = subjectData.data.name;
+                    option.selected = true;
+                    subjectDropdown.appendChild(option);
+                    subjectDropdown.disabled = true;
+                  } else {
+                    const option = document.createElement("option");
+                    option.value = "";
+                    option.textContent = "No subject assigned";
+                    subjectDropdown.appendChild(option);
+                    subjectDropdown.disabled = true;
+                  }
+                });
+            } else {
+              const option = document.createElement("option");
+              option.value = "";
+              option.textContent = "No subject assigned";
+              subjectDropdown.appendChild(option);
+              subjectDropdown.disabled = true;
+            }
+          });
       }
 
       function createAssignment() {
         document.getElementById("assignmentModalTitle").textContent =
           "Create Assignment";
         document.getElementById("assignmentForm").reset();
-        fetchClasses();
+        fetchClassesDropdown();
+        fetchSubjectDropdownForTeacher();
+        // Set due date min to today + 5 days
+        const dueDateInput = document.getElementById("assignmentDueDate");
+        const minDate = new Date();
+        minDate.setDate(minDate.getDate() + 5);
+        dueDateInput.min = minDate.toISOString().split("T")[0];
         document.getElementById("assignmentModal").style.display = "block";
+      }
+
+      // For assignment modal: fetch classes for the teacher
+      function fetchClassesDropdown(selectedClassId = null) {
+        const user = window.currentUser;
+        const classDropdown = document.getElementById("assignmentClass");
+        if (!user || !classDropdown) return;
+        fetch(`/backend/controllers/teacher_classes.php`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "get_classes_by_teacher",
+            teacher_id: user.id,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            classDropdown.innerHTML =
+              "<option value=''>Select class...</option>";
+            (data.data || []).forEach((cls) => {
+              const option = document.createElement("option");
+              option.value = cls.id;
+              option.textContent = cls.name;
+              if (selectedClassId && selectedClassId == cls.id)
+                option.selected = true;
+              classDropdown.appendChild(option);
+            });
+          });
       }
 
       // Store assignments in a global variable for easy access
@@ -471,9 +665,11 @@
                         <button class="btn btn-sm btn-primary" onclick="viewAssignment('${
                           assignment.id
                         }')"><i class="fas fa-eye"></i></button>
-                        <button class="btn btn-sm btn-success" onclick="editAssignment('${
-                          assignment.id
-                        }')"><i class="fas fa-edit"></i></button>
+                        ${
+                          assignment.status !== "completed"
+                            ? `<button class="btn btn-sm btn-success" onclick="editAssignment('${assignment.id}')"><i class="fas fa-edit"></i></button>`
+                            : ""
+                        }
                         <button class="btn btn-sm btn-danger" onclick="deleteAssignment('${
                           assignment.id
                         }')"><i class="fas fa-trash"></i></button>
@@ -499,21 +695,56 @@
         );
         if (!assignment) return;
         editAssignmentId = assignmentId;
-        // Wait for both dropdowns to be loaded before setting values
-        fetchClasses(function () {
-          fetchSubjects(function () {
-            const form = document.getElementById("assignmentForm");
-            form.title.value = assignment.title || "";
-            form.description.value = assignment.description || "";
-            form.class.value = assignment.class_id || "";
-            form.subject.value = assignment.subject_id || "";
-            form.dueDate.value = assignment.due_date || "";
-            form.totalMarks.value = assignment.total_marks || "";
-            form.type.value = assignment.type || "";
-            form.status.value = assignment.status || "";
-            document.getElementById("assignmentModal").style.display = "block";
-          });
-        });
+        fetchClassesDropdown(assignment.class_id);
+        fetchSubjectDropdownForTeacher(assignment.subject_id);
+        const form = document.getElementById("assignmentForm");
+        form.title.value = assignment.title || "";
+        form.description.value = assignment.description || "";
+        form.class.value = assignment.class_id || "";
+        form.subject.value = assignment.subject_id || "";
+        form.dueDate.value = assignment.due_date || "";
+        form.totalMarks.value = assignment.total_marks || "";
+        form.type.value = assignment.type || "";
+        form.status.value = assignment.status || "";
+        // Set due date min to today + 5 days
+        const dueDateInput = document.getElementById("assignmentDueDate");
+        const minDate = new Date();
+        minDate.setDate(minDate.getDate() + 5);
+        dueDateInput.min = minDate.toISOString().split("T")[0];
+        document.getElementById("assignmentModal").style.display = "block";
+
+        // Disable fields based on status
+        if (assignment.status === "running") {
+          // Only due date is editable
+          form.title.disabled = true;
+          form.description.disabled = true;
+          form.class.disabled = true;
+          form.subject.disabled = true;
+          form.totalMarks.disabled = true;
+          form.type.disabled = true;
+          form.status.disabled = true;
+          form.dueDate.disabled = false;
+        } else if (assignment.status === "completed") {
+          // All fields disabled
+          form.title.disabled = true;
+          form.description.disabled = true;
+          form.class.disabled = true;
+          form.subject.disabled = true;
+          form.dueDate.disabled = true;
+          form.totalMarks.disabled = true;
+          form.type.disabled = true;
+          form.status.disabled = true;
+        } else {
+          // All fields enabled
+          form.title.disabled = false;
+          form.description.disabled = false;
+          form.class.disabled = false;
+          form.subject.disabled = false;
+          form.dueDate.disabled = false;
+          form.totalMarks.disabled = false;
+          form.type.disabled = false;
+          form.status.disabled = false;
+        }
       }
 
       function viewAssignment(assignmentId) {
@@ -609,8 +840,20 @@
         showAlert("Exporting assignments...", "info");
       }
 
+      // On modal close, always re-enable all fields for next use
       function closeAssignmentModal() {
         document.getElementById("assignmentModal").style.display = "none";
+        const form = document.getElementById("assignmentForm");
+        [
+          form.title,
+          form.description,
+          form.class,
+          form.subject,
+          form.dueDate,
+          form.totalMarks,
+          form.type,
+          form.status,
+        ].forEach((f) => (f.disabled = false));
       }
 
       // Handle form submission
@@ -677,64 +920,6 @@
         }
       };
 
-      // Fetch subjects from backend and populate the dropdown
-      function fetchSubjects(callback) {
-        fetch("/backend/controllers/subjects.php?action=get_all")
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.success && Array.isArray(data.data)) {
-              const subjectSelect =
-                document.getElementById("assignmentSubject");
-              subjectSelect.innerHTML =
-                '<option value="">Select subject...</option>';
-              data.data.forEach((subject) => {
-                subjectSelect.innerHTML += `<option value="${subject.id}">${subject.name}</option>`;
-              });
-            }
-            if (callback) callback();
-          });
-      }
-      document.addEventListener("DOMContentLoaded", function () {
-        fetchSubjects();
-      });
-
-      // Fetch classes from backend and populate the dropdowns
-      function fetchClasses(callback) {
-        const user =
-          window.authManager && window.authManager.getCurrentUser
-            ? window.authManager.getCurrentUser()
-            : JSON.parse(localStorage.getItem("user"));
-        if (!user || !user.id) {
-          if (callback) callback();
-          return;
-        }
-        fetch("/backend/controllers/classes.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "get_by_teacher",
-            teacher_id: user.id,
-          }),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            const classSelect = document.getElementById("assignmentClass");
-            const filterSelect = document.getElementById("classFilter");
-            classSelect.innerHTML = '<option value="">Select class...</option>';
-            filterSelect.innerHTML = '<option value="">All Classes</option>';
-            if (data.success && Array.isArray(data.data)) {
-              data.data.forEach((cls) => {
-                classSelect.innerHTML += `<option value="${cls.id}">${cls.name}</option>`;
-                filterSelect.innerHTML += `<option value="${cls.id}">${cls.name}</option>`;
-              });
-            }
-            if (callback) callback();
-          });
-      }
-      document.addEventListener("DOMContentLoaded", function () {
-        fetchClasses();
-      });
-
       function closeViewAssignmentModal() {
         document.getElementById("viewAssignmentModal").style.display = "none";
       }
@@ -764,24 +949,17 @@
         font-weight: 500;
       }
 
-      .type-badge.homework {
-        background: #d4edda;
-        color: #155724;
-      }
-
-      .type-badge.quiz {
+      .type-badge.essays {
         background: #cce5ff;
         color: #004085;
       }
-
-      .type-badge.exam {
-        background: #fff3cd;
-        color: #856404;
-      }
-
-      .type-badge.project {
+      .type-badge.reports {
         background: #f8d7da;
         color: #721c24;
+      }
+      .type-badge.presentations {
+        background: #fff3cd;
+        color: #856404;
       }
 
       .action-buttons {
