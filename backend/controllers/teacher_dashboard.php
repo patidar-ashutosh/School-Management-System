@@ -29,22 +29,25 @@ if ($method === 'POST') {
             // Get teacher dashboard statistics
             $stats = [];
             
-            // Get total classes assigned to this teacher
-            $sql = "SELECT COUNT(*) as count FROM classes WHERE teacher_id = ?";
+            // Get total classes assigned to this teacher (via lecturers)
+            $sql = "SELECT COUNT(DISTINCT l.class_id) as count FROM lecturers l WHERE l.teacher_id = ?";
             $result = $db->fetch($sql, [$teacherId]);
             $stats['total_classes'] = $result['count'];
             
-            // Get total students in teacher's classes
-            $sql = "SELECT COUNT(DISTINCT s.id) as count 
-                    FROM students s 
-                    INNER JOIN classes c ON s.class_id = c.id 
-                    WHERE c.teacher_id = ? AND s.status = 'active'";
+            // Get total students in teacher's classes (via lecturers)
+            $sql = "SELECT COUNT(DISTINCT s.id) as count
+                    FROM students s
+                    INNER JOIN lecturers l ON s.class_id = l.class_id
+                    WHERE l.teacher_id = ? AND s.status = 'active'";
             $result = $db->fetch($sql, [$teacherId]);
             $stats['total_students'] = $result['count'];
             
-            // Get total active assignments
-            $sql = "SELECT COUNT(*) as count, type FROM assignments WHERE teacher_id = ? AND status = 'active' GROUP BY type";
-            $result = $db->fetchAll($sql, [$teacherId]);
+            // Get total active assignments (for classes taught by this teacher)
+            $sql = "SELECT COUNT(*) as count, type FROM assignments a
+                    INNER JOIN lecturers l ON a.class_id = l.class_id
+                    WHERE l.teacher_id = ? AND a.status = 'active' AND a.teacher_id = ?
+                    GROUP BY type";
+            $result = $db->fetchAll($sql, [$teacherId, $teacherId]);
             $stats['total_assignments'] = 0;
             $stats['assignments_by_type'] = [];
             foreach ($result as $row) {
@@ -52,15 +55,15 @@ if ($method === 'POST') {
                 $stats['assignments_by_type'][$row['type']] = $row['count'];
             }
             
-            // Get average attendance rate for teacher's classes
-            $sql = "SELECT AVG(attendance_percentage) as avg_rate 
+            // Get average attendance rate for teacher's classes (via lecturers)
+            $sql = "SELECT AVG(attendance_percentage) as avg_rate
                     FROM (
-                        SELECT s.id, 
+                        SELECT s.id,
                                (COUNT(CASE WHEN a.status = 'present' THEN 1 END) * 100.0 / COUNT(a.id)) as attendance_percentage
-                        FROM students s 
-                        INNER JOIN classes c ON s.class_id = c.id 
-                        LEFT JOIN attendance a ON s.id = a.student_id 
-                        WHERE c.teacher_id = ? AND s.status = 'active'
+                        FROM students s
+                        INNER JOIN lecturers l ON s.class_id = l.class_id
+                        LEFT JOIN attendance a ON s.id = a.student_id
+                        WHERE l.teacher_id = ? AND s.status = 'active'
                         GROUP BY s.id
                     ) as student_attendance";
             $result = $db->fetch($sql, [$teacherId]);

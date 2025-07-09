@@ -124,6 +124,12 @@
             </div>
           </div>
           <div class="form-group">
+            <label for="classes_taught">Classes Where They Teach</label>
+            <select id="classes_taught" name="classes_taught" multiple disabled>
+              <option value="">Please select Class Teacher Of first</option>
+            </select>
+          </div>
+          <div class="form-group">
             <label for="email">Email *</label>
             <input type="email" id="email" name="email" required />
           </div>
@@ -369,7 +375,7 @@
           .getElementById("class_teacher_of")
           .addEventListener("change", function () {
             filterSubjectsByClass(this.value);
-            handleClassChangeForSubjects();
+            updateClassesTaughtDropdown();
           });
       });
 
@@ -519,6 +525,69 @@
         }
       }
 
+      // Add this function to load classes and always show them in the dropdown
+      function loadClassesDropdown(selectedClassId = null) {
+        fetch("/backend/controllers/classes.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_all" }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            const classDropdown = document.getElementById("class_teacher_of");
+            if (classDropdown) {
+              classDropdown.innerHTML = "<option value=''>None</option>";
+              (data.data || []).forEach((cls) => {
+                const option = document.createElement("option");
+                option.value = cls.id;
+                option.textContent = cls.name;
+                if (
+                  selectedClassId &&
+                  String(cls.id) === String(selectedClassId)
+                ) {
+                  option.selected = true;
+                }
+                classDropdown.appendChild(option);
+              });
+            }
+            // Classes Where They Teach dropdown will be handled by updateClassesTaughtDropdown
+          });
+      }
+
+      function updateClassesTaughtDropdown() {
+        const classTeacherOf =
+          document.getElementById("class_teacher_of").value;
+        const classesTaughtDropdown = document.getElementById("classes_taught");
+        if (!classTeacherOf) {
+          // Show only the message option
+          classesTaughtDropdown.innerHTML =
+            "<option value='' disabled selected>Please select Class Teacher Of first</option>";
+          classesTaughtDropdown.disabled = true;
+        } else {
+          // Load all classes as options
+          fetch("/backend/controllers/classes.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "get_all" }),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              classesTaughtDropdown.innerHTML = "";
+              (data.data || []).forEach((cls) => {
+                const option = document.createElement("option");
+                option.value = cls.id;
+                option.textContent = cls.name;
+                if (String(cls.id) === String(classTeacherOf)) {
+                  option.selected = true;
+                  option.disabled = true; // Prevent unselecting
+                }
+                classesTaughtDropdown.appendChild(option);
+              });
+              classesTaughtDropdown.disabled = false;
+            });
+        }
+      }
+
       function openAddModal() {
         editingTeacherId = null;
         document.getElementById("modalTitle").textContent = "Add New Teacher";
@@ -530,7 +599,7 @@
         joiningDateInput.disabled = true;
         document.getElementById("teacherModal").style.display = "block";
         filterSubjectsByClass(""); // Clear subject dropdown
-        handleClassChangeForSubjects();
+        updateClassesTaughtDropdown(); // Always call this to reset the multi-select
       }
 
       function editTeacher(teacherId) {
@@ -558,7 +627,32 @@
             teacher.class_teacher_of || "";
           filterSubjectsByClass(teacher.class_teacher_of, teacher.subject_id);
           document.getElementById("teacherModal").style.display = "block";
-          handleClassChangeForSubjects();
+          // Pre-select classes_taught after loading options
+          setTimeout(() => {
+            updateClassesTaughtDropdown();
+            setTimeout(() => {
+              const classesTaughtDropdown =
+                document.getElementById("classes_taught");
+              if (
+                classesTaughtDropdown &&
+                teacher.classes_taught &&
+                teacher.class_teacher_of
+              ) {
+                for (let i = 0; i < classesTaughtDropdown.options.length; i++) {
+                  const opt = classesTaughtDropdown.options[i];
+                  if (String(opt.value) === String(teacher.class_teacher_of)) {
+                    opt.selected = true;
+                    opt.disabled = true; // Prevent unselecting
+                  } else {
+                    opt.selected = teacher.classes_taught.some(
+                      (c) => String(c.id) === String(opt.value)
+                    );
+                    opt.disabled = false;
+                  }
+                }
+              }
+            }, 200);
+          }, 300);
         }
       }
 
@@ -583,6 +677,9 @@
           status: formData.get("status"),
           subject_id: formData.get("subject_id"),
           class_teacher_of: formData.get("class_teacher_of") || null,
+          classes_taught: Array.from(
+            document.getElementById("classes_taught").selectedOptions
+          ).map((opt) => opt.value),
         };
 
         // Show loading state
@@ -698,34 +795,6 @@
         setTimeout(() => {
           notification.remove();
         }, 5000);
-      }
-
-      // Add this function to load classes and always show them in the dropdown
-      function loadClassesDropdown(selectedClassId = null) {
-        fetch("/backend/controllers/classes.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "get_all" }),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            const classDropdown = document.getElementById("class_teacher_of");
-            if (classDropdown) {
-              classDropdown.innerHTML = "<option value=''>None</option>";
-              (data.data || []).forEach((cls) => {
-                const option = document.createElement("option");
-                option.value = cls.id;
-                option.textContent = cls.name;
-                if (
-                  selectedClassId &&
-                  String(cls.id) === String(selectedClassId)
-                ) {
-                  option.selected = true;
-                }
-                classDropdown.appendChild(option);
-              });
-            }
-          });
       }
 
       // On page load, also load classes for filter

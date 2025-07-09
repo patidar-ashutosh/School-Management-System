@@ -8,18 +8,43 @@ class Teacher {
         $this->db = db();
     }
 
+    public function getClassesTaught($teacherId) {
+        $sql = "SELECT c.id, c.name FROM teacher_classes tc INNER JOIN classes c ON tc.class_id = c.id WHERE tc.teacher_id = ?";
+        return $this->db->fetchAll($sql, [$teacherId]);
+    }
+
+    public function setClassesTaught($teacherId, $classIds) {
+        // Remove all current
+        $this->db->query("DELETE FROM teacher_classes WHERE teacher_id = ?", [$teacherId]);
+        // Insert new
+        if (is_array($classIds)) {
+            foreach ($classIds as $classId) {
+                $this->db->query("INSERT INTO teacher_classes (teacher_id, class_id) VALUES (?, ?)", [$teacherId, $classId]);
+            }
+        }
+    }
+
     public function getAll() {
         $sql = "SELECT t.*, s.name as subject_name, s.code as subject_code, c.name as class_teacher_name 
                 FROM teachers t 
                 LEFT JOIN subjects s ON t.subject_id = s.id 
                 LEFT JOIN classes c ON t.class_teacher_of = c.id 
                 ORDER BY t.created_at DESC";
-        return $this->db->fetchAll($sql);
+        $teachers = $this->db->fetchAll($sql);
+        // Add classes_taught for each teacher
+        foreach ($teachers as &$teacher) {
+            $teacher['classes_taught'] = $this->getClassesTaught($teacher['id']);
+        }
+        return $teachers;
     }
 
     public function getById($id) {
         $sql = "SELECT * FROM teachers WHERE id = ?";
-        return $this->db->fetch($sql, [$id]);
+        $teacher = $this->db->fetch($sql, [$id]);
+        if ($teacher) {
+            $teacher['classes_taught'] = $this->getClassesTaught($id);
+        }
+        return $teacher;
     }
 
     public function getByEmail($email) {

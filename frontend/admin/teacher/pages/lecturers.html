@@ -312,8 +312,7 @@
 
       document.addEventListener("DOMContentLoaded", function () {
         fetchLecturesFromDB();
-        loadSubjectsDropdown();
-        loadClassesDropdown();
+        loadClassesDropdown(); // Only load classes, not subjects
         setupLectureEventListeners();
       });
 
@@ -441,10 +440,102 @@
         }
       }
 
+      function loadClassesDropdown(selectedClassId = null) {
+        const user = localStorage.getItem("user");
+        const teacher = user ? JSON.parse(user) : null;
+        const classDropdown = document.getElementById("class");
+        if (!teacher || !classDropdown) return;
+        fetch(`/backend/controllers/teacher_classes.php`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "get_classes_by_teacher",
+            teacher_id: teacher.id,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            classDropdown.innerHTML = "";
+            const defaultOption = document.createElement("option");
+            defaultOption.value = "";
+            defaultOption.textContent = "Select class";
+            classDropdown.appendChild(defaultOption);
+            (data.data || []).forEach((cls) => {
+              const option = document.createElement("option");
+              option.value = cls.id;
+              option.textContent = cls.name;
+              if (selectedClassId && selectedClassId == cls.id)
+                option.selected = true;
+              classDropdown.appendChild(option);
+            });
+            classDropdown.onchange = function () {
+              // loadSubjectsDropdown(); // Removed as per new logic
+            };
+            // resetSubjectDropdown(); // Removed as per new logic
+          });
+      }
+
+      function loadSubjectDropdownForTeacher(selectedSubjectId = null) {
+        const user = localStorage.getItem("user");
+        const teacher = user ? JSON.parse(user) : null;
+        const subjectDropdown = document.getElementById("subject");
+        if (!teacher || !subjectDropdown) return;
+        // Step 1: Get teacher's subject_id
+        fetch(`/backend/controllers/teachers.php`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_by_id", id: teacher.id }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            subjectDropdown.innerHTML = "";
+            if (data.success && data.data && data.data.subject_id) {
+              // Step 2: Get subject name from subject_id
+              fetch(`/backend/controllers/subjects.php`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  action: "get_by_id",
+                  id: data.data.subject_id,
+                }),
+              })
+                .then((response) => response.json())
+                .then((subjectData) => {
+                  if (
+                    subjectData.success &&
+                    subjectData.data &&
+                    subjectData.data.name
+                  ) {
+                    const option = document.createElement("option");
+                    option.value = data.data.subject_id;
+                    option.textContent = subjectData.data.name;
+                    option.selected = true;
+                    subjectDropdown.appendChild(option);
+                    subjectDropdown.disabled = true;
+                  } else {
+                    const option = document.createElement("option");
+                    option.value = "";
+                    option.textContent = "No subject assigned";
+                    subjectDropdown.appendChild(option);
+                    subjectDropdown.disabled = true;
+                  }
+                });
+            } else {
+              const option = document.createElement("option");
+              option.value = "";
+              option.textContent = "No subject assigned";
+              subjectDropdown.appendChild(option);
+              subjectDropdown.disabled = true;
+            }
+          });
+      }
+
       function openAddLectureModal() {
         editingLectureId = null;
         document.getElementById("modalTitle").textContent = "Add New Lecture";
         document.getElementById("lectureForm").reset();
+        loadClassesDropdown();
+        loadSubjectDropdownForTeacher();
         document.getElementById("lectureModal").style.display = "block";
       }
 
@@ -460,8 +551,10 @@
               editingLectureId = lectureId;
               document.getElementById("modalTitle").textContent =
                 "Edit Lecture";
-              document.getElementById("subject").value = data.data.subject_id;
+              loadClassesDropdown(data.data.class_id);
+              loadSubjectDropdownForTeacher(data.data.subject_id);
               document.getElementById("class").value = data.data.class_id;
+              document.getElementById("subject").value = data.data.subject_id;
               document.getElementById("day").value = data.data.day_of_week;
               document.getElementById("startTime").value =
                 data.data.start_time.slice(0, 5);
@@ -489,8 +582,17 @@
         const teacher = user ? JSON.parse(user) : null;
         if (!teacher) return;
         const formData = new FormData(e.target);
+        // Always use teacher's subject_id
+        let subjectId = null;
+        // Try to get from dropdown (if present and not empty)
+        const subjectDropdown = document.getElementById("subject");
+        if (subjectDropdown && subjectDropdown.value) {
+          subjectId = subjectDropdown.value;
+        } else if (teacher.subject_id) {
+          subjectId = teacher.subject_id;
+        }
         const lectureData = {
-          subject_id: formData.get("subject"),
+          subject_id: subjectId,
           class_id: formData.get("class"),
           day_of_week: formData.get("day"),
           start_time: formData.get("startTime"),
@@ -555,48 +657,6 @@
           })
           .catch((error) => {
             showAlert("Network error. Please try again.", "error");
-          });
-      }
-
-      function loadSubjectsDropdown() {
-        fetch(`/backend/controllers/subjects.php`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "get_all" }),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            const subjectDropdown = document.getElementById("subject");
-            if (subjectDropdown) {
-              subjectDropdown.innerHTML = "";
-              (data.data || []).forEach((subject) => {
-                const option = document.createElement("option");
-                option.value = subject.id;
-                option.textContent = `${subject.name} (${subject.class_name})`;
-                subjectDropdown.appendChild(option);
-              });
-            }
-          });
-      }
-
-      function loadClassesDropdown() {
-        fetch(`/backend/controllers/classes.php`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "get_all" }),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            const classDropdown = document.getElementById("class");
-            if (classDropdown) {
-              classDropdown.innerHTML = "";
-              (data.data || []).forEach((cls) => {
-                const option = document.createElement("option");
-                option.value = cls.id;
-                option.textContent = cls.name;
-                classDropdown.appendChild(option);
-              });
-            }
           });
       }
 

@@ -62,6 +62,10 @@ try {
                 }
                 
                 $teacherId = $teacher->create($input);
+                // Handle classes_taught
+                if (isset($input['classes_taught']) && is_array($input['classes_taught'])) {
+                    $teacher->setClassesTaught($teacherId, $input['classes_taught']);
+                }
                 echo json_encode([
                     'success' => true,
                     'message' => 'Teacher created successfully',
@@ -80,6 +84,10 @@ try {
                 }
                 
                 $teacher->update($input['id'], $input);
+                // Handle classes_taught
+                if (isset($input['classes_taught']) && is_array($input['classes_taught'])) {
+                    $teacher->setClassesTaught($input['id'], $input['classes_taught']);
+                }
                 echo json_encode([
                     'success' => true,
                     'message' => 'Teacher updated successfully'

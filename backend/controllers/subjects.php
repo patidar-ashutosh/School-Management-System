@@ -207,6 +207,21 @@ try {
                 echo json_encode(['success' => true, 'data' => $rows]);
                 return;
                 
+            case 'get_by_teacher_and_class':
+                if (!isset($input['teacher_id']) || !isset($input['class_id'])) {
+                    throw new Exception('Teacher ID and Class ID are required');
+                }
+                $teacher_id = intval($input['teacher_id']);
+                $class_id = intval($input['class_id']);
+                // Only subjects for this class that the teacher teaches
+                $db = db()->getConnection();
+                $sql = "SELECT s.id, s.name FROM subjects s WHERE s.class_id = ? AND (s.id IN (SELECT t.subject_id FROM teachers t WHERE t.id = ?))";
+                $stmt = $db->prepare($sql);
+                $stmt->execute([$class_id, $teacher_id]);
+                $subjects = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode(['success' => true, 'data' => $subjects]);
+                break;
+                
             default:
                 throw new Exception('Invalid action');
         }

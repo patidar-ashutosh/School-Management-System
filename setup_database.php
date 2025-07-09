@@ -189,6 +189,14 @@ $tables = [
         expires_at TIMESTAMP NOT NULL,
         used BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )",
+    // Add teacher_classes table for many-to-many teacher-class mapping
+    'teacher_classes' => "CREATE TABLE teacher_classes (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        teacher_id INT NOT NULL,
+        class_id INT NOT NULL,
+        FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE CASCADE,
+        FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE
     )"
 ];
 
@@ -418,6 +426,19 @@ try {
     $stmt->execute([$class9BId, 'teacher2@school.com']);
     $stmt->execute([$class11AId, 'teacher3@school.com']);
     echo "✓ Teachers updated with class_teacher_of\n";
+
+    // Insert sample teacher_classes (teachers teaching multiple classes)
+    $stmt = $pdo->prepare("INSERT IGNORE INTO teacher_classes (teacher_id, class_id) VALUES (?, ?)");
+    // Amit Singh teaches class 10 and 11
+    $stmt->execute([$teacherIds[0], $class10AId]);
+    $stmt->execute([$teacherIds[0], $class11AId]);
+    // Neha Patel teaches class 9 and 10
+    $stmt->execute([$teacherIds[1], $class9BId]);
+    $stmt->execute([$teacherIds[1], $class10AId]);
+    // Vikram Gupta teaches class 9 and 11
+    $stmt->execute([$teacherIds[2], $class9BId]);
+    $stmt->execute([$teacherIds[2], $class11AId]);
+    echo "✓ Sample teacher_classes (teachers teaching multiple classes) created\n";
     
 } catch (PDOException $e) {
     echo "✗ Error inserting sample data: " . $e->getMessage() . "\n";
@@ -429,7 +450,8 @@ echo "- Principals table: Separate table for school principals\n";
 echo "- Teachers table: Separate table for teachers with login credentials (using id as teacher ID)\n";
 echo "- Students table: Separate table for students with login credentials (using id as student ID, roll_number auto-increment)\n";
 echo "- Assignments table: Updated to use teacher_id instead of created_by\n";
-echo "- Complete academic management system with attendance, grades, exams, etc.\n\n";
+echo "- Complete academic management system with attendance, grades, exams, etc.\n";
+echo "- teacher_classes table: Many-to-many mapping for teachers and classes they teach\n\n";
 echo "Default login credentials:\n";
 echo "Principal: principal@school.com / priyasharma\n";
 echo "Teachers: teacher1@school.com / amitsingh, teacher2@school.com / nehapatel, teacher3@school.com / vikramgupta\n";
