@@ -174,12 +174,32 @@
     </div>
 
     <script src="/assets/js/auth.js"></script>
-    <script src="/assets/js/notifications.js"></script>
+    <script src="/assets/js/popup-alert.js"></script>
     <script>
       // Initialize page
       document.addEventListener("DOMContentLoaded", function () {
         loadClasses();
         setupEventListeners();
+
+        // Restrict Date of Birth: only allow dates at least 5 years before today
+        const dobInput = document.getElementById("dateOfBirth");
+        const today = new Date();
+        const minDob = new Date(1900, 0, 1); // Arbitrary old date
+        const maxDob = new Date(
+          today.getFullYear() - 5,
+          today.getMonth(),
+          today.getDate()
+        );
+        dobInput.max = maxDob.toISOString().split("T")[0];
+        dobInput.min = minDob.toISOString().split("T")[0];
+
+        // Restrict Admission Date: only allow today through 7 days from now
+        const admissionInput = document.getElementById("admissionDate");
+        const minAdmission = today;
+        const maxAdmission = new Date(today);
+        maxAdmission.setDate(today.getDate() + 7);
+        admissionInput.min = minAdmission.toISOString().split("T")[0];
+        admissionInput.max = maxAdmission.toISOString().split("T")[0];
       });
 
       function setupEventListeners() {
@@ -206,11 +226,11 @@
             populateClassDropdown(data.classes);
           } else {
             console.error("Failed to load classes:", data.message);
-            showError("Failed to load classes");
+            showAlert("Failed to load classes", "error");
           }
         } catch (error) {
           console.error("Error loading classes:", error);
-          showError("Error loading classes");
+          showAlert("Error loading classes", "error");
         }
       }
 
@@ -282,17 +302,20 @@
           const data = await response.json();
 
           if (data.success) {
-            showSuccess(data.message || "Student added successfully!");
+            showAlert(data.message || "Student added successfully!", "success");
             // Redirect to students list after a short delay
             setTimeout(() => {
               window.location.href = "students.html";
             }, 2000);
           } else {
-            showError(data.message || "Failed to add student");
+            showAlert(data.message || "Failed to add student", "error");
           }
         } catch (error) {
           console.error("Error adding student:", error);
-          showNetworkError();
+          showAlert(
+            "Network error. Please check your connection and try again.",
+            "error"
+          );
         } finally {
           // Reset button state
           submitBtn.disabled = false;

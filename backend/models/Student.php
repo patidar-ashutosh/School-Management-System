@@ -148,5 +148,14 @@ class Student {
                 ORDER BY s.first_name, s.last_name";
         return $this->db->fetchAll($sql);
     }
+
+    public function getPendingAssignmentsStats($classId) {
+        $sql = "SELECT type, COUNT(*) as count FROM assignments WHERE class_id = ? AND status = 'active' GROUP BY type";
+        return $this->db->fetchAll($sql, [$classId]);
+    }
+
+    public function getDb() {
+        return $this->db;
+    }
 }
 ?> 

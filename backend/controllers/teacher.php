@@ -1,4 +1,5 @@
 <?php
+session_start();
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
@@ -6,6 +7,9 @@ header('Access-Control-Allow-Headers: Content-Type');
 
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../models/Teacher.php';
+require_once __DIR__ . '/../models/Subject.php';
+require_once __DIR__ . '/../models/Class.php';
+require_once __DIR__ . '/../config/session.php';
 
 // Handle preflight requests
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -43,6 +47,8 @@ if ($method === 'GET') {
     
     try {
         $teacherModel = new Teacher();
+        $subjectModel = new Subject();
+        $classModel = new ClassModel();
         
         switch ($input['action']) {
             case 'create':
@@ -54,6 +60,53 @@ if ($method === 'GET') {
             case 'delete':
                 handleDeleteTeacher($teacherModel, $input);
                 break;
+            case 'get_profile':
+                requireRole('teacher');
+                $teacherId = getCurrentUserId();
+                $profile = $teacherModel->getById($teacherId);
+                if ($profile) {
+                    // Get subject name
+                    $profile['subject_name'] = '-';
+                    if (!empty($profile['subject_id'])) {
+                        $subject = $subjectModel->getById($profile['subject_id']);
+                        $profile['subject_name'] = $subject['name'] ?? '-';
+                    }
+                    // Get class name
+                    $profile['class_name'] = '-';
+                    if (!empty($profile['class_teacher_of'])) {
+                        $class = $classModel->getById($profile['class_teacher_of']);
+                        $profile['class_name'] = $class['name'] ?? '-';
+                    }
+                    unset($profile['password']);
+                    echo json_encode(['success' => true, 'profile' => $profile]);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Teacher not found']);
+                }
+                exit;
+            case 'update_profile':
+                requireRole('teacher');
+                $teacherId = getCurrentUserId();
+                $fields = [
+                    'first_name', 'last_name', 'phone', 'address', 'qualification', 'joining_date', 'status', 'email'
+                ];
+                $data = [];
+                foreach ($fields as $field) {
+                    $data[$field] = $input[$field] ?? null;
+                }
+                // Email should not be updated, but is required by the update method signature
+                $current = $teacherModel->getById($teacherId);
+                if (!$current) {
+                    echo json_encode(['success' => false, 'message' => 'Teacher not found']);
+                    exit;
+                }
+                $data['email'] = $current['email'];
+                $result = $teacherModel->update($teacherId, $data);
+                if ($result !== false) {
+                    echo json_encode(['success' => true, 'message' => 'Profile updated successfully']);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Failed to update profile']);
+                }
+                exit;
             default:
                 echo json_encode(['success' => false, 'message' => 'Invalid action']);
         }

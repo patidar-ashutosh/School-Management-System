@@ -138,9 +138,6 @@ class StudentDashboard {
         case "exams":
           await this.loadExamsPage();
           break;
-        case "marks":
-          await this.loadMarksPage();
-          break;
         case "schedule":
           await this.loadSchedulePage();
           break;
@@ -187,7 +184,6 @@ class StudentDashboard {
       profile: "My Profile",
       subjects: "My Subjects",
       exams: "My Exams",
-      marks: "My Marks",
       schedule: "Class Schedule",
     };
     return titles[page] || "Student Dashboard";
@@ -485,107 +481,6 @@ class StudentDashboard {
     }
   }
 
-  async loadMarksPage() {
-    const content = document.getElementById("marksContent");
-    content.innerHTML = `
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2>My Marks</h2>
-                <button class="btn btn-outline-primary" onclick="studentDashboard.downloadReport()">
-                    <i class="fas fa-download me-2"></i>Download Report
-                </button>
-            </div>
-            <div class="card">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover" id="marksTable">
-                            <thead>
-                                <tr>
-                                    <th>Subject</th>
-                                    <th>Exam</th>
-                                    <th>Marks</th>
-                                    <th>Percentage</th>
-                                    <th>Grade</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
-                            <tbody id="marksTableBody">
-                                <tr>
-                                    <td colspan="6" class="text-center">Loading...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        `;
-
-    this.hideAllContent();
-    content.style.display = "block";
-
-    // Load marks data
-    await this.loadMarksData();
-  }
-
-  async loadMarksData() {
-    try {
-      console.log("Loading marks data for student...");
-      const user = this.getCurrentUser();
-      const response = await this.fetchData("marks.php", {
-        action: "get_by_student",
-        student_id: user.id,
-      });
-      const marks = response.data || [];
-
-      console.log("Student marks data loaded:", marks);
-
-      const tbody = document.getElementById("marksTableBody");
-      if (marks.length === 0) {
-        tbody.innerHTML =
-          '<tr><td colspan="6" class="text-center">No marks found</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = marks
-        .map((mark) => {
-          const percentage = (
-            (mark.marks_obtained / mark.total_marks) *
-            100
-          ).toFixed(2);
-          const grade = this.calculateGrade(percentage);
-          const gradeClass = grade.includes("A")
-            ? "success"
-            : grade.includes("B")
-            ? "warning"
-            : "danger";
-          return `
-                    <tr>
-                        <td>${mark.subject_name || "N/A"}</td>
-                        <td>${mark.exam_name || "N/A"}</td>
-                        <td>${mark.marks_obtained}/${mark.total_marks}</td>
-                        <td><span class="badge bg-success">${percentage}%</span></td>
-                        <td><span class="badge bg-${gradeClass}">${grade}</span></td>
-                        <td>${mark.exam_date || "N/A"}</td>
-                    </tr>
-                `;
-        })
-        .join("");
-    } catch (error) {
-      console.error("Error loading student marks:", error);
-      document.getElementById("marksTableBody").innerHTML =
-        '<tr><td colspan="6" class="text-center text-danger">Error loading marks</td></tr>';
-    }
-  }
-
-  calculateGrade(percentage) {
-    if (percentage >= 90) return "A+";
-    if (percentage >= 80) return "A";
-    if (percentage >= 70) return "B+";
-    if (percentage >= 60) return "B";
-    if (percentage >= 50) return "C+";
-    if (percentage >= 40) return "C";
-    return "F";
-  }
-
   async loadSchedulePage() {
     const content = document.getElementById("scheduleContent");
     content.innerHTML = `
@@ -663,7 +558,6 @@ class StudentDashboard {
       "profileContent",
       "subjectsContent",
       "examsContent",
-      "marksContent",
       "scheduleContent",
     ];
 
@@ -707,10 +601,6 @@ class StudentDashboard {
       `View subject ${subjectId} details functionality will be implemented`,
       "info"
     );
-  }
-
-  downloadReport() {
-    this.showAlert("Download report functionality will be implemented", "info");
   }
 
   downloadSchedule() {

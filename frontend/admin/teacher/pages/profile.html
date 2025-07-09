@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teacher Profile - School Management System</title>
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <link rel="stylesheet" href="/assets/css/teacher.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="admin-portal">
+    <div class="admin-container">
+      <!-- Header -->
+      <header class="admin-header">
+        <div class="header-content">
+          <h1><i class="fas fa-user"></i> Teacher Profile</h1>
+          <div class="header-actions">
+            <a href="teacher-dashboard.html" class="btn btn-secondary">
+              <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+          </div>
+        </div>
+      </header>
+      <main class="main-content">
+        <div class="profile-card" id="profileCard">
+          <div class="profile-header">
+            <i class="fas fa-user-circle fa-4x"></i>
+            <h2 id="teacherName">Loading...</h2>
+            <p id="teacherStatus" class="status-badge"></p>
+          </div>
+          <div class="profile-details">
+            <p>
+              <strong>Email:</strong> <span id="teacherEmail">Loading...</span>
+            </p>
+            <p>
+              <strong>Phone:</strong> <span id="teacherPhone">Loading...</span>
+            </p>
+            <p>
+              <strong>Address:</strong>
+              <span id="teacherAddress">Loading...</span>
+            </p>
+            <p>
+              <strong>Qualification:</strong>
+              <span id="teacherQualification">Loading...</span>
+            </p>
+            <p>
+              <strong>Joining Date:</strong>
+              <span id="teacherJoiningDate">Loading...</span>
+            </p>
+            <p>
+              <strong>Subject:</strong>
+              <span id="teacherSubject">Loading...</span>
+            </p>
+            <p>
+              <strong>Class Teacher Of:</strong>
+              <span id="teacherClass">Loading...</span>
+            </p>
+          </div>
+          <div class="profile-actions">
+            <a href="edit-profile.html" class="btn btn-primary"
+              ><i class="fas fa-edit"></i> Edit Profile</a
+            >
+          </div>
+        </div>
+      </main>
+    </div>
+    <script src="/assets/js/auth.js"></script>
+    <script src="/assets/js/popup-alert.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        fetchTeacherProfile();
+      });
+      async function fetchTeacherProfile() {
+        try {
+          const response = await fetch("/backend/controllers/teacher.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "get_profile" }),
+          });
+          const data = await response.json();
+          if (data.success && data.profile) {
+            document.getElementById("teacherName").textContent =
+              data.profile.first_name + " " + data.profile.last_name;
+            document.getElementById("teacherEmail").textContent =
+              data.profile.email;
+            document.getElementById("teacherPhone").textContent =
+              data.profile.phone || "-";
+            document.getElementById("teacherAddress").textContent =
+              data.profile.address || "-";
+            document.getElementById("teacherQualification").textContent =
+              data.profile.qualification || "-";
+            document.getElementById("teacherJoiningDate").textContent =
+              data.profile.joining_date || "-";
+            document.getElementById("teacherSubject").textContent =
+              data.profile.subject_name || "-";
+            document.getElementById("teacherClass").textContent =
+              data.profile.class_name || "-";
+            document.getElementById("teacherStatus").textContent =
+              data.profile.status || "-";
+            document.getElementById("teacherStatus").className =
+              "status-badge " +
+              (data.profile.status === "active" ? "active" : "inactive");
+          } else {
+            showAlert("Failed to load profile", "error");
+          }
+        } catch (err) {
+          showAlert("Error loading profile", "error");
+        }
+      }
+    </script>
+  </body>
+</html>

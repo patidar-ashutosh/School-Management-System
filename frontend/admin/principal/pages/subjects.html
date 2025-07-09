@@ -28,33 +28,6 @@
         </div>
       </header>
 
-      <!-- Search and Filter Section -->
-      <div class="search-section">
-        <div class="search-box">
-          <input
-            type="text"
-            id="searchInput"
-            placeholder="Search subjects by name, code, or teacher..."
-          />
-          <i class="fas fa-search"></i>
-        </div>
-        <div class="filter-options">
-          <select id="gradeFilter">
-            <option value="">All Grades</option>
-            <option value="1">Grade 1</option>
-            <option value="2">Grade 2</option>
-            <option value="3">Grade 3</option>
-            <option value="4">Grade 4</option>
-            <option value="5">Grade 5</option>
-          </select>
-          <select id="statusFilter">
-            <option value="">All Status</option>
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-          </select>
-        </div>
-      </div>
-
       <!-- Subjects Table -->
       <div class="table-container">
         <table class="data-table">
@@ -144,6 +117,7 @@
     </div>
 
     <script src="/assets/js/auth.js"></script>
+    <script src="/assets/js/popup-alert.js"></script>
     <script>
       let subjects = [];
       let currentPage = 1;
@@ -157,15 +131,6 @@
       });
 
       function setupEventListeners() {
-        document
-          .getElementById("searchInput")
-          .addEventListener("input", filterSubjects);
-        document
-          .getElementById("gradeFilter")
-          .addEventListener("change", filterSubjects);
-        document
-          .getElementById("statusFilter")
-          .addEventListener("change", filterSubjects);
         document
           .getElementById("subjectForm")
           .addEventListener("submit", handleFormSubmit);
@@ -185,10 +150,10 @@
             subjects = data.data;
             loadSubjects();
           } else {
-            showNotification("Failed to load subjects", "error");
+            showAlert("Failed to load subjects", "error");
           }
         } catch (error) {
-          showNotification("Error loading subjects", "error");
+          showAlert("Error loading subjects", "error");
         }
       }
 
@@ -284,24 +249,21 @@
             });
             const data = await response.json();
             if (data.success) {
-              showNotification("Subject updated successfully!", "success");
+              showAlert("Subject updated successfully!", "success");
               closeModal();
               fetchSubjectsFromDB();
             } else {
               if (data.message && data.message.includes("unique")) {
-                showNotification(
+                showAlert(
                   "Subject name already exists. Please use a different name.",
                   "error"
                 );
               } else {
-                showNotification(
-                  data.message || "Failed to update subject",
-                  "error"
-                );
+                showAlert(data.message || "Failed to update subject", "error");
               }
             }
           } catch (error) {
-            showNotification("Error updating subject", "error");
+            showAlert("Error updating subject", "error");
           }
         } else {
           // Add new subject (create in DB)
@@ -316,24 +278,21 @@
             });
             const data = await response.json();
             if (data.success) {
-              showNotification("Subject added successfully!", "success");
+              showAlert("Subject added successfully!", "success");
               closeModal();
               fetchSubjectsFromDB();
             } else {
               if (data.message && data.message.includes("unique")) {
-                showNotification(
+                showAlert(
                   "Subject name already exists. Please use a different name.",
                   "error"
                 );
               } else {
-                showNotification(
-                  data.message || "Failed to add subject",
-                  "error"
-                );
+                showAlert(data.message || "Failed to add subject", "error");
               }
             }
           } catch (error) {
-            showNotification("Error adding subject", "error");
+            showAlert("Error adding subject", "error");
           }
         }
       }
@@ -365,22 +324,15 @@
           });
           const data = await response.json();
           if (data.success) {
-            showNotification("Subject deleted successfully!", "success");
+            showAlert("Subject deleted successfully!", "success");
             closeDeleteModal();
             fetchSubjectsFromDB();
           } else {
-            showNotification(
-              data.message || "Failed to delete subject",
-              "error"
-            );
+            showAlert(data.message || "Failed to delete subject", "error");
           }
         } catch (error) {
-          showNotification("Error deleting subject", "error");
+          showAlert("Error deleting subject", "error");
         }
-      }
-
-      function showNotification(message, type) {
-        alert(message);
       }
 
       window.onclick = function (event) {
@@ -393,47 +345,6 @@
           closeDeleteModal();
         }
       };
-
-      function filterSubjects() {
-        const searchTerm = document
-          .getElementById("searchInput")
-          .value.toLowerCase();
-        const gradeFilter = document.getElementById("gradeFilter").value;
-        const statusFilter = document.getElementById("statusFilter").value;
-        const filteredSubjects = subjects.filter((subject) => {
-          const matchesSearch =
-            subject.name.toLowerCase().includes(searchTerm) ||
-            subject.code.toLowerCase().includes(searchTerm);
-          return matchesSearch;
-        });
-        displayFilteredSubjects(filteredSubjects);
-      }
-
-      function displayFilteredSubjects(filteredSubjects) {
-        const tbody = document.getElementById("subjectsTableBody");
-        tbody.innerHTML = "";
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        const pageSubjects = filteredSubjects.slice(startIndex, endIndex);
-        pageSubjects.forEach((subject) => {
-          const row = document.createElement("tr");
-          row.innerHTML = `
-                    <td>${subject.code}</td>
-                    <td>${subject.name}</td>
-                    <td>${subject.description}</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" onclick="editSubject('${subject.code}')">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteSubject('${subject.code}', '${subject.name}')">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                `;
-          tbody.appendChild(row);
-        });
-        updatePagination();
-      }
     </script>
   </body>
 </html>

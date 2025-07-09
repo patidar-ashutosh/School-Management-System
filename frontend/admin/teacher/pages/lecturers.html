@@ -10,6 +10,11 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
       rel="stylesheet"
     />
+    <!-- Bootstrap CSS (for alert design) -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
   </head>
   <body class="teacher-dashboard">
     <header class="main-header">
@@ -54,7 +59,6 @@
           </div>
           <div class="dropdown-menu">
             <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
-            <a href="settings.html"><i class="fas fa-cog"></i> Settings</a>
             <a href="#" onclick="logout()"
               ><i class="fas fa-sign-out-alt"></i> Logout</a
             >
@@ -288,7 +292,15 @@
         </div>
       </div>
     </div>
+    <div
+      id="customAlert"
+      class="alert d-none position-fixed top-0 start-50 translate-middle-x mt-3"
+      style="z-index: 9999; min-width: 300px"
+    >
+      <span id="alertMsg"></span>
+    </div>
     <script src="/assets/js/auth.js"></script>
+    <script src="/assets/js/popup-alert.js"></script>
     <script>
       let lectures = [];
       let filteredLectures = [];
@@ -458,17 +470,11 @@
               document.getElementById("status").value = data.data.status;
               document.getElementById("lectureModal").style.display = "block";
             } else {
-              showLectureNotification(
-                data.message || "Failed to load lecture data",
-                "error"
-              );
+              showAlert(data.message || "Failed to load lecture data", "error");
             }
           })
           .catch((error) => {
-            showLectureNotification(
-              "Network error. Please try again.",
-              "error"
-            );
+            showAlert("Network error. Please try again.", "error");
           });
       }
 
@@ -506,19 +512,13 @@
             if (data.success) {
               closeLectureModal();
               fetchLecturesFromDB();
-              showLectureNotification("Lecture saved successfully!", "success");
+              showAlert("Lecture saved successfully!", "success");
             } else {
-              showLectureNotification(
-                data.message || "Failed to save lecture",
-                "error"
-              );
+              showAlert(data.message || "Failed to save lecture", "error");
             }
           })
           .catch((error) => {
-            showLectureNotification(
-              "Network error. Please try again.",
-              "error"
-            );
+            showAlert("Network error. Please try again.", "error");
           });
       }
 
@@ -548,22 +548,13 @@
             if (data.success) {
               closeDeleteModal();
               fetchLecturesFromDB();
-              showLectureNotification(
-                "Lecture deleted successfully!",
-                "success"
-              );
+              showAlert("Lecture deleted successfully!", "success");
             } else {
-              showLectureNotification(
-                data.message || "Failed to delete lecture",
-                "error"
-              );
+              showAlert(data.message || "Failed to delete lecture", "error");
             }
           })
           .catch((error) => {
-            showLectureNotification(
-              "Network error. Please try again.",
-              "error"
-            );
+            showAlert("Network error. Please try again.", "error");
           });
       }
 
@@ -617,10 +608,6 @@
 
       function capitalize(str) {
         return str.charAt(0).toUpperCase() + str.slice(1);
-      }
-
-      function showLectureNotification(message, type) {
-        alert(message); // Replace with a better notification if desired
       }
 
       // Close modal when clicking outside

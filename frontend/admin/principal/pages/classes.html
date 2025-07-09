@@ -154,6 +154,7 @@
     </div>
 
     <script src="/assets/js/auth.js"></script>
+    <script src="/assets/js/popup-alert.js"></script>
     <script>
       let classes = [];
 
@@ -341,14 +342,11 @@
               document.getElementById("capacity").value = data.class.capacity;
               document.getElementById("classModal").style.display = "block";
             } else {
-              showNotification(
-                data.message || "Failed to load class data",
-                "error"
-              );
+              showAlert(data.message || "Failed to load class data", "error");
             }
           })
           .catch((error) => {
-            showNotification("Network error. Please try again.", "error");
+            showAlert("Network error. Please try again.", "error");
           });
       }
 
@@ -382,13 +380,13 @@
             if (data.success) {
               closeModal();
               fetchClassesFromDB();
-              showNotification("Class saved successfully!", "success");
+              showAlert("Class saved successfully!", "success");
             } else {
-              showNotification(data.message || "Failed to save class", "error");
+              showAlert(data.message || "Failed to save class", "error");
             }
           })
           .catch((error) => {
-            showNotification("Network error. Please try again.", "error");
+            showAlert("Network error. Please try again.", "error");
           });
       }
 
@@ -422,22 +420,14 @@
             if (data.success) {
               closeDeleteModal();
               fetchClassesFromDB();
-              showNotification("Class deleted successfully!", "success");
+              showAlert("Class deleted successfully!", "success");
             } else {
-              showNotification(
-                data.message || "Failed to delete class",
-                "error"
-              );
+              showAlert(data.message || "Failed to delete class", "error");
             }
           })
           .catch((error) => {
-            showNotification("Network error. Please try again.", "error");
+            showAlert("Network error. Please try again.", "error");
           });
-      }
-
-      function showNotification(message, type) {
-        // Simple notification - in real app, use a proper notification library
-        alert(message);
       }
 
       function loadTeachersDropdown() {

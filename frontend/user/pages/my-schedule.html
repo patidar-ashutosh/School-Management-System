@@ -50,7 +50,6 @@
           </div>
           <div class="dropdown-menu">
             <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
-            <a href="settings.html"><i class="fas fa-cog"></i> Settings</a>
             <a href="#" onclick="logout()"
               ><i class="fas fa-sign-out-alt"></i> Logout</a
             >
@@ -179,6 +178,7 @@
     </main>
 
     <script src="/assets/js/auth.js"></script>
+    <script src="/assets/js/popup-alert.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         loadScheduleData();
@@ -404,7 +404,7 @@
       setInterval(updateCurrentTime, 60000);
 
       function downloadSchedule() {
-        alert("Downloading schedule...");
+        showAlert("Downloading schedule...", "info");
       }
 
       function printSchedule() {

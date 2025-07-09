@@ -47,14 +47,6 @@
             <option value="History">History</option>
             <option value="Geography">Geography</option>
           </select>
-          <select id="gradeFilter">
-            <option value="">All Grades</option>
-            <option value="1">Grade 1</option>
-            <option value="2">Grade 2</option>
-            <option value="3">Grade 3</option>
-            <option value="4">Grade 4</option>
-            <option value="5">Grade 5</option>
-          </select>
           <select id="statusFilter">
             <option value="">All Status</option>
             <option value="Scheduled">Scheduled</option>
@@ -209,6 +201,7 @@
     </div>
 
     <script src="/assets/js/auth.js"></script>
+    <script src="/assets/js/popup-alert.js"></script>
     <script>
       let exams = [];
       let currentPage = 1;
@@ -246,9 +239,6 @@
           .addEventListener("input", filterExams);
         document
           .getElementById("subjectFilter")
-          .addEventListener("change", filterExams);
-        document
-          .getElementById("gradeFilter")
           .addEventListener("change", filterExams);
         document
           .getElementById("statusFilter")
@@ -307,7 +297,6 @@
           .getElementById("searchInput")
           .value.toLowerCase();
         const subjectFilter = document.getElementById("subjectFilter").value;
-        const gradeFilter = document.getElementById("gradeFilter").value;
         const statusFilter = document.getElementById("statusFilter").value;
 
         const filteredExams = exams.filter((exam) => {
@@ -318,13 +307,9 @@
             exam.class_name.toLowerCase().includes(searchTerm);
           const matchesSubject =
             !subjectFilter || exam.subject_name === subjectFilter;
-          const matchesGrade =
-            !gradeFilter || exam.class_name.includes(gradeFilter);
           const matchesStatus = !statusFilter || exam.status === statusFilter;
 
-          return (
-            matchesSearch && matchesSubject && matchesGrade && matchesStatus
-          );
+          return matchesSearch && matchesSubject && matchesStatus;
         });
 
         displayFilteredExams(filteredExams);
@@ -596,8 +581,7 @@
       }
 
       function showNotification(message, type) {
-        // Simple notification - in real app, use a proper notification library
-        alert(message);
+        showAlert(message, type);
       }
 
       function loadDropdowns() {

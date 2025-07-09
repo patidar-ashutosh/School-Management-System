@@ -108,7 +108,7 @@
     </div>
 
     <script src="/assets/js/auth.js"></script>
-    <script src="/assets/js/notifications.js"></script>
+    <script src="/assets/js/popup-alert.js"></script>
     <script>
       let students = [];
       let currentPage = 1;
@@ -151,11 +151,11 @@
             displayStudents();
           } else {
             console.error("Failed to load students:", data.message);
-            showError("Failed to load students");
+            showAlert("Failed to load students", "error");
           }
         } catch (error) {
           console.error("Error loading students:", error);
-          showError("Error loading students");
+          showAlert("Error loading students", "error");
         }
       }
 
@@ -421,13 +421,19 @@
           if (data.success) {
             closeDeleteModal();
             loadStudents();
-            showSuccess(data.message || "Student deleted successfully!");
+            showAlert(
+              data.message || "Student deleted successfully!",
+              "success"
+            );
           } else {
-            showError(data.message || "Failed to delete student");
+            showAlert(data.message || "Failed to delete student", "error");
           }
         } catch (error) {
           console.error("Error deleting student:", error);
-          showNetworkError();
+          showAlert(
+            "Network error. Please check your connection and try again.",
+            "error"
+          );
         }
       }
 

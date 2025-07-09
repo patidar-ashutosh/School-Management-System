@@ -50,7 +50,6 @@
           </div>
           <div class="dropdown-menu">
             <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
-            <a href="settings.html"><i class="fas fa-cog"></i> Settings</a>
             <a href="#" onclick="logout()"
               ><i class="fas fa-sign-out-alt"></i> Logout</a
             >
@@ -74,7 +73,7 @@
               <i class="fas fa-tasks"></i>
             </div>
           </div>
-          <div class="card-number" id="totalAssignments">12</div>
+          <div class="card-number" id="totalAssignments"></div>
           <div class="card-description">This semester</div>
         </div>
 
@@ -85,7 +84,7 @@
               <i class="fas fa-check-circle"></i>
             </div>
           </div>
-          <div class="card-number" id="completedAssignments">8</div>
+          <div class="card-number" id="completedAssignments"></div>
           <div class="card-description">Submitted</div>
         </div>
 
@@ -96,7 +95,7 @@
               <i class="fas fa-clock"></i>
             </div>
           </div>
-          <div class="card-number" id="pendingAssignments">3</div>
+          <div class="card-number" id="pendingAssignments"></div>
           <div class="card-description">Due soon</div>
         </div>
 
@@ -107,7 +106,7 @@
               <i class="fas fa-exclamation-triangle"></i>
             </div>
           </div>
-          <div class="card-number" id="overdueAssignments">1</div>
+          <div class="card-number" id="overdueAssignments"></div>
           <div class="card-description">Past deadline</div>
         </div>
       </div>
@@ -163,7 +162,6 @@
                   <th>Type</th>
                   <th>Due Date</th>
                   <th>Status</th>
-                  <th>Grade</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -181,57 +179,8 @@
           <h3>Recent Submissions</h3>
         </div>
         <div class="card-body">
-          <div class="submissions-list">
-            <div class="submission-item">
-              <div class="submission-date">
-                <div class="submission-day">15</div>
-                <div class="submission-month">Jan</div>
-              </div>
-              <div class="submission-content">
-                <div class="submission-title">Shakespeare Essay</div>
-                <div class="submission-details">
-                  English • Submitted at 11:45 PM
-                </div>
-                <div class="submission-file">
-                  shakespeare_essay.pdf (2.3 MB)
-                </div>
-              </div>
-              <div class="submission-status">
-                <span class="status-badge running">Running</span>
-              </div>
-            </div>
-            <div class="submission-item">
-              <div class="submission-date">
-                <div class="submission-day">12</div>
-                <div class="submission-month">Jan</div>
-              </div>
-              <div class="submission-content">
-                <div class="submission-title">History Quiz</div>
-                <div class="submission-details">
-                  History • Completed at 10:30 AM
-                </div>
-                <div class="submission-file">Online Quiz • Score: 87%</div>
-              </div>
-              <div class="submission-status">
-                <span class="status-badge completed">Completed</span>
-              </div>
-            </div>
-            <div class="submission-item">
-              <div class="submission-date">
-                <div class="submission-day">10</div>
-                <div class="submission-month">Jan</div>
-              </div>
-              <div class="submission-content">
-                <div class="submission-title">Mathematics Homework</div>
-                <div class="submission-details">
-                  Mathematics • Submitted at 9:15 PM
-                </div>
-                <div class="submission-file">math_homework.pdf (1.1 MB)</div>
-              </div>
-              <div class="submission-status">
-                <span class="status-badge completed">Completed</span>
-              </div>
-            </div>
+          <div class="submissions-list" id="recentSubmissions">
+            <!-- Dynamic recent submissions will be rendered here -->
           </div>
         </div>
       </div>
@@ -280,10 +229,13 @@
     </div>
 
     <script src="/assets/js/auth.js"></script>
+    <script src="/assets/js/popup-alert.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         loadAndRenderAssignments();
         setupSearchAndFilter();
+        loadAssignmentStats();
+        loadRecentSubmissions();
       });
 
       function loadAndRenderAssignments(filters = {}) {
@@ -337,11 +289,6 @@
             <td><span class="status-badge ${row.status}">${capitalize(
             row.status
           )}</span></td>
-            <td>${
-              row.marks_obtained !== null && row.marks_obtained !== undefined
-                ? `<span class="grade-badge">${row.marks_obtained}</span>`
-                : "-"
-            }</td>
             <td>
               <div class="action-buttons">
                 <button class="btn btn-sm btn-primary" onclick="viewAssignment('${
@@ -355,11 +302,6 @@
                 ${
                   row.status === "submitted" || row.status === "graded"
                     ? `<button class="btn btn-sm btn-info" onclick="viewSubmission('${row.assignment_id}')"><i class="fas fa-file-alt"></i></button>`
-                    : ""
-                }
-                ${
-                  row.status === "graded"
-                    ? `<button class="btn btn-sm btn-info" onclick="viewGrade('${row.assignment_id}')"><i class="fas fa-chart-line"></i></button>`
                     : ""
                 }
               </div>
@@ -409,7 +351,7 @@
       }
 
       function viewAssignment(assignmentId) {
-        alert(`Viewing assignment ${assignmentId}`);
+        showAlert(`Viewing assignment ${assignmentId}`, "info");
       }
 
       function submitAssignment(assignmentId) {
@@ -428,11 +370,7 @@
       }
 
       function viewSubmission(assignmentId) {
-        alert(`Viewing submission for assignment ${assignmentId}`);
-      }
-
-      function viewGrade(assignmentId) {
-        alert(`Viewing grade for assignment ${assignmentId}`);
+        showAlert(`Viewing submission for assignment ${assignmentId}`, "info");
       }
 
       function closeSubmitModal() {
@@ -444,7 +382,7 @@
         .getElementById("submitForm")
         .addEventListener("submit", function (e) {
           e.preventDefault();
-          alert("Assignment submitted successfully!");
+          showAlert("Assignment submitted successfully!", "success");
           closeSubmitModal();
         });
 
@@ -455,6 +393,114 @@
           closeSubmitModal();
         }
       };
+
+      function loadAssignmentStats() {
+        const auth = new Auth();
+        const user = auth.getCurrentUser();
+        if (!user) return;
+        fetch("/backend/controllers/students.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "get_assignment_stats",
+            student_id: user.id,
+          }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success && data.stats) {
+              document.getElementById("totalAssignments").textContent =
+                data.stats.total;
+              document.getElementById("completedAssignments").textContent =
+                data.stats.completed;
+              document.getElementById("pendingAssignments").textContent =
+                data.stats.pending;
+              document.getElementById("overdueAssignments").textContent =
+                data.stats.overdue;
+            }
+          });
+      }
+
+      // Fetch and render recent submissions
+      function loadRecentSubmissions() {
+        const auth = new Auth();
+        const user = auth.getCurrentUser();
+        if (!user) return;
+        fetch("/backend/controllers/students.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "get_assignments",
+            student_id: user.id,
+            status: "submitted",
+          }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            const container = document.getElementById("recentSubmissions");
+            if (
+              !data.success ||
+              !Array.isArray(data.assignments) ||
+              !data.assignments.length
+            ) {
+              container.innerHTML =
+                '<div class="text-center text-danger">No recent submissions found.</div>';
+              return;
+            }
+            // Sort by submitted_date desc, take top 3
+            const recent = data.assignments
+              .filter((a) => a.submitted_date)
+              .sort(
+                (a, b) =>
+                  new Date(b.submitted_date) - new Date(a.submitted_date)
+              )
+              .slice(0, 3);
+            let html = "";
+            recent.forEach((sub) => {
+              const dateObj = new Date(sub.submitted_date);
+              const day = dateObj.getDate();
+              const month = dateObj.toLocaleString("default", {
+                month: "short",
+              });
+              html += `<div class="submission-item">
+                <div class="submission-date">
+                  <div class="submission-day">${day}</div>
+                  <div class="submission-month">${month}</div>
+                </div>
+                <div class="submission-content">
+                  <div class="submission-title">${
+                    sub.assignment_title || "-"
+                  }<\/div>
+                  <div class="submission-details">
+                    ${
+                      sub.subject_name || "-"
+                    } • Submitted at ${dateObj.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+                  <\/div>
+                  <div class="submission-file">${
+                    sub.submitted_file
+                      ? sub.submitted_file
+                      : sub.assignment_type === "quiz"
+                      ? "Online Quiz"
+                      : ""
+                  }${
+                sub.marks_obtained
+                  ? ` • Score: ${sub.marks_obtained}${
+                      sub.assignment_type === "quiz" ? "%" : ""
+                    }`
+                  : ""
+              }<\/div>
+                <\/div>
+                <div class="submission-status">
+                  <span class="status-badge completed">Completed<\/span>
+                <\/div>
+              <\/div>`;
+            });
+            container.innerHTML = html;
+          });
+      }
     </script>
 
     <style>
@@ -536,33 +582,6 @@
       .status-badge.completed {
         background: #d4edda;
         color: #155724;
-      }
-
-      .grade-badge {
-        padding: 4px 8px;
-        border-radius: 12px;
-        font-size: 0.8rem;
-        font-weight: 500;
-      }
-
-      .grade-badge.excellent {
-        background: #d4edda;
-        color: #155724;
-      }
-
-      .grade-badge.good {
-        background: #cce5ff;
-        color: #004085;
-      }
-
-      .grade-badge.average {
-        background: #fff3cd;
-        color: #856404;
-      }
-
-      .grade-badge.poor {
-        background: #f8d7da;
-        color: #721c24;
       }
 
       .action-buttons {

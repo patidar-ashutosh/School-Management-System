@@ -469,18 +469,6 @@
   margin: 8px 0;
 }
 
-/* Role Navigation Links */
-.dropdown-menu a[data-role-nav] {
-  background: #f8f9fa;
-  color: #667eea;
-  font-weight: 500;
-}
-
-.dropdown-menu a[data-role-nav]:hover {
-  background: #e9ecef;
-  color: #5a6fd8;
-}
-
 /* Main Content */
 .main-content {
   max-width: 1200px;

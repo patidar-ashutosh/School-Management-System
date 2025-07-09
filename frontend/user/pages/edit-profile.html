@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edit My Profile - School Management System</title>
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <link rel="stylesheet" href="/assets/css/user.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="admin-portal">
+    <div class="admin-container">
+      <!-- Header -->
+      <header class="admin-header">
+        <div class="header-content">
+          <h1><i class="fas fa-user-edit"></i> Edit Profile</h1>
+          <div class="header-actions">
+            <a href="profile.html" class="btn btn-secondary">
+              <i class="fas fa-arrow-left"></i> Back to Profile
+            </a>
+          </div>
+        </div>
+      </header>
+      <main class="main-content">
+        <form class="profile-card" id="editProfileForm" autocomplete="off">
+          <div class="profile-header">
+            <i class="fas fa-user-circle fa-4x"></i>
+            <h2>Edit Your Profile</h2>
+          </div>
+          <div class="profile-details">
+            <p>
+              <strong>Email:</strong
+              ><input type="email" id="email" name="email" disabled />
+            </p>
+            <p>
+              <strong>First Name:</strong
+              ><input type="text" id="firstName" name="first_name" required />
+            </p>
+            <p>
+              <strong>Last Name:</strong
+              ><input type="text" id="lastName" name="last_name" required />
+            </p>
+            <p>
+              <strong>Phone:</strong
+              ><input type="text" id="phone" name="phone" />
+            </p>
+            <p>
+              <strong>Address:</strong
+              ><input type="text" id="address" name="address" />
+            </p>
+            <p>
+              <strong>Gender:</strong>
+              <select id="gender" name="gender">
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            </p>
+            <p>
+              <strong>Date of Birth:</strong
+              ><input type="date" id="dob" name="date_of_birth" />
+            </p>
+            <p>
+              <strong>Parent Name:</strong
+              ><input type="text" id="parentName" name="parent_name" />
+            </p>
+            <p>
+              <strong>Parent Phone:</strong
+              ><input type="text" id="parentPhone" name="parent_phone" />
+            </p>
+            <p>
+              <strong>Parent Email:</strong
+              ><input type="email" id="parentEmail" name="parent_email" />
+            </p>
+            <p>
+              <strong>Class:</strong
+              ><input
+                type="text"
+                id="studentClass"
+                name="class_name"
+                disabled
+              />
+            </p>
+            <p>
+              <strong>Roll Number:</strong
+              ><input type="text" id="rollNumber" name="roll_number" disabled />
+            </p>
+            <p>
+              <strong>Admission Date:</strong
+              ><input
+                type="text"
+                id="admissionDate"
+                name="admission_date"
+                disabled
+              />
+            </p>
+            <p>
+              <strong>Blood Group:</strong
+              ><input type="text" id="bloodGroup" name="blood_group" />
+            </p>
+            <p>
+              <strong>Status:</strong
+              ><input type="text" id="studentStatus" name="status" disabled />
+            </p>
+          </div>
+          <div class="profile-actions">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i> Save Changes
+            </button>
+            <a href="profile.html" class="btn btn-secondary">Cancel</a>
+          </div>
+        </form>
+      </main>
+    </div>
+    <script src="/assets/js/auth.js"></script>
+    <script src="/assets/js/popup-alert.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        fetchProfileForEdit();
+        document
+          .getElementById("editProfileForm")
+          .addEventListener("submit", submitEditProfile);
+      });
+      async function fetchProfileForEdit() {
+        try {
+          const response = await fetch("/backend/controllers/student.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "get_profile" }),
+          });
+          const data = await response.json();
+          if (data.success && data.profile) {
+            document.getElementById("email").value = data.profile.email;
+            document.getElementById("firstName").value =
+              data.profile.first_name;
+            document.getElementById("lastName").value = data.profile.last_name;
+            document.getElementById("phone").value = data.profile.phone || "";
+            document.getElementById("address").value =
+              data.profile.address || "";
+            document.getElementById("gender").value =
+              data.profile.gender || "male";
+            document.getElementById("dob").value =
+              data.profile.date_of_birth || "";
+            document.getElementById("parentName").value =
+              data.profile.parent_name || "";
+            document.getElementById("parentPhone").value =
+              data.profile.parent_phone || "";
+            document.getElementById("parentEmail").value =
+              data.profile.parent_email || "";
+            document.getElementById("studentClass").value =
+              data.profile.class_name || "";
+            document.getElementById("rollNumber").value =
+              data.profile.roll_number || "";
+            document.getElementById("admissionDate").value =
+              data.profile.admission_date || "";
+            document.getElementById("bloodGroup").value =
+              data.profile.blood_group || "";
+            document.getElementById("studentStatus").value =
+              data.profile.status || "active";
+          } else {
+            showAlert("Failed to load profile", "error");
+          }
+        } catch (err) {
+          showAlert("Error loading profile", "error");
+        }
+      }
+      async function submitEditProfile(e) {
+        e.preventDefault();
+        const payload = {
+          action: "update_profile",
+          first_name: document.getElementById("firstName").value.trim(),
+          last_name: document.getElementById("lastName").value.trim(),
+          phone: document.getElementById("phone").value.trim(),
+          address: document.getElementById("address").value.trim(),
+          gender: document.getElementById("gender").value,
+          date_of_birth: document.getElementById("dob").value,
+          parent_name: document.getElementById("parentName").value.trim(),
+          parent_phone: document.getElementById("parentPhone").value.trim(),
+          parent_email: document.getElementById("parentEmail").value.trim(),
+          blood_group: document.getElementById("bloodGroup").value.trim(),
+        };
+        try {
+          const response = await fetch("/backend/controllers/student.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const data = await response.json();
+          if (data.success) {
+            showAlert("Profile updated successfully!", "success");
+            setTimeout(() => {
+              window.location.href = "profile.html";
+            }, 1200);
+          } else {
+            showAlert(data.message || "Failed to update profile", "error");
+          }
+        } catch (err) {
+          showAlert("Error updating profile", "error");
+        }
+      }
+    </script>
+  </body>
+</html>

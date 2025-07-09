@@ -170,6 +170,31 @@ try {
                 echo json_encode(['success' => true, 'assignments' => $rows]);
                 break;
                 
+            case 'get_assignment_stats':
+                if (!isset($input['student_id'])) {
+                    throw new Exception('Student ID is required');
+                }
+                $studentId = $input['student_id'];
+                $db = $student->getDb();
+                // Total assignments
+                $total = $db->fetch("SELECT COUNT(*) as count FROM student_assignments WHERE student_id = ?", [$studentId])['count'];
+                // Completed assignments (graded or submitted)
+                $completed = $db->fetch("SELECT COUNT(*) as count FROM student_assignments WHERE student_id = ? AND status IN ('graded', 'submitted')", [$studentId])['count'];
+                // Pending assignments
+                $pending = $db->fetch("SELECT COUNT(*) as count FROM student_assignments WHERE student_id = ? AND status = 'pending'", [$studentId])['count'];
+                // Overdue assignments (pending and due_date < today)
+                $overdue = $db->fetch("SELECT COUNT(*) as count FROM student_assignments sa JOIN assignments a ON sa.assignment_id = a.id WHERE sa.student_id = ? AND sa.status = 'pending' AND a.due_date < CURDATE()", [$studentId])['count'];
+                echo json_encode([
+                    'success' => true,
+                    'stats' => [
+                        'total' => $total,
+                        'completed' => $completed,
+                        'pending' => $pending,
+                        'overdue' => $overdue
+                    ]
+                ]);
+                break;
+                
             default:
                 throw new Exception('Invalid action');
         }

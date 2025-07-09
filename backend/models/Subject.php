@@ -71,7 +71,7 @@ class Subject {
     }
 
     public function getByClass($classId) {
-        $sql = "SELECT DISTINCT s.code, s.name, s.description
+        $sql = "SELECT DISTINCT s.id, s.code, s.name, s.description
                 FROM subjects s 
                 INNER JOIN lecturers l ON s.id = l.subject_id 
                 WHERE l.class_id = ? AND s.status = 'active' 

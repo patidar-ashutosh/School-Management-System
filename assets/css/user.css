@@ -386,18 +386,6 @@
   margin: 8px 0;
 }
 
-/* Role Navigation Links */
-.student-dashboard .dropdown-menu a[data-role-nav] {
-  background: #f8f9fa;
-  color: #4facfe;
-  font-weight: 500;
-}
-
-.student-dashboard .dropdown-menu a[data-role-nav]:hover {
-  background: #e9ecef;
-  color: #3a8bfe;
-}
-
 /* Mobile Menu Toggle Button */
 .student-dashboard .mobile-menu-toggle {
   display: none;

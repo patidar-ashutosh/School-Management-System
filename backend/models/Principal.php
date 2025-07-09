@@ -117,8 +117,8 @@ class Principal {
         $result = $this->db->fetch($sql);
         $stats['total_teachers'] = $result['count'];
         
-        // Get total classes
-        $sql = "SELECT COUNT(*) as count FROM classes WHERE status = 'active'";
+        // Get total classes (no status column)
+        $sql = "SELECT COUNT(*) as count FROM classes";
         $result = $this->db->fetch($sql);
         $stats['total_classes'] = $result['count'];
         

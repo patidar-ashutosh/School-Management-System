@@ -1,4 +1,8 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -47,9 +51,7 @@ try {
                 $pendingAssignments = 0;
                 $pendingAssignmentsByType = ['quiz' => 0, 'project' => 0];
                 if ($studentData['class_id']) {
-                    $db = $student->getDb();
-                    $sql = "SELECT type, COUNT(*) as count FROM assignments WHERE class_id = ? AND status = 'active' GROUP BY type";
-                    $result = $db->fetchAll($sql, [$studentData['class_id']]);
+                    $result = $student->getPendingAssignmentsStats($studentData['class_id']);
                     foreach ($result as $row) {
                         $pendingAssignments += $row['count'];
                         $pendingAssignmentsByType[$row['type']] = $row['count'];

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Profile - School Management System</title>
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <link rel="stylesheet" href="/assets/css/user.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="admin-portal">
+    <div class="admin-container">
+      <!-- Header -->
+      <header class="admin-header">
+        <div class="header-content">
+          <h1><i class="fas fa-user"></i> My Profile</h1>
+          <div class="header-actions">
+            <a href="student-dashboard.html" class="btn btn-secondary">
+              <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+          </div>
+        </div>
+      </header>
+      <main class="main-content">
+        <div class="profile-card" id="profileCard">
+          <div class="profile-header">
+            <i class="fas fa-user-circle fa-4x"></i>
+            <h2 id="studentName">Loading...</h2>
+            <p id="studentStatus" class="status-badge"></p>
+          </div>
+          <div class="profile-details">
+            <p>
+              <strong>Email:</strong> <span id="studentEmail">Loading...</span>
+            </p>
+            <p>
+              <strong>Phone:</strong> <span id="studentPhone">Loading...</span>
+            </p>
+            <p>
+              <strong>Address:</strong>
+              <span id="studentAddress">Loading...</span>
+            </p>
+            <p>
+              <strong>Gender:</strong>
+              <span id="studentGender">Loading...</span>
+            </p>
+            <p>
+              <strong>Date of Birth:</strong>
+              <span id="studentDOB">Loading...</span>
+            </p>
+            <p>
+              <strong>Parent Name:</strong>
+              <span id="parentName">Loading...</span>
+            </p>
+            <p>
+              <strong>Parent Phone:</strong>
+              <span id="parentPhone">Loading...</span>
+            </p>
+            <p>
+              <strong>Parent Email:</strong>
+              <span id="parentEmail">Loading...</span>
+            </p>
+            <p>
+              <strong>Class:</strong> <span id="studentClass">Loading...</span>
+            </p>
+            <p>
+              <strong>Roll Number:</strong>
+              <span id="rollNumber">Loading...</span>
+            </p>
+            <p>
+              <strong>Admission Date:</strong>
+              <span id="admissionDate">Loading...</span>
+            </p>
+            <p>
+              <strong>Blood Group:</strong>
+              <span id="bloodGroup">Loading...</span>
+            </p>
+          </div>
+          <div class="profile-actions">
+            <a href="edit-profile.html" class="btn btn-primary"
+              ><i class="fas fa-edit"></i> Edit Profile</a
+            >
+          </div>
+        </div>
+      </main>
+    </div>
+    <script src="/assets/js/auth.js"></script>
+    <script src="/assets/js/popup-alert.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        fetchStudentProfile();
+      });
+      async function fetchStudentProfile() {
+        try {
+          const response = await fetch("/backend/controllers/student.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "get_profile" }),
+          });
+          const data = await response.json();
+          if (data.success && data.profile) {
+            document.getElementById("studentName").textContent =
+              data.profile.first_name + " " + data.profile.last_name;
+            document.getElementById("studentEmail").textContent =
+              data.profile.email;
+            document.getElementById("studentPhone").textContent =
+              data.profile.phone || "-";
+            document.getElementById("studentAddress").textContent =
+              data.profile.address || "-";
+            document.getElementById("studentGender").textContent =
+              data.profile.gender || "-";
+            document.getElementById("studentDOB").textContent =
+              data.profile.date_of_birth || "-";
+            document.getElementById("parentName").textContent =
+              data.profile.parent_name || "-";
+            document.getElementById("parentPhone").textContent =
+              data.profile.parent_phone || "-";
+            document.getElementById("parentEmail").textContent =
+              data.profile.parent_email || "-";
+            document.getElementById("studentClass").textContent =
+              data.profile.class_name || "-";
+            document.getElementById("rollNumber").textContent =
+              data.profile.roll_number || "-";
+            document.getElementById("admissionDate").textContent =
+              data.profile.admission_date || "-";
+            document.getElementById("bloodGroup").textContent =
+              data.profile.blood_group || "-";
+            document.getElementById("studentStatus").textContent =
+              data.profile.status || "-";
+            document.getElementById("studentStatus").className =
+              "status-badge " +
+              (data.profile.status === "active" ? "active" : "inactive");
+          } else {
+            showAlert("Failed to load profile", "error");
+          }
+        } catch (err) {
+          showAlert("Error loading profile", "error");
+        }
+      }
+    </script>
+  </body>
+</html>

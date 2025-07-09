@@ -50,7 +50,6 @@
           </div>
           <div class="dropdown-menu">
             <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
-            <a href="settings.html"><i class="fas fa-cog"></i> Settings</a>
             <a href="#" onclick="logout()"
               ><i class="fas fa-sign-out-alt"></i> Logout</a
             >
@@ -162,41 +161,15 @@
           </div>
         </div>
       </div>
-
-      <!-- Recent Grades -->
-      <div class="card">
-        <div class="card-header">
-          <h3>Recent Grades</h3>
-        </div>
-        <div class="card-body">
-          <div class="table-responsive">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Subject</th>
-                  <th>Assignment/Exam</th>
-                  <th>Grade</th>
-                  <th>Date</th>
-                </tr>
-              </thead>
-              <tbody id="recentGrades">
-                <tr>
-                  <td colspan="4" class="text-center">Loading grades...</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
     </main>
 
     <script src="/assets/js/auth.js"></script>
+    <script src="/assets/js/popup-alert.js"></script>
     <script>
       // Load dashboard data
       document.addEventListener("DOMContentLoaded", function () {
         loadDashboardData();
         loadMySubjects();
-        loadRecentGrades();
         updateUserName();
       });
 
@@ -309,57 +282,6 @@
         }
       }
 
-      async function loadRecentGrades() {
-        try {
-          const auth = new Auth();
-          const user = auth.getCurrentUser();
-
-          if (!user) return;
-
-          const response = await fetch("/backend/controllers/grades.php", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              action: "get_recent_by_student",
-              student_id: user.id,
-            }),
-          });
-
-          const data = await response.json();
-
-          if (data.success) {
-            const tbody = document.getElementById("recentGrades");
-            tbody.innerHTML = "";
-
-            if (data.data.length === 0) {
-              tbody.innerHTML =
-                '<tr><td colspan="4" class="text-center">No grades found</td></tr>';
-              return;
-            }
-
-            data.data.forEach((grade) => {
-              const row = document.createElement("tr");
-              row.innerHTML = `
-                <td>${grade.subject_name}</td>
-                <td>${grade.assignment_title || "Exam"}</td>
-                <td>${grade.grade}</td>
-                <td>${formatDate(grade.created_at)}</td>
-              `;
-              tbody.appendChild(row);
-            });
-          } else {
-            document.getElementById("recentGrades").innerHTML =
-              '<tr><td colspan="4" class="text-center text-danger">Failed to load grades</td></tr>';
-          }
-        } catch (error) {
-          console.error("Error loading grades:", error);
-          document.getElementById("recentGrades").innerHTML =
-            '<tr><td colspan="4" class="text-center text-danger">Error loading grades</td></tr>';
-        }
-      }
-
       function updateUserName() {
         const auth = new Auth();
         const user = auth.getCurrentUser();
@@ -393,12 +315,12 @@
             if (data.success) {
               window.location.href = "../index.html";
             } else {
-              alert("Logout failed: " + data.message);
+              showAlert("Logout failed: " + data.message, "error");
             }
           })
           .catch((error) => {
             console.error("Error:", error);
-            alert("Logout failed. Please try again.");
+            showAlert("Logout failed. Please try again.", "error");
           });
       }
     </script>

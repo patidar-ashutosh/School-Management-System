@@ -54,83 +54,6 @@ class Auth {
         this.logout();
       }
     });
-
-    // Setup role-based navigation
-    this.setupRoleBasedNavigation();
-  }
-
-  setupRoleBasedNavigation() {
-    // Add role-based navigation links to the header
-    const userMenu = document.querySelector(".user-menu .dropdown-menu");
-    if (userMenu && this.currentUser) {
-      this.addRoleNavigationLinks(userMenu);
-    }
-  }
-
-  addRoleNavigationLinks(userMenu) {
-    // Remove existing role navigation links
-    const existingLinks = userMenu.querySelectorAll("[data-role-nav]");
-    existingLinks.forEach((link) => link.remove());
-
-    // Add role-specific navigation links
-    const roleLinks = this.getRoleNavigationLinks();
-    if (roleLinks.length > 0) {
-      // Add separator
-      const separator = document.createElement("div");
-      separator.className = "dropdown-divider";
-      userMenu.appendChild(separator);
-
-      // Add role navigation links
-      roleLinks.forEach((link) => {
-        const linkElement = document.createElement("a");
-        linkElement.href = link.url;
-        linkElement.innerHTML = `<i class="${link.icon}"></i> ${link.text}`;
-        linkElement.setAttribute("data-role-nav", "true");
-        userMenu.appendChild(linkElement);
-      });
-    }
-  }
-
-  getRoleNavigationLinks() {
-    const links = [];
-
-    if (this.currentUser) {
-      switch (this.currentUser.role) {
-        case "principal":
-          // Principal can access teacher and student sections
-          links.push(
-            {
-              text: "Teacher Dashboard",
-              url: "/frontend/admin/teacher/pages/teacher-dashboard.html",
-              icon: "fas fa-chalkboard-teacher",
-            },
-            {
-              text: "Student Dashboard",
-              url: "/frontend/user/pages/student-dashboard.html",
-              icon: "fas fa-user-graduate",
-            }
-          );
-          break;
-        case "teacher":
-          // Teacher can access student section
-          links.push({
-            text: "Student Dashboard",
-            url: "/frontend/user/pages/student-dashboard.html",
-            icon: "fas fa-user-graduate",
-          });
-          break;
-        case "student":
-          // Students can access teacher section (for viewing teacher info)
-          links.push({
-            text: "Teacher Dashboard",
-            url: "/frontend/admin/teacher/pages/teacher-dashboard.html",
-            icon: "fas fa-chalkboard-teacher",
-          });
-          break;
-      }
-    }
-
-    return links;
   }
 
   async handleLogin(e) {
@@ -213,7 +136,6 @@ class Auth {
         if (data.loggedIn) {
           this.currentUser = data.user;
           this.updateUI();
-          this.setupRoleBasedNavigation();
 
           // If we're on a login page and user is already logged in, show a message
           if (this.isLoginPage()) {
@@ -678,13 +600,6 @@ function formatDate(dateString) {
 function formatTime(timeString) {
   if (!timeString) return "";
   return timeString.substring(0, 5); // Return HH:MM format
-}
-
-function getGradeColorClass(grade) {
-  if (grade >= 90) return "text-success";
-  if (grade >= 80) return "text-info";
-  if (grade >= 70) return "text-warning";
-  return "text-danger";
 }
 
 function toggleDropdown() {

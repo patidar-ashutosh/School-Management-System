@@ -175,6 +175,7 @@
     </div>
 
     <script src="/assets/js/auth.js"></script>
+    <script src="/assets/js/popup-alert.js"></script>
     <script>
       let studentId = null;
 
@@ -185,7 +186,7 @@
         studentId = urlParams.get("id");
 
         if (!studentId) {
-          showNotification("Student ID is required", "error");
+          showAlert("Student ID is required", "error");
           setTimeout(() => {
             window.location.href = "students.html";
           }, 2000);
@@ -220,12 +221,11 @@
           if (data.success) {
             populateClassDropdown(data.classes);
           } else {
-            console.error("Failed to load classes:", data.message);
-            showNotification("Failed to load classes", "error");
+            showAlert("Failed to load classes", "error");
           }
         } catch (error) {
           console.error("Error loading classes:", error);
-          showNotification("Error loading classes", "error");
+          showAlert("Error loading classes", "error");
         }
       }
 
@@ -272,17 +272,14 @@
           if (data.success) {
             populateForm(data.data);
           } else {
-            showNotification(
-              data.message || "Failed to load student data",
-              "error"
-            );
+            showAlert(data.message || "Failed to load student data", "error");
             setTimeout(() => {
               window.location.href = "students.html";
             }, 2000);
           }
         } catch (error) {
           console.error("Error loading student data:", error);
-          showNotification("Error loading student data", "error");
+          showAlert("Error loading student data", "error");
           setTimeout(() => {
             window.location.href = "students.html";
           }, 2000);
@@ -355,7 +352,7 @@
           const data = await response.json();
 
           if (data.success) {
-            showNotification(
+            showAlert(
               data.message || "Student updated successfully!",
               "success"
             );
@@ -364,51 +361,16 @@
               window.location.href = "students.html";
             }, 1500);
           } else {
-            showNotification(
-              data.message || "Failed to update student",
-              "error"
-            );
+            showAlert(data.message || "Failed to update student", "error");
           }
         } catch (error) {
           console.error("Error updating student:", error);
-          showNotification("Network error. Please try again.", "error");
+          showAlert("Network error. Please try again.", "error");
         } finally {
           // Reset button state
           submitBtn.disabled = false;
           submitBtn.innerHTML = originalText;
         }
-      }
-
-      function showNotification(message, type) {
-        // Remove existing notifications
-        const existingNotifications =
-          document.querySelectorAll(".notification");
-        existingNotifications.forEach((notification) => notification.remove());
-
-        // Create new notification
-        const notification = document.createElement("div");
-        notification.className = `notification notification-${type}`;
-        notification.innerHTML = `
-          <i class="fas fa-${
-            type === "success" ? "check-circle" : "exclamation-circle"
-          }"></i>
-          ${message}
-        `;
-
-        // Insert at the top of the content
-        const contentCard = document.querySelector(".content-card");
-        if (contentCard) {
-          contentCard.insertBefore(notification, contentCard.firstChild);
-        } else {
-          document.body.insertBefore(notification, document.body.firstChild);
-        }
-
-        // Auto-dismiss after 5 seconds
-        setTimeout(() => {
-          if (notification.parentNode) {
-            notification.remove();
-          }
-        }, 5000);
       }
     </script>
   </body>
