@@ -59,13 +59,6 @@
               <strong>Joining Date:</strong>
               <input type="date" id="joiningDate" name="joining_date" />
             </p>
-            <p>
-              <strong>Status:</strong>
-              <select id="status" name="status">
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </p>
           </div>
           <div class="profile-actions">
             <button type="submit" class="btn btn-primary">
@@ -105,8 +98,6 @@
               data.profile.qualification || "";
             document.getElementById("joiningDate").value =
               data.profile.joining_date || "";
-            document.getElementById("status").value =
-              data.profile.status || "active";
           } else {
             showAlert("Failed to load profile", "error");
           }
@@ -124,7 +115,6 @@
           address: document.getElementById("address").value.trim(),
           qualification: document.getElementById("qualification").value.trim(),
           joining_date: document.getElementById("joiningDate").value,
-          status: document.getElementById("status").value,
         };
         try {
           const response = await fetch("/backend/controllers/principal.php", {

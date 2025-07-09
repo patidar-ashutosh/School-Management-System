@@ -63,7 +63,7 @@ function handleForgotPassword($db, $input) {
     switch ($userType) {
         case 'principal':
             $tableName = 'principals';
-            $stmt = $db->query("SELECT * FROM principals WHERE email = ? AND status = 'active'", [$email]);
+            $stmt = $db->query("SELECT * FROM principals WHERE email = ?", [$email]);
             $user = $stmt->fetch();
             break;
         case 'teacher':

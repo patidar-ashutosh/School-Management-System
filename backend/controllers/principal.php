@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $principalId = getCurrentUserId();
         $principalModel = new Principal();
         $fields = [
-            'first_name', 'last_name', 'phone', 'address', 'qualification', 'joining_date', 'status', 'email'
+            'first_name', 'last_name', 'phone', 'address', 'qualification', 'joining_date', 'email'
         ];
         $data = [];
         foreach ($fields as $field) {

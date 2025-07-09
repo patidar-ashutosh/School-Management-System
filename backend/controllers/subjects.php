@@ -58,10 +58,14 @@ try {
                 if (!isset($input['name'])) {
                     throw new Exception('Subject name is required');
                 }
+                if (!isset($input['class_id'])) {
+                    throw new Exception('Class ID is required for subject creation');
+                }
                 $subjectData = [
                     'name' => $input['name'],
                     'description' => $input['description'] ?? null,
-                    'status' => $input['status'] ?? 'active'
+                    'status' => $input['status'] ?? 'active',
+                    'class_id' => $input['class_id']
                 ];
                 $subjectId = $subject->create($subjectData);
                 echo json_encode([
@@ -85,10 +89,14 @@ try {
                 if (!isset($input['name'])) {
                     throw new Exception('Subject name is required');
                 }
+                if (!isset($input['class_id'])) {
+                    throw new Exception('Class ID is required for subject update');
+                }
                 $subjectData = [
                     'name' => $input['name'],
                     'description' => $input['description'] ?? null,
-                    'status' => $input['status'] ?? 'active'
+                    'status' => $input['status'] ?? 'active',
+                    'class_id' => $input['class_id']
                 ];
                 $subject->update($subjectId, $subjectData);
                 echo json_encode([

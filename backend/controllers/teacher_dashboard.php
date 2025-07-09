@@ -30,7 +30,7 @@ if ($method === 'POST') {
             $stats = [];
             
             // Get total classes assigned to this teacher
-            $sql = "SELECT COUNT(*) as count FROM classes WHERE teacher_id = ? AND status = 'active'";
+            $sql = "SELECT COUNT(*) as count FROM classes WHERE teacher_id = ?";
             $result = $db->fetch($sql, [$teacherId]);
             $stats['total_classes'] = $result['count'];
             

@@ -9,12 +9,12 @@ class Subject {
     }
 
     public function getAll() {
-        $sql = "SELECT s.id, s.code, s.name, s.description FROM subjects s ORDER BY s.name";
+        $sql = "SELECT s.*, c.name as class_name FROM subjects s LEFT JOIN classes c ON s.class_id = c.id ORDER BY s.name";
         return $this->db->fetchAll($sql);
     }
 
     public function getById($id) {
-        $sql = "SELECT s.* FROM subjects s WHERE s.id = ?";
+        $sql = "SELECT s.*, c.name as class_name FROM subjects s LEFT JOIN classes c ON s.class_id = c.id WHERE s.id = ?";
         return $this->db->fetch($sql, [$id]);
     }
 
@@ -27,11 +27,12 @@ class Subject {
         if (!isset($data['code']) || empty($data['code'])) {
             $data['code'] = $this->generateCode($data['name']);
         }
-        $sql = "INSERT INTO subjects (name, code, description, status) VALUES (?, ?, ?, ?)";
+        $sql = "INSERT INTO subjects (name, code, description, class_id, status) VALUES (?, ?, ?, ?, ?)";
         $this->db->query($sql, [
             $data['name'],
             $data['code'],
             $data['description'] ?? null,
+            $data['class_id'],
             $data['status'] ?? 'active'
         ]);
         return $this->db->lastInsertId();
@@ -46,11 +47,12 @@ class Subject {
         if (!isset($data['code']) || empty($data['code'])) {
             $data['code'] = $this->generateCode($data['name']);
         }
-        $sql = "UPDATE subjects SET name = ?, code = ?, description = ?, status = ? WHERE id = ?";
+        $sql = "UPDATE subjects SET name = ?, code = ?, description = ?, class_id = ?, status = ? WHERE id = ?";
         return $this->db->query($sql, [
             $data['name'],
             $data['code'],
             $data['description'] ?? null,
+            $data['class_id'],
             $data['status'] ?? 'active',
             $id
         ]);
@@ -62,11 +64,7 @@ class Subject {
     }
 
     public function getByTeacher($teacherId) {
-        $sql = "SELECT s.* 
-                FROM subjects s 
-                INNER JOIN teachers t ON s.id = t.subject_id 
-                WHERE t.id = ? AND s.status = 'active' 
-                ORDER BY s.name";
+        $sql = "SELECT s.*, c.name as class_name FROM subjects s LEFT JOIN classes c ON s.class_id = c.id INNER JOIN teachers t ON t.subject_id = s.id WHERE t.id = ? AND s.status = 'active' ORDER BY s.name";
         return $this->db->fetchAll($sql, [$teacherId]);
     }
 
@@ -86,7 +84,7 @@ class Subject {
     }
 
     public function getActiveSubjects() {
-        $sql = "SELECT s.* FROM subjects s WHERE s.status = 'active' ORDER BY s.name";
+        $sql = "SELECT s.*, c.name as class_name FROM subjects s LEFT JOIN classes c ON s.class_id = c.id WHERE s.status = 'active' ORDER BY s.name";
         return $this->db->fetchAll($sql);
     }
 

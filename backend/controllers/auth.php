@@ -44,7 +44,7 @@ if ($method === 'POST') {
             
             if ($role === 'principal') {
                 // Principal login
-                $stmt = $db->query("SELECT * FROM principals WHERE email = ? AND status = 'active'", [$email]);
+                $stmt = $db->query("SELECT * FROM principals WHERE email = ?", [$email]);
                 $user = $stmt->fetch();
                 
                 if ($user && password_verify($password, $user['password'])) {

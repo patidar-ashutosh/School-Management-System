@@ -91,11 +91,6 @@ class Principal {
         return $result['count'];
     }
 
-    public function getActivePrincipals() {
-        $sql = "SELECT * FROM principals WHERE status = 'active' ORDER BY first_name, last_name";
-        return $this->db->fetchAll($sql);
-    }
-
     // Principal-specific methods for managing teachers
     public function getTeachersUnderPrincipal($principalId) {
         $sql = "SELECT t.* FROM teachers t 

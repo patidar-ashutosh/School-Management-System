@@ -39,7 +39,7 @@ try {
     die("❌ Database connection failed: " . $e->getMessage() . "\n");
 }
 
-// Create tables based on updated schema
+// Step 1: Create all tables WITHOUT foreign keys
 $tables = [
     'principals' => "CREATE TABLE principals (
         id INT PRIMARY KEY AUTO_INCREMENT,
@@ -51,21 +51,31 @@ $tables = [
         address TEXT,
         qualification VARCHAR(100),
         joining_date DATE,
-        status ENUM('active', 'inactive') DEFAULT 'active',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     )",
-    
+
+    'classes' => "CREATE TABLE classes (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        name VARCHAR(100) NOT NULL,
+        teacher_id INT,
+        room_number VARCHAR(20),
+        capacity INT DEFAULT 30,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    )",
+
     'subjects' => "CREATE TABLE subjects (
         id INT PRIMARY KEY AUTO_INCREMENT,
         name VARCHAR(100) UNIQUE NOT NULL,
         code VARCHAR(20) UNIQUE NOT NULL,
         description TEXT,
+        class_id INT,
         status ENUM('active', 'inactive') DEFAULT 'active',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     )",
-    
+
     'teachers' => "CREATE TABLE teachers (
         id INT PRIMARY KEY AUTO_INCREMENT,
         password VARCHAR(255) NOT NULL,
@@ -82,21 +92,9 @@ $tables = [
         status ENUM('active', 'inactive') DEFAULT 'active',
         class_teacher_of INT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE SET NULL
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     )",
-    
-    'classes' => "CREATE TABLE classes (
-        id INT PRIMARY KEY AUTO_INCREMENT,
-        name VARCHAR(100) NOT NULL,
-        teacher_id INT,
-        room_number VARCHAR(20),
-        capacity INT DEFAULT 30,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE SET NULL
-    )",
-    
+
     'lecturers' => "CREATE TABLE lecturers (
         id INT PRIMARY KEY AUTO_INCREMENT,
         subject_id INT NOT NULL,
@@ -107,12 +105,9 @@ $tables = [
         end_time TIME NOT NULL,
         status ENUM('completed', 'incoming') DEFAULT 'incoming',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
-        FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE CASCADE,
-        FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     )",
-    
+
     'students' => "CREATE TABLE students (
         id INT PRIMARY KEY AUTO_INCREMENT,
         password VARCHAR(255) NOT NULL,
@@ -132,10 +127,9 @@ $tables = [
         blood_group VARCHAR(5),
         status ENUM('active', 'inactive') DEFAULT 'active',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE SET NULL
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     )",
-    
+
     'attendance' => "CREATE TABLE attendance (
         id INT PRIMARY KEY AUTO_INCREMENT,
         student_id INT,
@@ -143,12 +137,9 @@ $tables = [
         date DATE,
         status ENUM('present', 'absent') DEFAULT 'present',
         marked_by INT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
-        FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE,
-        FOREIGN KEY (marked_by) REFERENCES teachers(id) ON DELETE SET NULL
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )",
-    
+
     'assignments' => "CREATE TABLE assignments (
         id INT PRIMARY KEY AUTO_INCREMENT,
         title VARCHAR(200) NOT NULL,
@@ -161,12 +152,9 @@ $tables = [
         type ENUM('quiz', 'project') NOT NULL DEFAULT 'quiz',
         status ENUM('coming', 'running', 'completed') DEFAULT 'coming',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
-        FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE,
-        FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE SET NULL
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     )",
-    
+
     'student_assignments' => "CREATE TABLE student_assignments (
         id INT PRIMARY KEY AUTO_INCREMENT,
         assignment_id INT,
@@ -176,11 +164,9 @@ $tables = [
         feedback TEXT,
         submitted_file VARCHAR(255),
         status ENUM('pending', 'submitted', 'graded') DEFAULT 'pending',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (assignment_id) REFERENCES assignments(id) ON DELETE CASCADE,
-        FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )",
-    
+
     'exams' => "CREATE TABLE exams (
         id INT PRIMARY KEY AUTO_INCREMENT,
         name VARCHAR(200) NOT NULL,
@@ -193,11 +179,9 @@ $tables = [
         exam_type ENUM('midterm', 'final', 'quiz', 'assignment') NOT NULL,
         status ENUM('scheduled', 'ongoing', 'completed') DEFAULT 'scheduled',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
-        FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     )",
-    
+
     'password_resets' => "CREATE TABLE password_resets (
         id INT PRIMARY KEY AUTO_INCREMENT,
         email VARCHAR(100) NOT NULL,
@@ -222,19 +206,50 @@ foreach ($tables as $tableName => $sql) {
     }
 }
 
-// After all tables are created, add the class_teacher_of FK to teachers
-try {
-    $pdo->exec("ALTER TABLE teachers ADD CONSTRAINT fk_class_teacher_of FOREIGN KEY (class_teacher_of) REFERENCES classes(id) ON DELETE SET NULL");
-    echo "✓ Foreign key 'class_teacher_of' added to teachers\n";
-} catch (PDOException $e) {
-    if (strpos($e->getMessage(), 'Duplicate') !== false || strpos($e->getMessage(), 'already exists') !== false) {
-        echo "✓ Foreign key 'class_teacher_of' already exists\n";
-    } else {
-        echo "✗ Error adding foreign key 'class_teacher_of': " . $e->getMessage() . "\n";
+// Step 2: Add all foreign keys after all tables are created
+$foreignKeys = [
+    // classes
+    "ALTER TABLE classes ADD CONSTRAINT fk_classes_teacher FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE SET NULL",
+    // subjects
+    "ALTER TABLE subjects ADD CONSTRAINT fk_subjects_class FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE SET NULL",
+    // teachers
+    "ALTER TABLE teachers ADD CONSTRAINT fk_teachers_subject FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE SET NULL",
+    // teachers - class_teacher_of
+    "ALTER TABLE teachers ADD CONSTRAINT fk_class_teacher_of FOREIGN KEY (class_teacher_of) REFERENCES classes(id) ON DELETE SET NULL",
+    // lecturers
+    "ALTER TABLE lecturers ADD CONSTRAINT fk_lecturers_subject FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE",
+    "ALTER TABLE lecturers ADD CONSTRAINT fk_lecturers_teacher FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE CASCADE",
+    "ALTER TABLE lecturers ADD CONSTRAINT fk_lecturers_class FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE",
+    // students
+    "ALTER TABLE students ADD CONSTRAINT fk_students_class FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE SET NULL",
+    // attendance
+    "ALTER TABLE attendance ADD CONSTRAINT fk_attendance_student FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE",
+    "ALTER TABLE attendance ADD CONSTRAINT fk_attendance_class FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE",
+    "ALTER TABLE attendance ADD CONSTRAINT fk_attendance_marked_by FOREIGN KEY (marked_by) REFERENCES teachers(id) ON DELETE SET NULL",
+    // assignments
+    "ALTER TABLE assignments ADD CONSTRAINT fk_assignments_subject FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE",
+    "ALTER TABLE assignments ADD CONSTRAINT fk_assignments_class FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE",
+    "ALTER TABLE assignments ADD CONSTRAINT fk_assignments_teacher FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE SET NULL",
+    // student_assignments
+    "ALTER TABLE student_assignments ADD CONSTRAINT fk_student_assignments_assignment FOREIGN KEY (assignment_id) REFERENCES assignments(id) ON DELETE CASCADE",
+    "ALTER TABLE student_assignments ADD CONSTRAINT fk_student_assignments_student FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE",
+    // exams
+    "ALTER TABLE exams ADD CONSTRAINT fk_exams_subject FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE",
+    "ALTER TABLE exams ADD CONSTRAINT fk_exams_class FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE"
+];
+
+foreach ($foreignKeys as $fkSql) {
+    try {
+        $pdo->exec($fkSql);
+        echo "✓ Foreign key added: $fkSql\n";
+    } catch (PDOException $e) {
+        if (strpos($e->getMessage(), 'Duplicate') !== false || strpos($e->getMessage(), 'already exists') !== false) {
+            echo "✓ Foreign key already exists: $fkSql\n";
+        } else {
+            echo "✗ Error adding foreign key: $fkSql: " . $e->getMessage() . "\n";
+        }
     }
 }
-
-echo "\n";
 
 // Insert sample data based on updated schema
 try {
@@ -244,11 +259,27 @@ try {
     $stmt->execute([$principalPassword, 'principal@school.com', 'Priya', 'Sharma']);
     echo "✓ Principal admin created\n";
     
-    // Insert sample subjects first
-    $stmt = $pdo->prepare("INSERT IGNORE INTO subjects (name, code, description) VALUES (?, ?, ?)");
-    $stmt->execute(['Mathematics', 'MATH101', 'Advanced Mathematics including Algebra and Calculus']);
-    $stmt->execute(['English Literature', 'ENG101', 'English Literature and Composition']);
-    $stmt->execute(['Physics', 'PHY101', 'Physics with Laboratory']);
+    // Insert sample classes first
+    $stmt = $pdo->prepare("INSERT IGNORE INTO classes (name, teacher_id, room_number, capacity) VALUES (?, ?, ?, ?)");
+    $stmt->execute(['Class 10', null, 'Room 101', 35]);
+    $stmt->execute(['Class 9', null, 'Room 91', 32]);
+    $stmt->execute(['Class 11', null, 'Room 111', 30]);
+    echo "✓ Sample classes created\n";
+
+    // Get class IDs
+    $stmt = $pdo->prepare("SELECT id FROM classes WHERE name = ?");
+    $stmt->execute(['Class 10']);
+    $class10AId = $stmt->fetchColumn();
+    $stmt->execute(['Class 9']);
+    $class9BId = $stmt->fetchColumn();
+    $stmt->execute(['Class 11']);
+    $class11AId = $stmt->fetchColumn();
+
+    // Insert sample subjects using class IDs
+    $stmt = $pdo->prepare("INSERT IGNORE INTO subjects (name, code, description, class_id) VALUES (?, ?, ?, ?)");
+    $stmt->execute(['Mathematics', 'MATH101', 'Advanced Mathematics including Algebra and Calculus', $class10AId]);
+    $stmt->execute(['English Literature', 'ENG101', 'English Literature and Composition', $class10AId]);
+    $stmt->execute(['Physics', 'PHY101', 'Physics with Laboratory', $class9BId]);
     echo "✓ Sample subjects created\n";
     
     // Get subject IDs
@@ -268,43 +299,11 @@ try {
     $stmt->execute(['teacher1@school.com', 'teacher2@school.com', 'teacher3@school.com']);
     $teacherIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
     
-    // Insert sample classes
-    $stmt = $pdo->prepare("INSERT IGNORE INTO classes (name, teacher_id, room_number, capacity) VALUES (?, ?, ?, ?)");
-    $stmt->execute(['Class 10', $teacherIds[0], 'Room 101', 35]);
-    $stmt->execute(['Class 9', $teacherIds[1], 'Room 91', 32]);
-    $stmt->execute(['Class 11', $teacherIds[2], 'Room 111', 30]);
-    echo "✓ Sample classes created\n";
-    
-    // Get class IDs
-    $stmt = $pdo->prepare("SELECT id FROM classes WHERE name = ? AND teacher_id = ?");
-    $stmt->execute(['Class 10', $teacherIds[0]]);
-    $class10AId = $stmt->fetchColumn();
-    $stmt->execute(['Class 9', $teacherIds[1]]);
-    $class9BId = $stmt->fetchColumn();
-    $stmt->execute(['Class 11', $teacherIds[2]]);
-    $class11AId = $stmt->fetchColumn();
-    
-    // Insert student records (with password)
-    $stmt = $pdo->prepare("INSERT IGNORE INTO students (password, email, first_name, last_name, date_of_birth, gender, address, phone, parent_name, parent_phone, parent_email, class_id, roll_number, admission_date, blood_group, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute([password_hash('arjunreddy', PASSWORD_DEFAULT), 'student1@school.com', 'Arjun', 'Reddy', '2008-03-15', 'male', '147 Student Colony, Hyderabad', '9876543215', 'Ramesh', '9876543220', 'Ramesh@school.com', $class10AId, 1001, '2020-06-15', 'O+', 'active']);
-    $stmt->execute([password_hash('zarakhan', PASSWORD_DEFAULT), 'student2@school.com', 'Zara', 'Khan', '2008-07-22', 'female', '258 Youth Street, Pune', '9876543216', 'Ahmed', '9876543221', 'Ahmed@school.com', $class10AId, 1002, '2020-06-20', 'A+', 'active']);
-    $stmt->execute([password_hash('ishaanverma', PASSWORD_DEFAULT), 'student3@school.com', 'Ishaan', 'Verma', '2009-11-08', 'male', '369 Learning Lane, Ahmedabad', '9876543217', 'Rajesh', '9876543222', 'Rajesh@school.com', $class9BId, 1003, '2021-06-10', 'B+', 'active']);
-    echo "✓ Student records created\n";
-    
-    // Get subject IDs for exams and assignments
-    $stmt = $pdo->prepare("SELECT id FROM subjects WHERE code = ?");
-    $stmt->execute(['MATH101']);
-    $mathSubjectId = $stmt->fetchColumn();
-    $stmt->execute(['ENG101']);
-    $englishSubjectId = $stmt->fetchColumn();
-    $stmt->execute(['PHY101']);
-    $physicsSubjectId = $stmt->fetchColumn();
-    
     // Insert sample exams
     $stmt = $pdo->prepare("INSERT IGNORE INTO exams (name, subject_id, class_id, date, start_time, end_time, total_marks, exam_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute(['Mathematics Midterm', $mathSubjectId, $class10AId, '2024-01-30', '09:00:00', '11:00:00', 100, 'midterm']);
-    $stmt->execute(['English Literature Quiz', $englishSubjectId, $class10AId, '2024-02-05', '10:00:00', '12:00:00', 50, 'quiz']);
-    $stmt->execute(['Physics Final Exam', $physicsSubjectId, $class9BId, '2024-02-15', '14:00:00', '16:00:00', 100, 'final']);
+    $stmt->execute(['Mathematics Midterm', $subjectIds[0], $class10AId, '2024-01-30', '09:00:00', '11:00:00', 100, 'midterm']);
+    $stmt->execute(['English Literature Quiz', $subjectIds[1], $class10AId, '2024-02-05', '10:00:00', '12:00:00', 50, 'quiz']);
+    $stmt->execute(['Physics Final Exam', $subjectIds[2], $class9BId, '2024-02-15', '14:00:00', '16:00:00', 100, 'final']);
     echo "✓ Sample exams created\n";
     
     // Get exam IDs
@@ -313,6 +312,64 @@ try {
     $mathExamId = $stmt->fetchColumn();
     $stmt->execute(['English Literature Quiz']);
     $englishExamId = $stmt->fetchColumn();
+    
+    // Insert sample students
+    $stmt = $pdo->prepare("INSERT IGNORE INTO students (password, email, first_name, last_name, date_of_birth, gender, address, phone, parent_name, parent_phone, parent_email, class_id, roll_number, admission_date, blood_group, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->execute([
+        password_hash('arjunreddy', PASSWORD_DEFAULT),
+        'student1@school.com',
+        'Arjun',
+        'Reddy',
+        '2007-05-10',
+        'male',
+        '123 Main Street, Hyderabad',
+        '9876543210',
+        'Ramesh Reddy',
+        '9876543211',
+        'parent1@school.com',
+        $class10AId,
+        1001,
+        '2020-06-15',
+        'B+',
+        'active'
+    ]);
+    $stmt->execute([
+        password_hash('zarakhan', PASSWORD_DEFAULT),
+        'student2@school.com',
+        'Zara',
+        'Khan',
+        '2008-08-22',
+        'female',
+        '456 Park Avenue, Mumbai',
+        '9876543215',
+        'Imran Khan',
+        '9876543216',
+        'parent2@school.com',
+        $class9BId,
+        1002,
+        '2021-06-10',
+        'O+',
+        'active'
+    ]);
+    $stmt->execute([
+        password_hash('ishaanverma', PASSWORD_DEFAULT),
+        'student3@school.com',
+        'Ishaan',
+        'Verma',
+        '2007-12-05',
+        'male',
+        '789 Green Lane, Delhi',
+        '9876543217',
+        'Suresh Verma',
+        '9876543218',
+        'parent3@school.com',
+        $class11AId,
+        1003,
+        '2022-06-12',
+        'A+',
+        'active'
+    ]);
+    echo "✓ Sample students created\n";
     
     // Get student IDs
     $stmt = $pdo->prepare("SELECT id FROM students WHERE email = ?");
@@ -331,9 +388,9 @@ try {
     
     // Insert sample assignments (updated to use teacher_id instead of created_by)
     $stmt = $pdo->prepare("INSERT IGNORE INTO assignments (title, description, subject_id, class_id, due_date, total_marks, teacher_id, type, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute(['Algebra Problem Set 1', 'Solving linear equations and inequalities', $mathSubjectId, $class10AId, '2024-01-20', 100, $teacherIds[0], 'quiz', 'completed']);
-    $stmt->execute(['Shakespeare Essay', 'Analysis of Hamlet soliloquy', $englishSubjectId, $class10AId, '2024-01-25', 50, $teacherIds[1], 'project', 'running']);
-    $stmt->execute(['Physics Lab Report', 'Experiment on Newton Laws', $physicsSubjectId, $class9BId, '2024-01-18', 75, $teacherIds[2], 'project', 'coming']);
+    $stmt->execute(['Algebra Problem Set 1', 'Solving linear equations and inequalities', $subjectIds[0], $class10AId, '2024-01-20', 100, $teacherIds[0], 'quiz', 'completed']);
+    $stmt->execute(['Shakespeare Essay', 'Analysis of Hamlet soliloquy', $subjectIds[1], $class10AId, '2024-01-25', 50, $teacherIds[1], 'project', 'running']);
+    $stmt->execute(['Physics Lab Report', 'Experiment on Newton Laws', $subjectIds[2], $class9BId, '2024-01-18', 75, $teacherIds[2], 'project', 'coming']);
     echo "✓ Sample assignments created\n";
     
     // Get assignment IDs
@@ -351,9 +408,9 @@ try {
     
     // Insert sample lecturers (now as weekly schedule)
     $stmt = $pdo->prepare("INSERT IGNORE INTO lecturers (subject_id, teacher_id, class_id, day_of_week, start_time, end_time, status) VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute([$mathSubjectId, $teacherIds[0], $class10AId, 'Monday', '08:00:00', '09:00:00', 'incoming']);
-    $stmt->execute([$englishSubjectId, $teacherIds[1], $class10AId, 'Tuesday', '09:00:00', '10:00:00', 'incoming']);
-    $stmt->execute([$physicsSubjectId, $teacherIds[2], $class9BId, 'Wednesday', '10:00:00', '11:00:00', 'incoming']);
+    $stmt->execute([$subjectIds[0], $teacherIds[0], $class10AId, 'Monday', '08:00:00', '09:00:00', 'incoming']);
+    $stmt->execute([$subjectIds[1], $teacherIds[1], $class10AId, 'Tuesday', '09:00:00', '10:00:00', 'incoming']);
+    $stmt->execute([$subjectIds[2], $teacherIds[2], $class9BId, 'Wednesday', '10:00:00', '11:00:00', 'incoming']);
     echo "✓ Sample lecturer sessions created\n";
     
     // After class IDs are fetched, update teachers to set class_teacher_of

@@ -353,6 +353,71 @@ class TeacherDashboard {
                           subject.description || "No description"
                         }</p>
                         <p class="text-muted">Code: ${subject.code}</p>
+                        <p class="text-muted">Class: ${
+                          subject.class_name || "N/A"
+                        }</p>
+                        <button class="btn btn-primary" onclick="teacherDashboard.viewSubjectDetails(${
+                          subject.id
+                        })">
+                            View Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `
+        )
+        .join("");
+    } catch (error) {
+      console.error("Error loading subjects:", error);
+      document.getElementById("subjectsContainer").innerHTML = `
+        <div class="col-12">
+            <div class="alert alert-danger text-center">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Error loading subjects
+            </div>
+        </div>
+      `;
+    }
+  }
+
+  async loadSubjectsData() {
+    try {
+      console.log("Loading subjects data for teacher...");
+      const response = await this.fetchData("subjects.php", {
+        action: "get_all",
+      });
+      const subjects = response.data || [];
+
+      console.log("Subjects data loaded:", subjects);
+
+      const container = document.getElementById("subjectsContainer");
+      if (subjects.length === 0) {
+        container.innerHTML = `
+            <div class="col-12">
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No subjects found
+                </div>
+            </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = subjects
+        .map(
+          (subject) => `
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-book fa-3x text-primary mb-3"></i>
+                        <h5 class="card-title">${subject.name}</h5>
+                        <p class="card-text">${
+                          subject.description || "No description"
+                        }</p>
+                        <p class="text-muted">Code: ${subject.code}</p>
+                        <p class="text-muted">Class: ${
+                          subject.class_name || "N/A"
+                        }</p>
                         <button class="btn btn-primary" onclick="teacherDashboard.viewSubjectDetails(${
                           subject.id
                         })">

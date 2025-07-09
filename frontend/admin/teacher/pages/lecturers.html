@@ -572,7 +572,7 @@
               (data.data || []).forEach((subject) => {
                 const option = document.createElement("option");
                 option.value = subject.id;
-                option.textContent = subject.name;
+                option.textContent = `${subject.name} (${subject.class_name})`;
                 subjectDropdown.appendChild(option);
               });
             }

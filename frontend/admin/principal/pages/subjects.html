@@ -36,6 +36,7 @@
               <th>Subject Code</th>
               <th>Subject Name</th>
               <th>Description</th>
+              <th>Class</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -77,6 +78,13 @@
               rows="3"
               required
             ></textarea>
+          </div>
+          <div class="form-group">
+            <label for="classSelect">Class:</label>
+            <select id="classSelect" name="class_id" required>
+              <option value="">Select a class</option>
+              <!-- Classes will be populated by JavaScript -->
+            </select>
           </div>
           <div class="form-actions">
             <button
@@ -169,11 +177,16 @@
                     <td>${subject.code}</td>
                     <td>${subject.name}</td>
                     <td>${subject.description}</td>
+                    <td>${subject.class_name || "N/A"}</td>
                     <td>
-                        <button class="btn btn-sm btn-primary" onclick="editSubject('${subject.code}')">
+                        <button class="btn btn-sm btn-primary" onclick="editSubject('${
+                          subject.code
+                        }')">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteSubject('${subject.code}', '${subject.name}')">
+                        <button class="btn btn-sm btn-danger" onclick="deleteSubject('${
+                          subject.code
+                        }', '${subject.name}')">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>
@@ -209,6 +222,7 @@
         editingSubjectCode = null;
         document.getElementById("modalTitle").textContent = "Add New Subject";
         document.getElementById("subjectForm").reset();
+        loadClassesDropdown();
         document.getElementById("subjectModal").style.display = "block";
       }
 
@@ -219,6 +233,7 @@
           document.getElementById("modalTitle").textContent = "Edit Subject";
           document.getElementById("subjectName").value = subject.name;
           document.getElementById("description").value = subject.description;
+          loadClassesDropdown(subject.class_id);
           document.getElementById("subjectModal").style.display = "block";
         }
       }
@@ -234,6 +249,7 @@
         const subjectData = {
           name: formData.get("subjectName"),
           description: formData.get("description"),
+          class_id: formData.get("class_id"),
         };
         if (editingSubjectCode) {
           // Edit subject (update in DB)
@@ -333,6 +349,31 @@
         } catch (error) {
           showAlert("Error deleting subject", "error");
         }
+      }
+
+      // Fetch classes and populate the classSelect dropdown
+      function loadClassesDropdown(selectedId = "") {
+        fetch("/backend/controllers/classes.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_all" }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            const classSelect = document.getElementById("classSelect");
+            classSelect.innerHTML = '<option value="">Select a class</option>';
+            if (data.success && data.data) {
+              data.data.forEach((cls) => {
+                const option = document.createElement("option");
+                option.value = cls.id;
+                option.textContent = cls.name;
+                if (selectedId && String(cls.id) === String(selectedId)) {
+                  option.selected = true;
+                }
+                classSelect.appendChild(option);
+              });
+            }
+          });
       }
 
       window.onclick = function (event) {

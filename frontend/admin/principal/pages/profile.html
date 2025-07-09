@@ -29,7 +29,6 @@
           <div class="profile-header">
             <i class="fas fa-user-circle fa-4x"></i>
             <h2 id="principalName">Loading...</h2>
-            <p id="principalStatus" class="status-badge"></p>
           </div>
           <div class="profile-details">
             <p>
@@ -88,11 +87,6 @@
               data.profile.qualification || "-";
             document.getElementById("principalJoiningDate").textContent =
               data.profile.joining_date || "-";
-            document.getElementById("principalStatus").textContent =
-              data.profile.status || "-";
-            document.getElementById("principalStatus").className =
-              "status-badge " +
-              (data.profile.status === "active" ? "active" : "inactive");
           } else {
             showAlert("Failed to load profile", "error");
           }
