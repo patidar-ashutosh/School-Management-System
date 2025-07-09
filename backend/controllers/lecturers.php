@@ -33,8 +33,12 @@ try {
                 ]);
                 break;
             case 'add':
-                if (!isset($input['teacher_id']) || !isset($input['subject_id']) || !isset($input['class_id']) || !isset($input['start_time']) || !isset($input['end_time']) || !isset($input['status'])) {
+                if (!isset($input['teacher_id']) || !isset($input['subject_id']) || !isset($input['class_id']) || !isset($input['start_time']) || !isset($input['end_time']) || !isset($input['status']) || !isset($input['day_of_week'])) {
                     throw new Exception('All fields are required');
+                }
+                // Prevent duplicate: same subject, class, day
+                if ($lecturer->existsForSubjectClassDay($input['subject_id'], $input['class_id'], $input['day_of_week'])) {
+                    throw new Exception('A lecture for this subject, class, and day already exists.');
                 }
                 $lectureId = $lecturer->add($input);
                 echo json_encode([
@@ -44,8 +48,12 @@ try {
                 ]);
                 break;
             case 'edit':
-                if (!isset($input['id']) || !isset($input['teacher_id']) || !isset($input['subject_id']) || !isset($input['class_id']) || !isset($input['start_time']) || !isset($input['end_time']) || !isset($input['status'])) {
+                if (!isset($input['id']) || !isset($input['teacher_id']) || !isset($input['subject_id']) || !isset($input['class_id']) || !isset($input['start_time']) || !isset($input['end_time']) || !isset($input['status']) || !isset($input['day_of_week'])) {
                     throw new Exception('All fields are required');
+                }
+                // Prevent duplicate on edit (exclude current id)
+                if ($lecturer->existsForSubjectClassDay($input['subject_id'], $input['class_id'], $input['day_of_week'], $input['id'])) {
+                    throw new Exception('A lecture for this subject, class, and day already exists.');
                 }
                 $lecturer->edit($input['id'], $input);
                 echo json_encode([

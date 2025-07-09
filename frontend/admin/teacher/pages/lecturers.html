@@ -116,16 +116,6 @@
         </div>
         <div class="dashboard-card">
           <div class="card-header">
-            <div class="card-title">Ongoing</div>
-            <div class="card-icon" style="background: #ffc107">
-              <i class="fas fa-play-circle"></i>
-            </div>
-          </div>
-          <div class="card-number" id="ongoingLectures">0</div>
-          <div class="card-description">Currently ongoing</div>
-        </div>
-        <div class="dashboard-card">
-          <div class="card-header">
             <div class="card-title">Completed</div>
             <div class="card-icon" style="background: #28a745">
               <i class="fas fa-check-circle"></i>
@@ -151,7 +141,7 @@
           <input
             type="text"
             id="searchInput"
-            placeholder="Search lectures by subject..."
+            placeholder="Search lectures by subject or class..."
           />
           <i class="fas fa-search"></i>
         </div>
@@ -365,9 +355,13 @@
           .value.toLowerCase();
         const statusFilter = document.getElementById("statusFilter").value;
         filteredLectures = lectures.filter((lec) => {
-          const matchesSearch = (lec.subject_name || "")
+          const matchesSubject = (lec.subject_name || "")
             .toLowerCase()
             .includes(searchTerm);
+          const matchesClass = (lec.class_name || "")
+            .toLowerCase()
+            .includes(searchTerm);
+          const matchesSearch = matchesSubject || matchesClass;
           const matchesStatus = !statusFilter || lec.status === statusFilter;
           return matchesSearch && matchesStatus;
         });
@@ -408,8 +402,6 @@
 
       function updateLectureStats() {
         document.getElementById("totalLectures").textContent = lectures.length;
-        document.getElementById("ongoingLectures").textContent =
-          lectures.filter((l) => l.status === "ongoing").length;
         document.getElementById("completedLectures").textContent =
           lectures.filter((l) => l.status === "completed").length;
         document.getElementById("upcomingLectures").textContent =

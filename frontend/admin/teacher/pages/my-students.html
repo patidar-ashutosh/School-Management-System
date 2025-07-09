@@ -110,49 +110,13 @@
         <p>View and manage students in your classes</p>
       </div>
 
-      <!-- Student Statistics -->
-      <div class="dashboard-cards">
-        <div class="dashboard-card">
-          <div class="card-header">
-            <div class="card-title">Total Students</div>
-            <div class="card-icon" style="background: #667eea">
-              <i class="fas fa-users"></i>
-            </div>
-          </div>
-          <div class="card-number" id="totalStudents">85</div>
-          <div class="card-description">Across all classes</div>
-        </div>
-
-        <div class="dashboard-card">
-          <div class="card-header">
-            <div class="card-title">Attendance Rate</div>
-            <div class="card-icon" style="background: #ffc107">
-              <i class="fas fa-calendar-check"></i>
-            </div>
-          </div>
-          <div class="card-number" id="attendanceRate">92%</div>
-          <div class="card-description">This month</div>
-        </div>
-
-        <div class="dashboard-card">
-          <div class="card-header">
-            <div class="card-title">Active Students</div>
-            <div class="card-icon" style="background: #17a2b8">
-              <i class="fas fa-user-check"></i>
-            </div>
-          </div>
-          <div class="card-number" id="activeStudents">82</div>
-          <div class="card-description">Currently enrolled</div>
-        </div>
-      </div>
-
       <!-- Search and Filter Section -->
       <div class="search-section">
         <div class="search-box">
           <input
             type="text"
             id="studentSearch"
-            placeholder="Search students by name, ID, or class..."
+            placeholder="Search students by name or ID..."
           />
           <i class="fas fa-search"></i>
         </div>
@@ -162,19 +126,23 @@
       <div class="card">
         <div class="card-header">
           <h3 id="studentListTitle">Student List</h3>
+          <div
+            id="totalStudentsBox"
+            style="
+              font-size: 1.1rem;
+              font-weight: 500;
+              color: #667eea;
+              margin-top: 4px;
+            "
+          >
+            Total Students: <span id="totalStudents">0</span>
+          </div>
         </div>
         <div class="card-body">
           <div class="table-container">
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>
-                    <input
-                      type="checkbox"
-                      id="selectAll"
-                      onchange="toggleSelectAll()"
-                    />
-                  </th>
                   <th>Student</th>
                   <th>Contact</th>
                   <th>Actions</th>
@@ -182,9 +150,6 @@
               </thead>
               <tbody id="studentsTableBody">
                 <tr>
-                  <td>
-                    <input type="checkbox" class="student-checkbox" value="1" />
-                  </td>
                   <td>
                     <div class="student-info">
                       <div class="student-avatar">JD</div>
@@ -211,9 +176,6 @@
                 </tr>
                 <tr>
                   <td>
-                    <input type="checkbox" class="student-checkbox" value="2" />
-                  </td>
-                  <td>
                     <div class="student-info">
                       <div class="student-avatar">JS</div>
                       <div>
@@ -238,9 +200,6 @@
                   </td>
                 </tr>
                 <tr>
-                  <td>
-                    <input type="checkbox" class="student-checkbox" value="3" />
-                  </td>
                   <td>
                     <div class="student-info">
                       <div class="student-avatar">MJ</div>
@@ -313,6 +272,7 @@
       document.addEventListener("DOMContentLoaded", function () {
         loadMyStudents();
         setupSearchAndFilter();
+        loadMyClassNames();
       });
 
       // Mobile menu toggle function
@@ -397,9 +357,6 @@
           if (student.status === "active") activeCount++;
           const row = document.createElement("tr");
           row.innerHTML = `
-            <td><input type="checkbox" class="student-checkbox" value="${
-              student.id
-            }" /></td>
             <td>
               <div class="student-info">
                 <div class="student-avatar">${getInitials(
@@ -456,9 +413,19 @@
           .getElementById("studentSearch")
           .value.toLowerCase();
 
-        // Implement filtering logic here
-        console.log("Filtering students:", {
-          searchTerm,
+        // Only filter by name or ID
+        const tbody = document.getElementById("studentsTableBody");
+        const rows = tbody.querySelectorAll("tr");
+        rows.forEach((row) => {
+          const nameCell = row.querySelector(".student-info strong");
+          const idCell = row.querySelector(".student-info small");
+          const name = nameCell ? nameCell.textContent.toLowerCase() : "";
+          const id = idCell ? idCell.textContent.toLowerCase() : "";
+          if (name.includes(searchTerm) || id.includes(searchTerm)) {
+            row.style.display = "";
+          } else {
+            row.style.display = "none";
+          }
         });
       }
 
@@ -559,6 +526,35 @@
           closeStudentModal();
         }
       };
+
+      async function loadMyClassNames() {
+        const userStr = localStorage.getItem("user");
+        if (!userStr) return;
+        const user = JSON.parse(userStr);
+        if (!user || !user.id) return;
+        // Fetch teacher info
+        const teacherRes = await fetch(
+          `/backend/controllers/teachers.php?action=get_by_id&id=${user.id}`
+        );
+        const teacherData = await teacherRes.json();
+        if (!teacherData.success || !teacherData.data) return;
+        // Class teacher of
+        const classTeacherOf =
+          teacherData.data.class_teacher_of_name ||
+          teacherData.data.class_teacher_of ||
+          "-";
+        document.getElementById("classTeacherOf").textContent = classTeacherOf;
+        // Teacher of (other classes)
+        let classesTaught = teacherData.data.classes_taught || [];
+        // Remove class_teacher_of from classes_taught if present
+        if (teacherData.data.class_teacher_of) {
+          classesTaught = classesTaught.filter(
+            (c) => c.id != teacherData.data.class_teacher_of
+          );
+        }
+        const classNames = classesTaught.map((c) => c.name).join(", ") || "-";
+        document.getElementById("teacherOfClasses").textContent = classNames;
+      }
     </script>
 
     <style>
