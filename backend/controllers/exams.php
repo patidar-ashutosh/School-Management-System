@@ -8,6 +8,8 @@ header('Access-Control-Allow-Headers: Content-Type');
 require_once __DIR__ . '/../models/Exam.php';
 require_once __DIR__ . '/../models/Class.php';
 
+date_default_timezone_set('Asia/Kolkata');
+
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
@@ -119,6 +121,45 @@ try {
                 echo json_encode([
                     'success' => true,
                     'count' => $count
+                ]);
+                break;
+                
+            case 'auto_update_status':
+                // Get all exams with status 'ONGOING' or 'SCHEDULED'
+                $allExams = $exam->getAll();
+                $now = new DateTime('now');
+                $updated = 0;
+                foreach ($allExams as $ex) {
+                    if (!in_array(strtolower($ex['status']), ['ongoing', 'scheduled'])) continue;
+                    $examDate = $ex['date']; // Y-m-d
+                    $startTime = $ex['start_time']; // H:i:s
+                    $endTime = $ex['end_time']; // H:i:s
+                    $status = $ex['status'];
+
+                    // Case 3: Current Date > Exam Date
+                    if ($now->format('Y-m-d') > $examDate) {
+                        $status = 'COMPLETED';
+                    }
+                    // Case 1 & 2: Current Date == Exam Date
+                    else if ($now->format('Y-m-d') == $examDate) {
+                        $currentTime = $now->format('H:i:s');
+                        if ($startTime && $endTime) {
+                            if ($currentTime > $endTime) {
+                                $status = 'COMPLETED';
+                            } else if ($currentTime >= $startTime && $currentTime < $endTime) {
+                                $status = 'ONGOING';
+                            }
+                        }
+                    }
+                    if ($status !== $ex['status']) {
+                        $exam->update($ex['id'], array_merge($ex, ['status' => $status]));
+                        $updated++;
+                    }
+                }
+                echo json_encode([
+                    'success' => true,
+                    'message' => "Exam statuses auto-updated.",
+                    'updated' => $updated
                 ]);
                 break;
                 

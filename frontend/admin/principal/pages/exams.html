@@ -205,7 +205,8 @@
       let itemsPerPage = 10;
       let editingExamId = null;
 
-      document.addEventListener("DOMContentLoaded", function () {
+      document.addEventListener("DOMContentLoaded", async function () {
+        await autoUpdateExamStatuses();
         loadClassFilterDropdown();
         loadSubjectFilterDropdown();
         setExamDateLimits();
@@ -247,6 +248,18 @@
         }
       });
 
+      async function autoUpdateExamStatuses() {
+        try {
+          await fetch("/backend/controllers/exams.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "auto_update_status" }),
+          });
+        } catch (error) {
+          // Optionally show a notification or ignore
+        }
+      }
+
       async function fetchExamsFromDB() {
         try {
           const response = await fetch("/backend/controllers/exams.php", {
@@ -256,7 +269,7 @@
           });
           const data = await response.json();
           if (data.success && data.data) {
-            exams = data.data.sort((a, b) => a.id - b.id);
+            exams = data.data.sort((a, b) => customExamStatusSort(a, b));
             loadExams();
           } else {
             showNotification(data.message);
@@ -264,6 +277,15 @@
         } catch (error) {
           showNotification("Failed to load exams", "error");
         }
+      }
+
+      // Custom sort: Ongoing (1), Scheduled (2), Completed (3), then by id asc
+      function customExamStatusSort(a, b) {
+        const statusOrder = { ongoing: 1, scheduled: 2, completed: 3 };
+        const sa = statusOrder[(a.status || "").toLowerCase()] || 4;
+        const sb = statusOrder[(b.status || "").toLowerCase()] || 4;
+        if (sa !== sb) return sa - sb;
+        return a.id - b.id;
       }
 
       function setupEventListeners() {
@@ -294,6 +316,18 @@
         const endIndex = startIndex + itemsPerPage;
         const pageExams = exams.slice(startIndex, endIndex);
         pageExams.forEach((exam) => {
+          const status = (exam.status || "").toUpperCase();
+          let actions = "";
+          if (status !== "COMPLETED" && status !== "ONGOING") {
+            actions = `
+              <button class="btn btn-sm btn-primary" onclick="openEditModal('${exam.id}')">
+                  <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn btn-sm btn-danger" onclick="deleteExam('${exam.id}', '${exam.name}')">
+                  <i class="fas fa-trash"></i>
+              </button>
+            `;
+          }
           const row = document.createElement("tr");
           row.innerHTML = `
                     <td>${exam.id}</td>
@@ -317,18 +351,7 @@
                     <td><span class="status-badge ${
                       exam.status ? exam.status.toLowerCase() : ""
                     }">${exam.status || "-"}</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" onclick="openEditModal('${
-                          exam.id
-                        }')">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteExam('${
-                          exam.id
-                        }', '${exam.name}')">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
+                    <td>${actions}</td>
                 `;
           tbody.appendChild(row);
         });
@@ -343,27 +366,29 @@
         const subjectFilter = document.getElementById("subjectFilter").value;
         const statusFilter = document.getElementById("statusFilter").value;
 
-        const filteredExams = exams.filter((exam) => {
-          const matchesSearch =
-            exam.name.toLowerCase().includes(searchTerm) ||
-            String(exam.id).toLowerCase().includes(searchTerm) ||
-            (exam.subject_name &&
-              exam.subject_name.toLowerCase().includes(searchTerm)) ||
-            (exam.class_name &&
-              exam.class_name.toLowerCase().includes(searchTerm));
-          const matchesClass =
-            !classFilter || String(exam.class_id) === String(classFilter);
-          const matchesSubject =
-            !subjectFilter || exam.subject_name === subjectFilter;
-          const matchesStatus =
-            !statusFilter ||
-            (exam.status &&
-              exam.status.toLowerCase() === statusFilter.toLowerCase());
+        const filteredExams = exams
+          .filter((exam) => {
+            const matchesSearch =
+              exam.name.toLowerCase().includes(searchTerm) ||
+              String(exam.id).toLowerCase().includes(searchTerm) ||
+              (exam.subject_name &&
+                exam.subject_name.toLowerCase().includes(searchTerm)) ||
+              (exam.class_name &&
+                exam.class_name.toLowerCase().includes(searchTerm));
+            const matchesClass =
+              !classFilter || String(exam.class_id) === String(classFilter);
+            const matchesSubject =
+              !subjectFilter || exam.subject_name === subjectFilter;
+            const matchesStatus =
+              !statusFilter ||
+              (exam.status &&
+                exam.status.toLowerCase() === statusFilter.toLowerCase());
 
-          return (
-            matchesSearch && matchesClass && matchesSubject && matchesStatus
-          );
-        });
+            return (
+              matchesSearch && matchesClass && matchesSubject && matchesStatus
+            );
+          })
+          .sort((a, b) => customExamStatusSort(a, b));
 
         displayFilteredExams(filteredExams);
       }
@@ -377,6 +402,18 @@
         const pageExams = filteredExams.slice(startIndex, endIndex);
 
         pageExams.forEach((exam) => {
+          const status = (exam.status || "").toUpperCase();
+          let actions = "";
+          if (status !== "COMPLETED" && status !== "ONGOING") {
+            actions = `
+              <button class="btn btn-sm btn-primary" onclick="openEditModal('${exam.id}')">
+                  <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn btn-sm btn-danger" onclick="deleteExam('${exam.id}', '${exam.name}')">
+                  <i class="fas fa-trash"></i>
+              </button>
+            `;
+          }
           const row = document.createElement("tr");
           row.innerHTML = `
                     <td>${exam.id}</td>
@@ -400,18 +437,7 @@
                     <td><span class="status-badge ${
                       exam.status ? exam.status.toLowerCase() : ""
                     }">${exam.status || "-"}</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" onclick="openEditModal('${
-                          exam.id
-                        }')">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteExam('${
-                          exam.id
-                        }', '${exam.name}')">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
+                    <td>${actions}</td>
                 `;
           tbody.appendChild(row);
         });
