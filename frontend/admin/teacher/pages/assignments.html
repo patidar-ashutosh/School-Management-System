@@ -282,7 +282,7 @@
                 type="number"
                 id="assignmentTotalMarks"
                 name="totalMarks"
-                min="1"
+                min="20"
                 max="100"
                 required
               />
@@ -670,9 +670,11 @@
                             ? `<button class="btn btn-sm btn-success" onclick="editAssignment('${assignment.id}')"><i class="fas fa-edit"></i></button>`
                             : ""
                         }
-                        <button class="btn btn-sm btn-danger" onclick="deleteAssignment('${
-                          assignment.id
-                        }')"><i class="fas fa-trash"></i></button>
+                        ${
+                          assignment.status !== "completed"
+                            ? `<button class="btn btn-sm btn-danger" onclick="deleteAssignment('${assignment.id}')"><i class="fas fa-trash"></i></button>`
+                            : ""
+                        }
                       </div>
                     </td>
                   </tr>
@@ -866,8 +868,9 @@
               ? window.authManager.getCurrentUser()
               : JSON.parse(localStorage.getItem("user"));
           const form = e.target;
-          if (parseInt(form.totalMarks.value, 10) > 100) {
-            showAlert("Total marks cannot be greater than 100.", "error");
+          const marks = parseInt(form.totalMarks.value, 10);
+          if (isNaN(marks) || marks < 20 || marks > 100) {
+            showAlert("Total marks must be between 20 and 100.", "error");
             form.totalMarks.focus();
             return;
           }
