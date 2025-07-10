@@ -130,12 +130,11 @@
                   <th>Name</th>
                   <th>Class</th>
                   <th>Admission Date</th>
-                  <th>Status</th>
                 </tr>
               </thead>
               <tbody id="recentStudents">
                 <tr>
-                  <td colspan="5" class="text-center">Loading students...</td>
+                  <td colspan="4" class="text-center">Loading students...</td>
                 </tr>
               </tbody>
             </table>
@@ -157,12 +156,11 @@
                   <th>Name</th>
                   <th>Subject</th>
                   <th>Joining Date</th>
-                  <th>Status</th>
                 </tr>
               </thead>
               <tbody id="recentTeachers">
                 <tr>
-                  <td colspan="5" class="text-center">Loading teachers...</td>
+                  <td colspan="4" class="text-center">Loading teachers...</td>
                 </tr>
               </tbody>
             </table>
@@ -229,33 +227,33 @@
             const tbody = document.getElementById("recentStudents");
             tbody.innerHTML = "";
 
-            if (data.data.length === 0) {
+            // Only show active students
+            const activeStudents = data.data.filter(
+              (s) => s.status === "active"
+            );
+            if (activeStudents.length === 0) {
               tbody.innerHTML =
-                '<tr><td colspan="5" class="text-center">No students found</td></tr>';
+                '<tr><td colspan="4" class="text-center">No students found</td></tr>';
               return;
             }
-
-            data.data.forEach((student) => {
+            activeStudents.forEach((student) => {
               const row = document.createElement("tr");
               row.innerHTML = `
                 <td>${student.roll_number || "N/A"}</td>
                 <td>${student.first_name} ${student.last_name}</td>
                 <td>${student.class_name || "Not Assigned"}</td>
                 <td>${formatDate(student.admission_date)}</td>
-                <td><span class="badge bg-${
-                  student.status === "active" ? "success" : "secondary"
-                }">${student.status}</span></td>
               `;
               tbody.appendChild(row);
             });
           } else {
             document.getElementById("recentStudents").innerHTML =
-              '<tr><td colspan="5" class="text-center text-danger">Failed to load students</td></tr>';
+              '<tr><td colspan="4" class="text-center text-danger">Failed to load students</td></tr>';
           }
         } catch (error) {
           console.error("Error loading recent students:", error);
           document.getElementById("recentStudents").innerHTML =
-            '<tr><td colspan="5" class="text-center text-danger">Error loading students</td></tr>';
+            '<tr><td colspan="4" class="text-center text-danger">Error loading students</td></tr>';
         }
       }
 
@@ -275,33 +273,33 @@
             const tbody = document.getElementById("recentTeachers");
             tbody.innerHTML = "";
 
-            if (data.data.length === 0) {
+            // Only show active teachers
+            const activeTeachers = data.data.filter(
+              (t) => t.status === "active"
+            );
+            if (activeTeachers.length === 0) {
               tbody.innerHTML =
-                '<tr><td colspan="5" class="text-center">No teachers found</td></tr>';
+                '<tr><td colspan="4" class="text-center">No teachers found</td></tr>';
               return;
             }
-
-            data.data.forEach((teacher) => {
+            activeTeachers.forEach((teacher) => {
               const row = document.createElement("tr");
               row.innerHTML = `
                 <td>${teacher.id}</td>
                 <td>${teacher.first_name} ${teacher.last_name}</td>
                 <td>${teacher.qualification || "Not specified"}</td>
                 <td>${formatDate(teacher.joining_date)}</td>
-                <td><span class="badge bg-${
-                  teacher.status === "active" ? "success" : "secondary"
-                }">${teacher.status}</span></td>
               `;
               tbody.appendChild(row);
             });
           } else {
             document.getElementById("recentTeachers").innerHTML =
-              '<tr><td colspan="5" class="text-center text-danger">Failed to load teachers</td></tr>';
+              '<tr><td colspan="4" class="text-center text-danger">Failed to load teachers</td></tr>';
           }
         } catch (error) {
           console.error("Error loading recent teachers:", error);
           document.getElementById("recentTeachers").innerHTML =
-            '<tr><td colspan="5" class="text-center text-danger">Error loading teachers</td></tr>';
+            '<tr><td colspan="4" class="text-center text-danger">Error loading teachers</td></tr>';
         }
       }
 

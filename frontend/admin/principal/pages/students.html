@@ -44,11 +44,6 @@
             <option value="">All Classes</option>
             <!-- Classes will be loaded from database -->
           </select>
-          <select id="statusFilter">
-            <option value="">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
         </div>
       </div>
 
@@ -63,7 +58,6 @@
               <th>Age</th>
               <th>Gender</th>
               <th>Contact</th>
-              <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -85,23 +79,27 @@
       </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
-    <div id="deleteModal" class="modal">
+    <!-- Deactivate Confirmation Modal -->
+    <div id="deactivateModal" class="modal">
       <div class="modal-content delete-modal">
         <div class="modal-header">
-          <h2>Confirm Delete</h2>
-          <span class="close" onclick="closeDeleteModal()">&times;</span>
+          <h2>Confirm Deactivation</h2>
+          <span class="close" onclick="closeDeactivateModal()">&times;</span>
         </div>
         <div class="modal-body">
-          <p>Are you sure you want to delete this student?</p>
-          <p><strong id="deleteStudentName"></strong></p>
+          <p>Are you sure you want to deactivate this student?</p>
+          <p><strong id="deactivateStudentName"></strong></p>
+          <p class="text-muted">
+            The student will be marked as inactive but their data will be
+            preserved.
+          </p>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-secondary" onclick="closeDeleteModal()">
+          <button class="btn btn-secondary" onclick="closeDeactivateModal()">
             Cancel
           </button>
-          <button class="btn btn-danger" onclick="confirmDelete()">
-            Delete
+          <button class="btn btn-danger" onclick="confirmDeactivate()">
+            Deactivate
           </button>
         </div>
       </div>
@@ -129,9 +127,6 @@
         document
           .getElementById("classFilter")
           .addEventListener("change", filterStudents);
-        document
-          .getElementById("statusFilter")
-          .addEventListener("change", filterStudents);
       }
 
       async function loadStudents() {
@@ -147,7 +142,10 @@
           const data = await response.json();
 
           if (data.success) {
-            students = data.data;
+            // Filter only active students and sort by ID in ascending order
+            students = data.data
+              .filter((student) => student.status === "active")
+              .sort((a, b) => a.id - b.id);
             displayStudents();
           } else {
             console.error("Failed to load students:", data.message);
@@ -220,7 +218,7 @@
         if (pageStudents.length === 0) {
           tbody.innerHTML = `
             <tr class="no-records-row">
-              <td colspan="8" class="no-records-cell">
+              <td colspan="7" class="no-records-cell">
                 <div class="no-records-content">
                   <i class="fas fa-user-graduate no-records-icon"></i>
                   <div class="no-records-message">No students found</div>
@@ -246,19 +244,18 @@
                     <td>${calculateAge(student.date_of_birth)}</td>
                     <td>${student.gender}</td>
                     <td>${student.phone || "N/A"}</td>
-                    <td><span class="status-badge ${student.status.toLowerCase()}">${
-            student.status
-          }</span></td>
                     <td>
                         <a href="edit-student.html?id=${
                           student.id
                         }" class="btn btn-sm btn-primary">
                             <i class="fas fa-edit"></i> Edit
                         </a>
-                        <button class="btn btn-sm btn-danger" onclick="deleteStudent('${
+                        <button class="btn btn-sm btn-danger" onclick="deactivateStudent('${
                           student.id
-                        }', '${student.first_name} ${student.last_name}')">
-                            <i class="fas fa-trash"></i> Delete
+                        }', '${student.first_name} ${
+            student.last_name
+          }')" title="Deactivate Student">
+                            <i class="fas fa-user-times"></i>
                         </button>
                     </td>
                 `;
@@ -290,7 +287,6 @@
           .getElementById("searchInput")
           .value.toLowerCase();
         const classFilter = document.getElementById("classFilter").value;
-        const statusFilter = document.getElementById("statusFilter").value;
 
         const filteredStudents = students.filter((student) => {
           const matchesSearch =
@@ -301,9 +297,7 @@
             (student.class_name &&
               student.class_name.toLowerCase().includes(searchTerm));
           const matchesClass = !classFilter || student.class_id == classFilter;
-          const matchesStatus =
-            !statusFilter ||
-            student.status.toLowerCase() === statusFilter.toLowerCase();
+          const matchesStatus = student.status.toLowerCase() === "active"; // Only show active students
 
           return matchesSearch && matchesClass && matchesStatus;
         });
@@ -322,7 +316,7 @@
         if (pageStudents.length === 0) {
           tbody.innerHTML = `
             <tr class="no-records-row">
-              <td colspan="8" class="no-records-cell">
+              <td colspan="7" class="no-records-cell">
                 <div class="no-records-content">
                   <i class="fas fa-search no-records-icon"></i>
                   <div class="no-records-message">No students match your search</div>
@@ -343,19 +337,18 @@
                     <td>${calculateAge(student.date_of_birth)}</td>
                     <td>${student.gender}</td>
                     <td>${student.phone || "N/A"}</td>
-                    <td><span class="status-badge ${student.status.toLowerCase()}">${
-            student.status
-          }</span></td>
                     <td>
                         <a href="edit-student.html?id=${
                           student.id
                         }" class="btn btn-sm btn-primary">
                             <i class="fas fa-edit"></i> Edit
                         </a>
-                        <button class="btn btn-sm btn-danger" onclick="deleteStudent('${
+                        <button class="btn btn-sm btn-danger" onclick="deactivateStudent('${
                           student.id
-                        }', '${student.first_name} ${student.last_name}')">
-                            <i class="fas fa-trash"></i> Delete
+                        }', '${student.first_name} ${
+            student.last_name
+          }')" title="Deactivate Student">
+                            <i class="fas fa-user-times"></i>
                         </button>
                     </td>
                 `;
@@ -387,21 +380,22 @@
         }
       }
 
-      function deleteStudent(studentId, studentName) {
-        document.getElementById("deleteStudentName").textContent = studentName;
-        document.getElementById("deleteModal").style.display = "block";
+      function deactivateStudent(studentId, studentName) {
+        document.getElementById("deactivateStudentName").textContent =
+          studentName;
+        document.getElementById("deactivateModal").style.display = "block";
         document
-          .getElementById("deleteModal")
+          .getElementById("deactivateModal")
           .setAttribute("data-student-id", studentId);
       }
 
-      function closeDeleteModal() {
-        document.getElementById("deleteModal").style.display = "none";
+      function closeDeactivateModal() {
+        document.getElementById("deactivateModal").style.display = "none";
       }
 
-      async function confirmDelete() {
+      async function confirmDeactivate() {
         const studentId = document
-          .getElementById("deleteModal")
+          .getElementById("deactivateModal")
           .getAttribute("data-student-id");
 
         try {
@@ -411,25 +405,29 @@
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              action: "delete",
+              action: "update",
               id: studentId,
+              status: "inactive", // Only update status
             }),
           });
 
           const data = await response.json();
 
           if (data.success) {
-            closeDeleteModal();
+            closeDeactivateModal();
+            // Close edit modal if open (defensive)
+            const editModal = document.getElementById("editStudentModal");
+            if (editModal) editModal.style.display = "none";
             loadStudents();
             showAlert(
-              data.message || "Student deleted successfully!",
+              data.message || "Student deactivated successfully!",
               "success"
             );
           } else {
-            showAlert(data.message || "Failed to delete student", "error");
+            showAlert(data.message || "Failed to deactivate student", "error");
           }
         } catch (error) {
-          console.error("Error deleting student:", error);
+          console.error("Error deactivating student:", error);
           showAlert(
             "Network error. Please check your connection and try again.",
             "error"
@@ -439,9 +437,9 @@
 
       // Close modal when clicking outside
       window.onclick = function (event) {
-        const deleteModal = document.getElementById("deleteModal");
-        if (event.target === deleteModal) {
-          closeDeleteModal();
+        const deactivateModal = document.getElementById("deactivateModal");
+        if (event.target === deactivateModal) {
+          closeDeactivateModal();
         }
       };
     </script>

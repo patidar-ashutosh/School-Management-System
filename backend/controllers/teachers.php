@@ -88,9 +88,13 @@ try {
                 if (isset($input['classes_taught']) && is_array($input['classes_taught'])) {
                     $teacher->setClassesTaught($input['id'], $input['classes_taught']);
                 }
+                $msg = 'Teacher updated successfully';
+                if (isset($input['status']) && $input['status'] === 'inactive') {
+                    $msg = 'Teacher deactivated successfully!';
+                }
                 echo json_encode([
                     'success' => true,
-                    'message' => 'Teacher updated successfully'
+                    'message' => $msg
                 ]);
                 break;
                 

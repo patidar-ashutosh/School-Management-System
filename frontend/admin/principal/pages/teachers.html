@@ -47,11 +47,6 @@
             <option value="">All Subjects</option>
             <!-- Subjects will be loaded from database -->
           </select>
-          <select id="statusFilter">
-            <option value="">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
         </div>
       </div>
 
@@ -67,7 +62,6 @@
               <th>Qualification</th>
               <th>Experience</th>
               <th>Contact</th>
-              <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -170,7 +164,7 @@
                 type="date"
                 id="joining_date"
                 name="joining_date"
-                disabled
+                readonly
               />
             </div>
             <div class="form-group">
@@ -184,13 +178,6 @@
                 placeholder="0.00"
               />
             </div>
-          </div>
-          <div class="form-group">
-            <label for="status">Status</label>
-            <select id="status" name="status" required>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
           </div>
           <div class="form-actions">
             <button
@@ -206,23 +193,27 @@
       </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
-    <div id="deleteModal" class="modal">
+    <!-- Deactivate Confirmation Modal -->
+    <div id="deactivateModal" class="modal">
       <div class="modal-content delete-modal">
         <div class="modal-header">
-          <h2>Confirm Delete</h2>
-          <span class="close" onclick="closeDeleteModal()">&times;</span>
+          <h2>Confirm Deactivation</h2>
+          <span class="close" onclick="closeDeactivateModal()">&times;</span>
         </div>
         <div class="modal-body">
-          <p>Are you sure you want to delete this teacher?</p>
-          <p><strong id="deleteTeacherName"></strong></p>
+          <p>Are you sure you want to deactivate this teacher?</p>
+          <p><strong id="deactivateTeacherName"></strong></p>
+          <p class="text-muted">
+            The teacher will be marked as inactive but their data will be
+            preserved.
+          </p>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-secondary" onclick="closeDeleteModal()">
+          <button class="btn btn-secondary" onclick="closeDeactivateModal()">
             Cancel
           </button>
-          <button class="btn btn-danger" onclick="confirmDelete()">
-            Delete
+          <button class="btn btn-danger" onclick="confirmDeactivate()">
+            Deactivate
           </button>
         </div>
       </div>
@@ -235,6 +226,7 @@
       let currentPage = 1;
       let itemsPerPage = 10;
       let editingTeacherId = null;
+      let allSubjects = []; // Store all subjects globally
 
       // Initialize page
       document.addEventListener("DOMContentLoaded", function () {
@@ -259,9 +251,6 @@
           .getElementById("subjectFilter")
           .addEventListener("change", filterTeachers);
         document
-          .getElementById("statusFilter")
-          .addEventListener("change", filterTeachers);
-        document
           .getElementById("teacherForm")
           .addEventListener("submit", handleFormSubmit);
       }
@@ -281,7 +270,10 @@
           const data = await response.json();
 
           if (data.success) {
-            teachers = data.data;
+            // Filter only active teachers and sort by ID in ascending order
+            teachers = data.data
+              .filter((teacher) => teacher.status === "active")
+              .sort((a, b) => a.id - b.id);
             displayTeachers();
           } else {
             console.error("Failed to load teachers:", data.message);
@@ -345,6 +337,7 @@
           subjectFormDropdown.innerHTML =
             '<option value="">Please select class first</option>';
           subjectFormDropdown.disabled = true;
+          updateClassesTaughtDropdown(); // Update classes taught dropdown
           return;
         }
         subjectFormDropdown.disabled = false;
@@ -367,6 +360,7 @@
             subjectFormDropdown.appendChild(option);
           }
         });
+        updateClassesTaughtDropdown(); // Update classes taught dropdown after filtering subjects
       }
 
       // Update class dropdown to trigger subject filtering
@@ -375,6 +369,13 @@
           .getElementById("class_teacher_of")
           .addEventListener("change", function () {
             filterSubjectsByClass(this.value);
+            updateClassesTaughtDropdown();
+          });
+
+        // Add event listener for subject dropdown to update classes taught
+        document
+          .getElementById("subject_id")
+          .addEventListener("change", function () {
             updateClassesTaughtDropdown();
           });
       });
@@ -389,7 +390,7 @@
 
         if (pageTeachers.length === 0) {
           tbody.innerHTML =
-            '<tr><td colspan="8" class="text-center">No teachers found</td></tr>';
+            '<tr><td colspan="7" class="text-center">No teachers found</td></tr>';
           return;
         }
 
@@ -403,19 +404,18 @@
                     <td>${teacher.qualification || "Not specified"}</td>
                     <td>${teacher.experience_years || 0} years</td>
                     <td>${teacher.phone || "N/A"}</td>
-                    <td><span class="status-badge ${teacher.status.toLowerCase()}">${
-            teacher.status
-          }</span></td>
                     <td>
                         <button class="btn btn-sm btn-primary" onclick="editTeacher('${
                           teacher.id
                         }')">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteTeacher('${
+                        <button class="btn btn-sm btn-danger" onclick="deactivateTeacher('${
                           teacher.id
-                        }', '${teacher.first_name} ${teacher.last_name}')">
-                            <i class="fas fa-trash"></i>
+                        }', '${teacher.first_name} ${
+            teacher.last_name
+          }')" title="Deactivate Teacher">
+                            <i class="fas fa-user-times"></i>
                         </button>
                     </td>
                 `;
@@ -431,7 +431,6 @@
           .value.toLowerCase();
         const classFilter = document.getElementById("classFilter").value;
         const subjectFilter = document.getElementById("subjectFilter").value;
-        const statusFilter = document.getElementById("statusFilter").value;
 
         const filteredTeachers = teachers.filter((teacher) => {
           const matchesSearch =
@@ -445,13 +444,8 @@
             String(teacher.class_teacher_of) === String(classFilter);
           const matchesSubject =
             !subjectFilter || teacher.subject_code === subjectFilter;
-          const matchesStatus =
-            !statusFilter ||
-            teacher.status.toLowerCase() === statusFilter.toLowerCase();
 
-          return (
-            matchesSearch && matchesClass && matchesSubject && matchesStatus
-          );
+          return matchesSearch && matchesClass && matchesSubject;
         });
 
         displayFilteredTeachers(filteredTeachers);
@@ -467,7 +461,7 @@
 
         if (pageTeachers.length === 0) {
           tbody.innerHTML =
-            '<tr><td colspan="8" class="text-center">No teachers found</td></tr>';
+            '<tr><td colspan="7" class="text-center">No teachers found</td></tr>';
           return;
         }
 
@@ -481,19 +475,18 @@
                     <td>${teacher.qualification || "Not specified"}</td>
                     <td>${teacher.experience_years || 0} years</td>
                     <td>${teacher.phone || "N/A"}</td>
-                    <td><span class="status-badge ${teacher.status.toLowerCase()}">${
-            teacher.status
-          }</span></td>
                     <td>
                         <button class="btn btn-sm btn-primary" onclick="editTeacher('${
                           teacher.id
                         }')">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteTeacher('${
+                        <button class="btn btn-sm btn-danger" onclick="deactivateTeacher('${
                           teacher.id
-                        }', '${teacher.first_name} ${teacher.last_name}')">
-                            <i class="fas fa-trash"></i>
+                        }', '${teacher.first_name} ${
+            teacher.last_name
+          }')" title="Deactivate Teacher">
+                            <i class="fas fa-user-times"></i>
                         </button>
                     </td>
                 `;
@@ -557,14 +550,45 @@
       function updateClassesTaughtDropdown() {
         const classTeacherOf =
           document.getElementById("class_teacher_of").value;
+        const selectedSubjectId = document.getElementById("subject_id").value;
         const classesTaughtDropdown = document.getElementById("classes_taught");
+
         if (!classTeacherOf) {
           // Show only the message option
           classesTaughtDropdown.innerHTML =
             "<option value='' disabled selected>Please select Class Teacher Of first</option>";
           classesTaughtDropdown.disabled = true;
+        } else if (!selectedSubjectId) {
+          // Show message to select subject first
+          classesTaughtDropdown.innerHTML =
+            "<option value='' disabled selected>Please select Subject first</option>";
+          classesTaughtDropdown.disabled = true;
         } else {
-          // Load all classes as options
+          // Filter classes based on where the selected subject is taught
+          classesTaughtDropdown.innerHTML = "";
+
+          // Find the selected subject to get its name
+          const selectedSubject = allSubjects.find(
+            (subject) => String(subject.id) === String(selectedSubjectId)
+          );
+
+          if (!selectedSubject) {
+            classesTaughtDropdown.innerHTML =
+              "<option value='' disabled selected>Subject not found</option>";
+            classesTaughtDropdown.disabled = true;
+            return;
+          }
+
+          // Find all classes where this subject name is taught
+          const classesWithSubject = allSubjects
+            .filter(
+              (subject) =>
+                subject.name === selectedSubject.name &&
+                subject.status === "active"
+            )
+            .map((subject) => subject.class_id);
+
+          // Load all classes and filter them
           fetch("/backend/controllers/classes.php", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -574,14 +598,17 @@
             .then((data) => {
               classesTaughtDropdown.innerHTML = "";
               (data.data || []).forEach((cls) => {
-                const option = document.createElement("option");
-                option.value = cls.id;
-                option.textContent = cls.name;
-                if (String(cls.id) === String(classTeacherOf)) {
-                  option.selected = true;
-                  option.disabled = true; // Prevent unselecting
+                // Only show classes where the selected subject is taught
+                if (classesWithSubject.includes(cls.id)) {
+                  const option = document.createElement("option");
+                  option.value = cls.id;
+                  option.textContent = cls.name;
+                  if (String(cls.id) === String(classTeacherOf)) {
+                    option.selected = true;
+                    option.disabled = true; // Prevent unselecting
+                  }
+                  classesTaughtDropdown.appendChild(option);
                 }
-                classesTaughtDropdown.appendChild(option);
               });
               classesTaughtDropdown.disabled = false;
             });
@@ -596,7 +623,7 @@
         const joiningDateInput = document.getElementById("joining_date");
         const todayStr = new Date().toISOString().split("T")[0];
         joiningDateInput.value = todayStr;
-        joiningDateInput.disabled = true;
+        joiningDateInput.readOnly = true;
         document.getElementById("teacherModal").style.display = "block";
         filterSubjectsByClass(""); // Clear subject dropdown
         updateClassesTaughtDropdown(); // Always call this to reset the multi-select
@@ -619,9 +646,8 @@
           const joiningDateInput = document.getElementById("joining_date");
           joiningDateInput.value =
             teacher.joining_date || new Date().toISOString().split("T")[0];
-          joiningDateInput.disabled = true;
+          joiningDateInput.readOnly = true;
           document.getElementById("salary").value = teacher.salary || "";
-          document.getElementById("status").value = teacher.status || "active";
           loadClassesDropdown(teacher.class_teacher_of);
           document.getElementById("class_teacher_of").value =
             teacher.class_teacher_of || "";
@@ -651,6 +677,8 @@
                   }
                 }
               }
+              // Disable subject dropdown at the very end
+              document.getElementById("subject_id").disabled = true;
             }, 200);
           }, 300);
         }
@@ -674,7 +702,7 @@
           experience_years: parseInt(formData.get("experience_years")) || 0,
           joining_date: formData.get("joining_date"),
           salary: parseFloat(formData.get("salary")) || 0,
-          status: formData.get("status"),
+          status: "active", // All teachers are active by default
           subject_id: formData.get("subject_id"),
           class_teacher_of: formData.get("class_teacher_of") || null,
           classes_taught: Array.from(
@@ -724,22 +752,36 @@
         }
       }
 
-      function deleteTeacher(teacherId, teacherName) {
-        document.getElementById("deleteTeacherName").textContent = teacherName;
-        document.getElementById("deleteModal").style.display = "block";
+      function deactivateTeacher(teacherId, teacherName) {
+        document.getElementById("deactivateTeacherName").textContent =
+          teacherName;
+        document.getElementById("deactivateModal").style.display = "block";
         document
-          .getElementById("deleteModal")
+          .getElementById("deactivateModal")
           .setAttribute("data-teacher-id", teacherId);
       }
 
-      function closeDeleteModal() {
-        document.getElementById("deleteModal").style.display = "none";
+      function closeDeactivateModal() {
+        document.getElementById("deactivateModal").style.display = "none";
       }
 
-      async function confirmDelete() {
+      async function confirmDeactivate() {
         const teacherId = document
-          .getElementById("deleteModal")
+          .getElementById("deactivateModal")
           .getAttribute("data-teacher-id");
+
+        // Find the teacher data from the current teachers array
+        const teacher = teachers.find((t) => t.id == teacherId);
+
+        if (!teacher) {
+          showNotification("Teacher not found", "error");
+          return;
+        }
+
+        // Extract class IDs from classes_taught array
+        const classIds = teacher.classes_taught
+          ? teacher.classes_taught.map((c) => c.id)
+          : [];
 
         try {
           const response = await fetch("/backend/controllers/teachers.php", {
@@ -748,28 +790,41 @@
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              action: "delete",
+              action: "update",
               id: teacherId,
+              first_name: teacher.first_name,
+              last_name: teacher.last_name,
+              email: teacher.email,
+              phone: teacher.phone || "",
+              address: teacher.address || "",
+              qualification: teacher.qualification || "",
+              experience_years: teacher.experience_years || 0,
+              joining_date: teacher.joining_date || null, // Send null instead of empty string
+              salary: teacher.salary || 0,
+              status: "inactive", // Set status to inactive
+              subject_id: teacher.subject_id || null,
+              class_teacher_of: teacher.class_teacher_of || null,
+              classes_taught: classIds, // Send array of class IDs only
             }),
           });
 
           const data = await response.json();
 
           if (data.success) {
-            closeDeleteModal();
+            closeDeactivateModal();
             loadTeachers();
             showNotification(
-              data.message || "Teacher deleted successfully!",
+              data.message || "Teacher deactivated successfully!",
               "success"
             );
           } else {
             showNotification(
-              data.message || "Failed to delete teacher",
+              data.message || "Failed to deactivate teacher",
               "error"
             );
           }
         } catch (error) {
-          console.error("Error deleting teacher:", error);
+          console.error("Error deactivating teacher:", error);
           showNotification("Network error. Please try again.", "error");
         }
       }

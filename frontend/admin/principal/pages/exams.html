@@ -34,7 +34,7 @@
           <input
             type="text"
             id="searchInput"
-            placeholder="Search exams by name or subject..."
+            placeholder="Search exams by name,id,class or subject..."
           />
           <i class="fas fa-search"></i>
         </div>
@@ -211,6 +211,40 @@
         setExamDateLimits();
         fetchExamsFromDB();
         setupEventListeners();
+        // Set min/max for total marks
+        const totalMarksInput = document.getElementById("totalMarks");
+        if (totalMarksInput) {
+          totalMarksInput.setAttribute("min", 30);
+          totalMarksInput.setAttribute("max", 100);
+        }
+        // End time validation (always apply)
+        const startTimeInput = document.getElementById("startTime");
+        const endTimeInput = document.getElementById("endTime");
+        function updateEndTimeMinMax() {
+          if (!startTimeInput.value) return;
+          const [h, m] = startTimeInput.value.split(":").map(Number);
+          const start = new Date();
+          start.setHours(h, m, 0, 0);
+          // Min: +20 min
+          const min = new Date(start.getTime() + 20 * 60000);
+          // Max: +3 hours
+          const max = new Date(start.getTime() + 3 * 60 * 60000);
+          const minEnd = min.toTimeString().slice(0, 5);
+          const maxEnd = max.toTimeString().slice(0, 5);
+          endTimeInput.min = minEnd;
+          endTimeInput.max = maxEnd;
+          if (
+            endTimeInput.value &&
+            (endTimeInput.value < minEnd || endTimeInput.value > maxEnd)
+          ) {
+            endTimeInput.value = "";
+          }
+        }
+        if (startTimeInput && endTimeInput) {
+          startTimeInput.addEventListener("change", updateEndTimeMinMax);
+          // Also update on modal open
+          updateEndTimeMinMax();
+        }
       });
 
       async function fetchExamsFromDB() {
@@ -222,7 +256,7 @@
           });
           const data = await response.json();
           if (data.success && data.data) {
-            exams = data.data;
+            exams = data.data.sort((a, b) => a.id - b.id);
             loadExams();
           } else {
             showNotification(data.message);
@@ -423,6 +457,21 @@
         setExamDateLimits();
         loadDropdowns();
         editingExamId = null;
+        // Set exam date min to today + 5 days
+        const examDateInput = document.getElementById("examDate");
+        if (examDateInput) {
+          const today = new Date();
+          today.setDate(today.getDate() + 5);
+          const minDate = today.toISOString().split("T")[0];
+          examDateInput.setAttribute("min", minDate);
+          examDateInput.value = minDate;
+        }
+        // Set status dropdown to only 'Scheduled'
+        const statusSelect = document.getElementById("status");
+        if (statusSelect) {
+          statusSelect.innerHTML =
+            '<option value="scheduled">Scheduled</option>';
+        }
       }
 
       async function openEditModal(examId) {
@@ -436,7 +485,34 @@
           document.getElementById("endTime").value = exam.end_time || "";
           document.getElementById("totalMarks").value = exam.total_marks || "";
           document.getElementById("examType").value = exam.exam_type || "";
-          document.getElementById("status").value = exam.status || "";
+          // Hide subject dropdown and show disabled text input with subject name
+          const subjectSelect = document.getElementById("subject");
+          let subjectText = document.getElementById("subjectText");
+          if (!subjectText) {
+            subjectText = document.createElement("input");
+            subjectText.type = "text";
+            subjectText.id = "subjectText";
+            subjectText.className = subjectSelect.className;
+            subjectText.disabled = true;
+            subjectSelect.parentElement.appendChild(subjectText);
+          }
+          subjectText.value = exam.subject_name || "";
+          subjectSelect.style.display = "none";
+          subjectText.style.display = "";
+          // Disable all fields except date, start time, end time
+          document.getElementById("examName").disabled = true;
+          document.getElementById("class").disabled = true;
+          document.getElementById("totalMarks").disabled = true;
+          document.getElementById("examType").disabled = true;
+          // Remove status field from modal
+          const statusGroup = document.getElementById("status").parentElement;
+          statusGroup.style.display = "none";
+          // Set min date to current exam date (allow current date)
+          const examDateInput = document.getElementById("examDate");
+          if (examDateInput) {
+            const minDate = new Date(exam.date).toISOString().split("T")[0];
+            examDateInput.setAttribute("min", minDate);
+          }
           document.getElementById("examModal").style.display = "block";
           setExamDateLimits();
           await loadDropdownsWithSelection(exam.class_id, exam.subject_id);
@@ -511,24 +587,59 @@
       function closeModal() {
         document.getElementById("examModal").style.display = "none";
         editingExamId = null;
+        // Re-enable all fields and show status for next add
+        document.getElementById("examName").disabled = false;
+        document.getElementById("class").disabled = false;
+        document.getElementById("totalMarks").disabled = false;
+        document.getElementById("examType").disabled = false;
+        const statusGroup = document.getElementById("status").parentElement;
+        statusGroup.style.display = "";
+        // Restore subject dropdown for add
+        const subjectSelect = document.getElementById("subject");
+        const subjectText = document.getElementById("subjectText");
+        if (subjectSelect) subjectSelect.style.display = "";
+        if (subjectText) subjectText.style.display = "none";
+        if (subjectSelect) subjectSelect.disabled = false;
       }
 
       async function handleFormSubmit(e) {
         e.preventDefault();
         const formData = new FormData(e.target);
-        const examData = {
-          name: formData.get("name"),
-          subject_id: formData.get("subject"),
-          class_id: formData.get("class"),
-          date: formData.get("exam_date"),
-          start_time: formData.get("start_time"),
-          end_time: formData.get("end_time"),
-          total_marks: formData.get("total_marks"),
-          exam_type: formData.get("exam_type"),
-          status: formData.get("status"),
-        };
         if (editingExamId) {
-          // Edit exam (update in DB)
+          // Only allow date, start time, end time to be updated, but send all required fields
+          const exam = exams.find((e) => e.id == editingExamId);
+          const newDate = formData.get("exam_date");
+          const newStart = formData.get("start_time");
+          const newEnd = formData.get("end_time");
+          // Validate new date is after or equal to current exam date
+          if (newDate < exam.date) {
+            showNotification(
+              "Exam date must be today or after the current exam date.",
+              "error"
+            );
+            return;
+          }
+          // Validate end time at least 20 min after start time and at most 3 hours
+          if (newStart && newEnd) {
+            const [sh, sm] = newStart.split(":").map(Number);
+            const [eh, em] = newEnd.split(":").map(Number);
+            const start = sh * 60 + sm;
+            const end = eh * 60 + em;
+            if (end - start < 20) {
+              showNotification(
+                "End time must be at least 20 minutes after start time.",
+                "error"
+              );
+              return;
+            }
+            if (end - start > 180) {
+              showNotification(
+                "End time must be at most 3 hours after start time.",
+                "error"
+              );
+              return;
+            }
+          }
           try {
             const response = await fetch("/backend/controllers/exams.php", {
               method: "POST",
@@ -536,7 +647,15 @@
               body: JSON.stringify({
                 action: "update",
                 id: editingExamId,
-                ...examData,
+                name: exam.name,
+                subject_id: exam.subject_id,
+                class_id: exam.class_id,
+                date: newDate,
+                start_time: newStart,
+                end_time: newEnd,
+                total_marks: exam.total_marks,
+                exam_type: exam.exam_type,
+                status: exam.status,
               }),
             });
             const data = await response.json();
@@ -554,7 +673,47 @@
             showNotification("Error updating exam", "error");
           }
         } else {
-          // Add new exam (create in DB)
+          const examData = {
+            name: formData.get("name"),
+            subject_id: formData.get("subject"),
+            class_id: formData.get("class"),
+            date: formData.get("exam_date"),
+            start_time: formData.get("start_time"),
+            end_time: formData.get("end_time"),
+            total_marks: formData.get("total_marks"),
+            exam_type: formData.get("exam_type"),
+            status: formData.get("status"),
+          };
+          // Validate total marks
+          const totalMarks = parseInt(examData.total_marks, 10);
+          if (isNaN(totalMarks) || totalMarks < 30 || totalMarks > 100) {
+            showNotification(
+              "Total marks must be between 30 and 100.",
+              "error"
+            );
+            return;
+          }
+          // Validate end time at least 20 min and at most 3 hours after start time
+          if (examData.start_time && examData.end_time) {
+            const [sh, sm] = examData.start_time.split(":").map(Number);
+            const [eh, em] = examData.end_time.split(":").map(Number);
+            const start = sh * 60 + sm;
+            const end = eh * 60 + em;
+            if (end - start < 20) {
+              showNotification(
+                "End time must be at least 20 minutes after start time.",
+                "error"
+              );
+              return;
+            }
+            if (end - start > 180) {
+              showNotification(
+                "End time must be at most 3 hours after start time.",
+                "error"
+              );
+              return;
+            }
+          }
           try {
             const response = await fetch("/backend/controllers/exams.php", {
               method: "POST",

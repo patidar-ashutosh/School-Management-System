@@ -100,7 +100,7 @@
                 id="admissionDate"
                 name="admission_date"
                 required
-                disabled
+                readonly
               />
             </div>
           </div>
@@ -148,13 +148,6 @@
               <select id="class" name="class_id" required>
                 <option value="">Select Class</option>
                 <!-- Classes will be loaded from database -->
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="status">Status *</label>
-              <select id="status" name="status" required>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
               </select>
             </div>
           </div>
@@ -306,7 +299,6 @@
         document.getElementById("parentEmail").value =
           student.parent_email || "";
         document.getElementById("class").value = student.class_id || "";
-        document.getElementById("status").value = student.status || "active";
       }
 
       async function handleFormSubmit(e) {
@@ -327,7 +319,7 @@
           parent_phone: formData.get("parent_phone"),
           parent_email: formData.get("parent_email"),
           class_id: formData.get("class_id"),
-          status: formData.get("status"),
+          status: "active", // Always set to active
         };
 
         // Show loading state

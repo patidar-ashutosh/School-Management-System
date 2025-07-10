@@ -75,24 +75,37 @@ try {
                 break;
                 
             case 'update':
+                // If only id and status are provided, update only the status
+                if (isset($input['id']) && isset($input['status']) && count($input) === 3 && isset($input['action'])) {
+                    $db = $student->getDb();
+                    $db->query("UPDATE students SET status = ? WHERE id = ?", [$input['status'], $input['id']]);
+                    $msg = $input['status'] === 'inactive' ? 'Student deactivated successfully!' : 'Student status updated!';
+                    echo json_encode([
+                        'success' => true,
+                        'message' => $msg
+                    ]);
+                    break;
+                }
+                // Otherwise, do a full update as before
                 if (!isset($input['id']) || !isset($input['first_name']) || !isset($input['last_name']) || !isset($input['email']) || !isset($input['class_id'])) {
                     throw new Exception('ID, first name, last name, email, and class are required');
                 }
-                
                 // Check if email already exists (excluding current student)
                 if ($student->emailExists($input['email'], $input['id'])) {
                     throw new Exception('Email already exists');
                 }
-                
                 // Set default status if not provided
                 if (!isset($input['status'])) {
                     $input['status'] = 'active';
                 }
-                
                 $student->update($input['id'], $input);
+                $msg = 'Student updated successfully';
+                if (isset($input['status']) && $input['status'] === 'inactive') {
+                    $msg = 'Student deactivated successfully!';
+                }
                 echo json_encode([
                     'success' => true,
-                    'message' => 'Student updated successfully'
+                    'message' => $msg
                 ]);
                 break;
                 
