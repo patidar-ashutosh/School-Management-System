@@ -188,7 +188,7 @@ if ($method === 'POST') {
             $type = $input['type'] ?? null;
             $teacher_id = $teacherId;
             // Build query
-            $sql = "SELECT sa.*, s.first_name, s.last_name, a.title as assignment_title, a.type as assignment_type, a.total_marks, a.subject_id, a.class_id, a.status as assignment_status, sub.name as subject_name, c.name as class_name
+            $sql = "SELECT sa.*, s.first_name, s.last_name, s.roll_number, a.title as assignment_title, a.description, a.type as assignment_type, a.total_marks, a.subject_id, a.class_id, a.status as assignment_status, sub.name as subject_name, c.name as class_name
                     FROM student_assignments sa
                     JOIN assignments a ON sa.assignment_id = a.id
                     JOIN students s ON sa.student_id = s.id
@@ -232,6 +232,23 @@ if ($method === 'POST') {
                 'updated_running' => $updatedRunning,
                 'updated_completed' => $updatedCompleted
             ]);
+        
+        } else if ($action === 'assign_marks') {
+            // Assign marks to a student assignment
+            $student_assignment_id = $input['student_assignment_id'] ?? null;
+            $marks = $input['marks'] ?? null;
+            if (!$student_assignment_id || $marks === null) {
+                echo json_encode(['success' => false, 'message' => 'Student assignment ID and marks are required.']);
+                return;
+            }
+            // Only allow if this teacher owns the assignment
+            $row = $db->fetch("SELECT sa.id FROM student_assignments sa JOIN assignments a ON sa.assignment_id = a.id WHERE sa.id = ? AND a.teacher_id = ?", [$student_assignment_id, $teacherId]);
+            if (!$row) {
+                echo json_encode(['success' => false, 'message' => 'Not allowed.']);
+                return;
+            }
+            $db->query("UPDATE student_assignments SET marks_obtained = ?, status = 'graded' WHERE id = ?", [$marks, $student_assignment_id]);
+            echo json_encode(['success' => true, 'message' => 'Marks assigned successfully.']);
         
         } else {
             echo json_encode(['success' => false, 'message' => 'Invalid action']);

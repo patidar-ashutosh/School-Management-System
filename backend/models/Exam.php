@@ -85,5 +85,25 @@ class Exam {
                 LIMIT 5";
         return $this->db->fetchAll($sql);
     }
+
+    public function getByTeacher($teacherId) {
+        // Get all class_ids for this teacher from teacher_classes
+        $classIds = $this->db->fetchAll("SELECT class_id FROM teacher_classes WHERE teacher_id = ?", [$teacherId]);
+        if (!$classIds) return [];
+        $classIdList = array_column($classIds, 'class_id');
+        // Get teacher's subject_id
+        $teacher = $this->db->fetch("SELECT subject_id FROM teachers WHERE id = ?", [$teacherId]);
+        $subjectId = $teacher && isset($teacher['subject_id']) ? $teacher['subject_id'] : null;
+        if (!$subjectId) return [];
+        $in = str_repeat('?,', count($classIdList) - 1) . '?';
+        $sql = "SELECT e.*, c.name as class_name, s.name as subject_name
+                FROM exams e
+                LEFT JOIN classes c ON e.class_id = c.id
+                LEFT JOIN subjects s ON e.subject_id = s.id
+                WHERE e.class_id IN ($in) AND e.subject_id = ?
+                ORDER BY e.date DESC, e.id DESC";
+        $params = array_merge($classIdList, [$subjectId]);
+        return $this->db->fetchAll($sql, $params);
+    }
 }
 ?> 

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Exams - Teacher Dashboard</title>
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <link rel="stylesheet" href="/assets/css/principal.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="teacher-dashboard">
+    <header class="main-header">
+      <div class="header-container">
+        <div class="logo">
+          <i class="fas fa-school"></i>
+          <span>School Management System</span>
+        </div>
+        <nav class="main-nav">
+          <ul>
+            <li>
+              <a href="teacher-dashboard.html"
+                ><i class="fas fa-tachometer-alt"></i> Dashboard</a
+              >
+            </li>
+            <li>
+              <a href="lecturers.html"
+                ><i class="fas fa-chalkboard-teacher"></i> My Lectures</a
+              >
+            </li>
+            <li>
+              <a href="my-students.html"
+                ><i class="fas fa-users"></i> My Students</a
+              >
+            </li>
+            <li>
+              <a href="attendance.html"
+                ><i class="fas fa-calendar-check"></i> Attendance</a
+              >
+            </li>
+            <li>
+              <a href="assignments.html"
+                ><i class="fas fa-tasks"></i> Assignments</a
+              >
+            </li>
+            <li>
+              <a href="view-submissions.html"
+                ><i class="fas fa-file-alt"></i> View Submissions</a
+              >
+            </li>
+            <li>
+              <a href="exams.html" class="active"
+                ><i class="fas fa-file-alt"></i> Exams</a
+              >
+            </li>
+          </ul>
+        </nav>
+        <div class="user-menu">
+          <div class="user-info">
+            <i class="fas fa-user-circle"></i>
+            <span id="userName">Teacher</span>
+          </div>
+          <div class="dropdown-menu">
+            <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
+            <a href="#" onclick="logout()"
+              ><i class="fas fa-sign-out-alt"></i> Logout</a
+            >
+          </div>
+        </div>
+        <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+      <nav class="mobile-nav" id="mobileNav">
+        <ul>
+          <li>
+            <a href="teacher-dashboard.html"
+              ><i class="fas fa-tachometer-alt"></i> Dashboard</a
+            >
+          </li>
+          <li>
+            <a href="lecturers.html"
+              ><i class="fas fa-chalkboard-teacher"></i> My Lectures</a
+            >
+          </li>
+          <li>
+            <a href="my-students.html"
+              ><i class="fas fa-users"></i> My Students</a
+            >
+          </li>
+          <li>
+            <a href="attendance.html"
+              ><i class="fas fa-calendar-check"></i> Attendance</a
+            >
+          </li>
+          <li>
+            <a href="assignments.html"
+              ><i class="fas fa-tasks"></i> Assignments</a
+            >
+          </li>
+          <li>
+            <a href="view-submissions.html"
+              ><i class="fas fa-file-alt"></i> View Submissions</a
+            >
+          </li>
+          <li>
+            <a href="exams.html" class="active"
+              ><i class="fas fa-file-alt"></i> Exams</a
+            >
+          </li>
+        </ul>
+      </nav>
+    </header>
+    <main class="main-content">
+      <div class="page-header">
+        <h1>Exams</h1>
+        <p>View all exams for your classes</p>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h3>Exam List</h3>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Exam Name</th>
+                  <th>Class</th>
+                  <th>Subject</th>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Total Marks</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="examsTableBody">
+                <tr>
+                  <td colspan="8" class="text-center">Loading exams...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+    <script src="/assets/js/auth.js"></script>
+    <script src="/assets/js/popup-alert.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", async function () {
+        await autoUpdateExamStatuses();
+        loadTeacherExams();
+        updateUserName();
+      });
+
+      async function autoUpdateExamStatuses() {
+        try {
+          await fetch("/backend/controllers/exams.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "auto_update_status" }),
+          });
+        } catch (error) {}
+      }
+
+      async function loadTeacherExams() {
+        const auth = new Auth();
+        const user = auth.getCurrentUser();
+        if (!user) return;
+        try {
+          const res = await fetch("/backend/controllers/exams.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "get_by_teacher",
+              teacher_id: user.id,
+            }),
+          });
+          const data = await res.json();
+          if (!data.success || !Array.isArray(data.data) || !data.data.length) {
+            document.getElementById("examsTableBody").innerHTML =
+              '<tr><td colspan="8" class="text-center text-danger">No exams found.</td></tr>';
+            return;
+          }
+          // Sort: Ongoing, Scheduled, Completed, then by id asc
+          const statusOrder = { ongoing: 1, scheduled: 2, completed: 3 };
+          data.data.sort((a, b) => {
+            const sa = statusOrder[(a.status || "").toLowerCase()] || 4;
+            const sb = statusOrder[(b.status || "").toLowerCase()] || 4;
+            if (sa !== sb) return sa - sb;
+            return a.id - b.id;
+          });
+          renderExamsTable(data.data);
+        } catch (e) {
+          document.getElementById("examsTableBody").innerHTML =
+            '<tr><td colspan="8" class="text-center text-danger">Failed to load exams.</td></tr>';
+        }
+      }
+
+      function renderExamsTable(exams) {
+        const tbody = document.getElementById("examsTableBody");
+        if (!exams.length) {
+          tbody.innerHTML =
+            '<tr><td colspan="8" class="text-center text-danger">No exams found.</td></tr>';
+          return;
+        }
+        let html = "";
+        exams.forEach((exam) => {
+          html += `<tr>
+            <td>${exam.name}</td>
+            <td>${exam.class_name || "-"}</td>
+            <td>${exam.subject_name || "-"}</td>
+            <td>${formatDate(exam.date)}</td>
+            <td>${
+              exam.start_time ? exam.start_time + " - " + exam.end_time : "-"
+            }</td>
+            <td>${exam.total_marks || "-"}</td>
+            <td><span class="type-badge ${exam.exam_type || ""}">${
+            exam.exam_type === "midterm"
+              ? "Midterm"
+              : exam.exam_type === "final"
+              ? "Final"
+              : "-"
+          }</span></td>
+            <td><span class="status-badge ${
+              exam.status ? exam.status.toLowerCase() : ""
+            }">${exam.status || "-"}</span></td>
+          </tr>`;
+        });
+        tbody.innerHTML = html;
+      }
+
+      function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        });
+      }
+
+      function updateUserName() {
+        const auth = new Auth();
+        const user = auth.getCurrentUser();
+        if (user && user.first_name) {
+          document.getElementById("userName").textContent = user.first_name;
+        }
+      }
+    </script>
+    <style>
+      .type-badge {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: capitalize;
+      }
+      .type-badge.midterm {
+        background: #d4edda;
+        color: #155724;
+      }
+      .type-badge.final {
+        background: #f8d7da;
+        color: #721c24;
+      }
+      .status-badge.scheduled {
+        background: #cce5ff;
+        color: #004085;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: capitalize;
+      }
+      .status-badge.ongoing {
+        background: #fff3cd;
+        color: #856404;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: capitalize;
+      }
+      .status-badge.completed {
+        background: #d4edda;
+        color: #155724;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: capitalize;
+      }
+    </style>
+  </body>
+</html>

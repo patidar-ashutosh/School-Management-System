@@ -163,6 +163,17 @@ try {
                 ]);
                 break;
                 
+            case 'get_by_teacher':
+                if (!isset($input['teacher_id'])) {
+                    throw new Exception('Teacher ID is required');
+                }
+                $exams = $exam->getByTeacher($input['teacher_id']);
+                echo json_encode([
+                    'success' => true,
+                    'data' => $exams
+                ]);
+                break;
+                
             default:
                 throw new Exception('Invalid action');
         }

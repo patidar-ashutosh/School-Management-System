@@ -55,6 +55,9 @@
                 ><i class="fas fa-file-alt"></i> View Submissions</a
               >
             </li>
+            <li>
+              <a href="exams.html"><i class="fas fa-file-alt"></i> Exams</a>
+            </li>
           </ul>
         </nav>
         <div class="user-menu">
@@ -104,6 +107,9 @@
             <a href="view-submissions.html" class="active"
               ><i class="fas fa-file-alt"></i> View Submissions</a
             >
+          </li>
+          <li>
+            <a href="exams.html"><i class="fas fa-file-alt"></i> Exams</a>
           </li>
         </ul>
       </nav>
@@ -182,6 +188,15 @@
       style="z-index: 9999; min-width: 300px"
     >
       <span id="alertMsg"></span>
+    </div>
+
+    <!-- Assignment Details Modal -->
+    <div id="detailsModal" class="modal" style="display: none">
+      <div class="modal-content">
+        <span class="close" id="closeDetailsModal" title="Close">&times;</span>
+        <h2 class="modal-title">Assignment Submission Details</h2>
+        <div id="detailsContent"></div>
+      </div>
     </div>
     <script src="/assets/js/auth.js"></script>
     <script src="/assets/js/popup-alert.js"></script>
@@ -306,7 +321,7 @@
         }
         tbody.innerHTML = submissions
           .map(
-            (sub) => `
+            (sub, i) => `
           <tr>
             <td>${sub.first_name} ${sub.last_name}</td>
             <td>${sub.assignment_title}</td>
@@ -316,12 +331,138 @@
             <td>${capitalize(sub.assignment_type)}</td>
             <td>${sub.submitted_date ? sub.submitted_date : "-"}</td>
             <td>${sub.marks_obtained !== null ? sub.marks_obtained : "-"}</td>
-            <td><!-- Actions can go here --></td>
+            <td><div class="action-buttons"><button class="btn btn-sm btn-primary view-details-btn" data-index="${i}" title="View Details"><i class="fas fa-eye"></i></button></div></td>
           </tr>
         `
           )
           .join("");
       }
+
+      // Modal logic
+      document.addEventListener("click", function (e) {
+        if (e.target.closest(".view-details-btn")) {
+          const idx = e.target.closest(".view-details-btn").dataset.index;
+          showDetailsModal(allSubmissions[idx]);
+        }
+      });
+
+      function showDetailsModal(sub) {
+        let html = `
+          <h3 class="modal-section-title">Student Details</h3>
+          <div class="modal-details-row"><span class="modal-label">Roll Number:</span> <span>${
+            sub.roll_number || "-"
+          } </span></div>
+          <div class="modal-details-row"><span class="modal-label">Name:</span> <span>${
+            sub.first_name
+          } ${sub.last_name}</span></div>
+          <hr class="modal-section-divider">
+          <h3 class="modal-section-title">Assignment Details</h3>
+          <div class="modal-details-row"><span class="modal-label">Assignment:</span> <span>${
+            sub.assignment_title
+          }</span></div>
+          <div class="modal-details-row"><span class="modal-label">Type:</span> <span>${capitalize(
+            sub.assignment_type
+          )}</span></div>
+          <div class="modal-details-row"><span class="modal-label">Description:</span> <span>${
+            sub.description || "-"
+          }</span></div>
+          <div class="modal-details-row"><span class="modal-label">Total Marks:</span> <span>${
+            sub.total_marks || "-"
+          }</span></div>
+          <div class="modal-details-row"><span class="modal-label">Submitted Date:</span> <span>${
+            sub.submitted_date || "-"
+          }</span></div>
+        `;
+        if (sub.assignment_type === "presentations" && sub.submitted_file) {
+          html += `<div class="modal-details-row"><span class="modal-label">Submitted File:</span> <a href="/${sub.submitted_file}" download class="download-link">Download</a></div>`;
+        } else if (
+          (sub.assignment_type === "essays" ||
+            sub.assignment_type === "reports") &&
+          sub.submitted_text
+        ) {
+          html += `<div class="modal-details-row" style="flex-direction:column;align-items:stretch;">
+            <span class="modal-label" style="margin-bottom:6px;">Submitted Text:</span>
+            <textarea class="submitted-textarea" readonly rows="6">${sub.submitted_text}</textarea>
+          </div>`;
+        }
+        html += `<hr class="modal-section-divider">`;
+        if (sub.marks_obtained === null || sub.marks_obtained === undefined) {
+          let minMarks = sub.total_marks
+            ? Math.max(1, sub.total_marks * 0.3)
+            : 0;
+          minMarks = Math.floor(minMarks); // e.g. 30% of total, or at least 1
+          let maxMarks = sub.total_marks || 100;
+          html += `
+            <form id="assignMarksForm" class="assign-marks-form">
+              <label for="assignMarksInput">Assign Marks:</label>
+              <input type="number" id="assignMarksInput" min="${minMarks}" max="${maxMarks}" required>
+              <span style="font-size:0.95em;color:#888;">(Min: ${minMarks}, Max: ${maxMarks})</span>
+              <button type="submit" id="assignMarksBtn">Assign</button>
+            </form>
+          `;
+        } else {
+          html += `<div class="modal-details-row"><span class="modal-label">Marks Obtained:</span> <span>${sub.marks_obtained}</span></div>`;
+        }
+        document.getElementById("detailsContent").innerHTML = html;
+        document.getElementById("detailsModal").style.display = "block";
+        setTimeout(
+          () => document.getElementById("detailsModal").classList.add("show"),
+          10
+        );
+
+        // Assign marks handler
+        const assignForm = document.getElementById("assignMarksForm");
+        if (assignForm) {
+          assignForm.onsubmit = function (e) {
+            e.preventDefault();
+            const marks = parseFloat(
+              document.getElementById("assignMarksInput").value
+            );
+            const min = parseFloat(
+              document.getElementById("assignMarksInput").min
+            );
+            const max = parseFloat(
+              document.getElementById("assignMarksInput").max
+            );
+            if (isNaN(marks) || marks < min || marks > max) {
+              alert(`Please enter marks between ${min} and ${max}.`);
+              return;
+            }
+            fetch("/backend/controllers/teacher_dashboard.php", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                action: "assign_marks",
+                student_assignment_id: sub.id,
+                marks: marks,
+              }),
+            })
+              .then((res) => res.json())
+              .then((data) => {
+                if (data.success) {
+                  alert("Marks assigned!");
+                  document
+                    .getElementById("detailsModal")
+                    .classList.remove("show");
+                  setTimeout(() => {
+                    document.getElementById("detailsModal").style.display =
+                      "none";
+                    fetchAndRenderSubmissions();
+                  }, 200);
+                } else {
+                  alert(data.message || "Failed to assign marks");
+                }
+              });
+          };
+        }
+      }
+
+      document.getElementById("closeDetailsModal").onclick = function () {
+        document.getElementById("detailsModal").classList.remove("show");
+        setTimeout(() => {
+          document.getElementById("detailsModal").style.display = "none";
+        }, 200);
+      };
 
       function capitalize(str) {
         if (!str) return "";
@@ -339,6 +480,7 @@
       .data-table td {
         text-align: left;
         padding: 8px 10px;
+        vertical-align: middle;
       }
       .data-table th {
         background: #f8f9fa;
@@ -349,6 +491,189 @@
       }
       .table-container {
         overflow-x: auto;
+      }
+      /* Action icon styles */
+      .action-buttons {
+        display: flex;
+        gap: 5px;
+      }
+      .btn {
+        padding: 4px 8px;
+        font-size: 0.8rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background 0.18s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .btn-primary {
+        background: #007bff;
+        color: #fff;
+      }
+      .btn-primary:hover {
+        background: #0056b3;
+      }
+      .btn-sm {
+        font-size: 0.8rem;
+        padding: 4px 8px;
+      }
+      /* Modal styles */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 10000;
+        left: 0;
+        top: 0;
+        width: 100vw;
+        height: 100vh;
+        overflow: auto;
+        background: rgba(0, 0, 0, 0.35);
+        transition: opacity 0.2s;
+        opacity: 0;
+      }
+      .modal.show {
+        display: block;
+        opacity: 1;
+        animation: modalFadeIn 0.2s;
+      }
+      @keyframes modalFadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      .modal-content {
+        background: #fff;
+        margin: 60px auto;
+        padding: 32px 24px 24px 24px;
+        border-radius: 14px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+        max-width: 420px;
+        width: 95%;
+        position: relative;
+        font-family: "Segoe UI", Arial, sans-serif;
+        animation: modalContentPop 0.22s cubic-bezier(0.4, 1.6, 0.6, 1);
+      }
+      @keyframes modalContentPop {
+        from {
+          transform: scale(0.95);
+          opacity: 0.7;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+      .close {
+        color: #888;
+        font-size: 2.1em;
+        font-weight: 400;
+        cursor: pointer;
+        position: absolute;
+        right: 18px;
+        top: 10px;
+        transition: color 0.2s;
+      }
+      .close:hover,
+      .close:focus {
+        color: #007bff;
+        text-decoration: none;
+      }
+      .modal-title {
+        margin-top: 0;
+        margin-bottom: 18px;
+        font-size: 1.3em;
+        font-weight: 600;
+        color: #222;
+        letter-spacing: 0.01em;
+      }
+      .modal-details-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        font-size: 1.04em;
+      }
+      .modal-label {
+        font-weight: 500;
+        color: #444;
+        min-width: 120px;
+        display: inline-block;
+      }
+      .submitted-text {
+        background: #f8f8f8;
+        padding: 10px;
+        border-radius: 4px;
+        white-space: pre-wrap;
+        word-break: break-word;
+        margin: 0;
+        font-size: 1em;
+        color: #222;
+      }
+      .download-link {
+        color: #007bff;
+        text-decoration: underline;
+        font-weight: 500;
+      }
+      .assign-marks-form {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 18px;
+      }
+      .assign-marks-form label {
+        font-weight: 500;
+        color: #444;
+      }
+      .assign-marks-form input[type="number"] {
+        width: 80px;
+        padding: 5px 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 1em;
+      }
+      .assign-marks-form button {
+        background: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        padding: 6px 16px;
+        font-size: 1em;
+        cursor: pointer;
+        transition: background 0.18s;
+      }
+      .assign-marks-form button:hover {
+        background: #0056b3;
+      }
+      .modal-section-title {
+        font-size: 1.08em;
+        font-weight: 600;
+        color: #2a2a2a;
+        margin-top: 10px;
+        margin-bottom: 10px;
+        letter-spacing: 0.01em;
+      }
+      .modal-section-divider {
+        border: none;
+        border-top: 1.5px solid #e0e0e0;
+        margin: 16px 0 16px 0;
+      }
+      .submitted-textarea {
+        width: 100%;
+        min-height: 90px;
+        max-height: 220px;
+        resize: vertical;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 8px 10px;
+        font-size: 1em;
+        color: #222;
+        background: #f8f8f8;
+        margin-bottom: 0;
+        box-sizing: border-box;
       }
     </style>
   </body>

@@ -243,6 +243,29 @@
       </div>
     </div>
 
+    <!-- Modal for viewing submitted text -->
+    <div id="submittedTextModal" class="modal" style="display: none">
+      <div class="modal-content" style="max-width: 480px">
+        <div class="modal-header">
+          <h2 style="font-size: 1.15em">Submitted Answer</h2>
+          <span class="close" id="closeSubmittedTextModal">&times;</span>
+        </div>
+        <div class="modal-body">
+          <textarea
+            readonly
+            class="submitted-textarea"
+            style="
+              width: 100%;
+              min-height: 120px;
+              max-height: 300px;
+              resize: vertical;
+            "
+            id="submittedTextModalTextarea"
+          ></textarea>
+        </div>
+      </div>
+    </div>
+
     <script src="/assets/js/auth.js"></script>
     <script src="/assets/js/popup-alert.js"></script>
     <script>
@@ -574,7 +597,7 @@
             }
             // Show all submissions (status: submitted or graded)
             let html = "";
-            data.assignments.forEach((sub) => {
+            data.assignments.forEach((sub, idx) => {
               const dateObj = new Date(sub.submitted_date);
               const day = dateObj.getDate();
               const month = dateObj.toLocaleString("default", {
@@ -597,19 +620,26 @@
                 minute: "2-digit",
               })}
                   </div>
-                  <div class="submission-file">$${
-                    sub.submitted_file
-                      ? sub.submitted_file
-                      : sub.assignment_type === "quiz"
-                      ? "Online Quiz"
-                      : ""
-                  }${
-                sub.marks_obtained
-                  ? ` • Score: ${sub.marks_obtained}${
-                      sub.assignment_type === "quiz" ? "%" : ""
-                    }`
-                  : ""
-              }</div>
+                  <div class="submission-file-actions" style="margin-bottom: 6px;">
+                    ${
+                      sub.assignment_type === "presentations" &&
+                      sub.submitted_file
+                        ? `<a href="/${sub.submitted_file}" download class="btn btn-sm btn-info" style="margin-right:8px;">Download File</a>`
+                        : (sub.assignment_type === "essays" ||
+                            sub.assignment_type === "reports") &&
+                          sub.submitted_text
+                        ? `<button class="btn btn-sm btn-info view-submitted-text-btn" data-index="${idx}">View</button>`
+                        : ""
+                    }
+                  </div>
+                  <div class="submission-score" style="color:#333;font-size:0.97em;">
+                    ${
+                      sub.marks_obtained !== null &&
+                      sub.marks_obtained !== undefined
+                        ? `Score: <b>${sub.marks_obtained}</b>`
+                        : ""
+                    }
+                  </div>
                 </div>
                 <div class="submission-status">
                   <span class="status-badge ${sub.status}">${
@@ -619,7 +649,60 @@
               </div>`;
             });
             container.innerHTML = html;
+
+            // Add event listeners for view buttons
+            document
+              .querySelectorAll(".view-submitted-text-btn")
+              .forEach((btn) => {
+                btn.addEventListener("click", function () {
+                  const idx = this.getAttribute("data-index");
+                  const sub = data.assignments[idx];
+                  showSubmittedTextModal(
+                    sub.assignment_title,
+                    sub.submitted_text
+                  );
+                });
+              });
           });
+      }
+
+      // Modal for viewing submitted text
+      function showSubmittedTextModal(title, text) {
+        let modal = document.getElementById("submittedTextModal");
+        if (!modal) {
+          modal = document.createElement("div");
+          modal.id = "submittedTextModal";
+          modal.className = "modal";
+          modal.innerHTML = `
+            <div class="modal-content" style="max-width:480px;">
+              <div class="modal-header">
+                <h2 style="font-size:1.15em;">Submitted Answer</h2>
+                <span class="close" id="closeSubmittedTextModal">&times;</span>
+              </div>
+              <div class="modal-body">
+                <textarea readonly class="submitted-textarea" style="width:100%;min-height:120px;max-height:300px;resize:vertical;" id="submittedTextModalTextarea"></textarea>
+              </div>
+            </div>
+          `;
+          document.body.appendChild(modal);
+        } else {
+          // Remove the title div if it exists
+          const titleDiv = modal.querySelector(".modal-body div");
+          if (titleDiv) titleDiv.remove();
+          modal.querySelector(".modal-body textarea").value = text || "";
+          modal.style.display = "block";
+        }
+        modal.style.display = "block";
+        document.getElementById("closeSubmittedTextModal").onclick =
+          function () {
+            modal.style.display = "none";
+          };
+        // Close on outside click
+        window.onclick = function (event) {
+          if (event.target === modal) {
+            modal.style.display = "none";
+          }
+        };
       }
     </script>
 
@@ -752,6 +835,14 @@
         font-weight: 500;
       }
 
+      .submission-file-actions {
+        margin-bottom: 0.5rem;
+      }
+
+      .submission-score {
+        margin-top: 0.5rem;
+      }
+
       .submission-status {
         min-width: 100px;
         text-align: right;
@@ -766,6 +857,27 @@
         font-size: 0.8rem;
         margin-top: 0.25rem;
         display: block;
+      }
+      .btn-info {
+        background: #17a2b8;
+        color: #fff;
+      }
+      .btn-info:hover {
+        background: #138496;
+      }
+      .submitted-textarea {
+        width: 100%;
+        min-height: 90px;
+        max-height: 220px;
+        resize: vertical;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 8px 10px;
+        font-size: 1em;
+        color: #222;
+        background: #f8f8f8;
+        margin-bottom: 0;
+        box-sizing: border-box;
       }
     </style>
   </body>
