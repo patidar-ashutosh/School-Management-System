@@ -190,34 +190,58 @@ class Auth {
       displayName = roleNames[this.currentUser.role] || "User";
     }
 
+    // Create a full-screen overlay for the message
+    const overlay = document.createElement("div");
+    overlay.className = "logged-in-overlay";
+    overlay.style = `
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      width: 100vw; height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
+      background: rgba(255,255,255,0.3);
+      backdrop-filter: blur(6px);
+    `;
+
     const messageDiv = document.createElement("div");
     messageDiv.className =
       "logged-in-message alert alert-info alert-dismissible fade show";
+    messageDiv.style = `
+      max-width: 420px;
+      width: 90vw;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(102, 126, 234, 0.1), 0 1.5px 6px rgba(0,0,0,0.04);
+      border-radius: 16px;
+      background: white;
+      padding: 2.5rem 1.5rem;
+      margin: 0;
+      position: relative;
+      font-size: 1.1rem;
+      color: black;
+    `;
     messageDiv.innerHTML = `
       <i class="fas fa-info-circle"></i> 
-      You are already logged in as <strong>${displayName}</strong> (${
+      You are already logged in as <strong style="font-weight: bold; color: black;">${displayName}</strong> (${
       this.currentUser.role
     }).
       <span class="redirect-countdown">Redirecting to dashboard in <span id="countdown">5</span> seconds...</span>
       <a href="${this.getDashboardUrlForRole(
         this.currentUser.role
-      )}" class="btn btn-sm btn-primary ms-2">Go to Dashboard Now</a>
-      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      )}" id="dashboard-link">Go to Dashboard Now</a>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" style="position:absolute;top:12px;right:12px;"></button>
     `;
+    overlay.appendChild(messageDiv);
+    document.body.appendChild(overlay);
 
-    // Insert message at the top of the login container
-    const loginContainer = document.querySelector(".login-container");
-    if (loginContainer) {
-      loginContainer.parentNode.insertBefore(messageDiv, loginContainer);
-    } else {
-      // Fallback to body
-      document.body.insertBefore(messageDiv, document.body.firstChild);
-    }
+    document.getElementById("dashboard-link").style =
+      "font-weight: bold; color: black; padding: 4px 8px; border-radius: 4px; cursor: pointer;";
 
     // Start countdown and redirect
     let countdown = 5;
     const countdownElement = document.getElementById("countdown");
-
+    countdownElement.style = "font-weight: bold; color: black;";
     const countdownInterval = setInterval(() => {
       countdown--;
       if (countdownElement) {

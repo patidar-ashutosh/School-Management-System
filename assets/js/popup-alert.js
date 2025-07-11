@@ -2,9 +2,9 @@
 if (!document.getElementById("customAlert")) {
   const alertDiv = document.createElement("div");
   alertDiv.id = "customAlert";
-  alertDiv.className =
-    "alert d-none position-fixed top-0 start-50 translate-middle-x mt-3";
-  alertDiv.style = "z-index: 9999; min-width: 300px;";
+  alertDiv.className = "alert d-none custom-popup-alert";
+  alertDiv.style =
+    "z-index: 9999; min-width: 300px; position: fixed; left: 50%; top: 24px; transform: translateX(-50%); margin: 0; padding: 12px 20px; box-sizing: border-box;";
   alertDiv.innerHTML = '<span id="alertMsg"></span>';
   document.body.appendChild(alertDiv);
 }
@@ -15,8 +15,7 @@ window.showAlert = function (message, type, redirectUrl = null) {
   alertMsg.textContent = message;
 
   // Remove all alert classes
-  alertBox.className =
-    "alert position-fixed top-0 start-50 translate-middle-x mt-3";
+  alertBox.className = "alert custom-popup-alert";
   alertBox.classList.add(
     type === "success"
       ? "alert-success"
