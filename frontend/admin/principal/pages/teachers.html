@@ -103,8 +103,8 @@
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label for="class_teacher_of">Class Teacher Of</label>
-              <select id="class_teacher_of" name="class_teacher_of">
+              <label for="class_teacher_of">Class Teacher Of *</label>
+              <select id="class_teacher_of" name="class_teacher_of" required>
                 <option value="">None</option>
                 <!-- Classes will be loaded by JS -->
               </select>
@@ -462,6 +462,7 @@
         if (pageTeachers.length === 0) {
           tbody.innerHTML =
             '<tr><td colspan="7" class="text-center">No teachers found</td></tr>';
+          updatePagination(0);
           return;
         }
 
@@ -493,11 +494,17 @@
           tbody.appendChild(row);
         });
 
-        updatePagination();
+        updatePagination(filteredTeachers.length);
       }
 
-      function updatePagination() {
-        const totalPages = Math.ceil(teachers.length / itemsPerPage);
+      function updatePagination(filteredLength) {
+        const totalPages = Math.max(
+          1,
+          Math.ceil(
+            (filteredLength !== undefined ? filteredLength : teachers.length) /
+              itemsPerPage
+          )
+        );
         document.getElementById(
           "pageInfo"
         ).textContent = `Page ${currentPage} of ${totalPages}`;

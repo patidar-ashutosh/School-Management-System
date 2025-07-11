@@ -165,12 +165,13 @@
         }
       }
 
-      function loadSubjects() {
+      function loadSubjects(filteredSubjects) {
         const tbody = document.getElementById("subjectsTableBody");
         tbody.innerHTML = "";
+        const dataToShow = filteredSubjects || subjects;
         const startIndex = (currentPage - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
-        const pageSubjects = subjects.slice(startIndex, endIndex);
+        const pageSubjects = dataToShow.slice(startIndex, endIndex);
         pageSubjects.forEach((subject) => {
           const row = document.createElement("tr");
           row.innerHTML = `
@@ -193,11 +194,17 @@
                 `;
           tbody.appendChild(row);
         });
-        updatePagination();
+        updatePagination(dataToShow.length);
       }
 
-      function updatePagination() {
-        const totalPages = Math.ceil(subjects.length / itemsPerPage);
+      function updatePagination(filteredLength) {
+        const totalPages = Math.max(
+          1,
+          Math.ceil(
+            (filteredLength !== undefined ? filteredLength : subjects.length) /
+              itemsPerPage
+          )
+        );
         document.getElementById(
           "pageInfo"
         ).textContent = `Page ${currentPage} of ${totalPages}`;

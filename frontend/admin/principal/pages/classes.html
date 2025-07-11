@@ -215,6 +215,7 @@
         if (pageClasses.length === 0) {
           tbody.innerHTML =
             '<tr><td colspan="5" class="text-center">No classes found</td></tr>';
+          updatePagination(0);
         } else {
           pageClasses.forEach((cls) => {
             const row = document.createElement("tr");
@@ -238,13 +239,18 @@
             `;
             tbody.appendChild(row);
           });
+          updatePagination(filteredClasses.length);
         }
-        updatePagination();
       }
 
-      function updatePagination() {
-        const totalItems = filteredClasses.length;
-        const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+      function updatePagination(filteredLength) {
+        const totalPages = Math.max(
+          1,
+          Math.ceil(
+            (filteredLength !== undefined ? filteredLength : classes.length) /
+              itemsPerPage
+          )
+        );
         document.getElementById(
           "pageInfo"
         ).textContent = `Page ${currentPage} of ${totalPages}`;

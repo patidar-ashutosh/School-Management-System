@@ -25,13 +25,23 @@ $principalPassword = password_hash('priyasharma', PASSWORD_DEFAULT);
 $pdo->prepare("INSERT IGNORE INTO principals (password, email, first_name, last_name, phone, address, qualification, joining_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
     ->execute([$principalPassword, 'principal@school.com', 'Priya', 'Sharma', '9876543200', 'Delhi Public School, Sector 45, Gurgaon', 'M.Ed, PhD', '2015-04-01']);
 
-// 2. Classes
+// 2. Classes (expanded to 15)
 $classes = [
-    ['Class 10A', 101, 40],
-    ['Class 10B', 102, 38],
-    ['Class 9A', 201, 42],
-    ['Class 11 Science', 301, 35],
-    ['Class 12 Commerce', 401, 30],
+    ['Class 1A', 101, 40],
+    ['Class 1B', 102, 38],
+    ['Class 2A', 103, 42],
+    ['Class 2B', 104, 39],
+    ['Class 3A', 105, 41],
+    ['Class 4A', 106, 40],
+    ['Class 5A', 107, 38],
+    ['Class 6A', 108, 40],
+    ['Class 7A', 109, 37],
+    ['Class 8A', 110, 39],
+    ['Class 9A', 111, 42],
+    ['Class 10A', 112, 40],
+    ['Class 10B', 113, 38],
+    ['Class 11 Science', 114, 35],
+    ['Class 12 Commerce', 115, 30],
 ];
 foreach ($classes as $c) {
     $pdo->prepare("INSERT IGNORE INTO classes (name, room_number, capacity) VALUES (?, ?, ?)")->execute($c);
@@ -45,16 +55,23 @@ foreach ($classes as $c) {
     $classIds[$c[0]] = $stmt->fetchColumn();
 }
 
-// 3. Subjects
+// 3. Subjects (expanded to 15)
 $subjects = [
-    ['Mathematics', 'MATH10A', 'Algebra, Geometry, Trigonometry', $classIds['Class 10A']],
-    ['Science', 'SCI10A', 'Physics, Chemistry, Biology', $classIds['Class 10A']],
-    ['English', 'ENG10A', 'English Literature and Grammar', $classIds['Class 10A']],
-    ['Mathematics', 'MATH9A', 'Algebra, Geometry', $classIds['Class 9A']],
-    ['Accountancy', 'ACC12C', 'Accountancy for Commerce', $classIds['Class 12 Commerce']],
-    ['Business Studies', 'BST12C', 'Business Studies for Commerce', $classIds['Class 12 Commerce']],
-    ['Physics', 'PHY11S', 'Physics for Science', $classIds['Class 11 Science']],
-    ['Chemistry', 'CHEM11S', 'Chemistry for Science', $classIds['Class 11 Science']],
+    ['Mathematics', 'MATH1A', 'Math for Class 1A', $classIds['Class 1A']],
+    ['English', 'ENG1A', 'English for Class 1A', $classIds['Class 1A']],
+    ['Science', 'SCI2A', 'Science for Class 2A', $classIds['Class 2A']],
+    ['Hindi', 'HIN3A', 'Hindi for Class 3A', $classIds['Class 3A']],
+    ['Social Studies', 'SST4A', 'Social Studies for Class 4A', $classIds['Class 4A']],
+    ['Mathematics', 'MATH5A', 'Math for Class 5A', $classIds['Class 5A']],
+    ['English', 'ENG6A', 'English for Class 6A', $classIds['Class 6A']],
+    ['Science', 'SCI7A', 'Science for Class 7A', $classIds['Class 7A']],
+    ['Hindi', 'HIN8A', 'Hindi for Class 8A', $classIds['Class 8A']],
+    ['Social Studies', 'SST9A', 'Social Studies for Class 9A', $classIds['Class 9A']],
+    ['Mathematics', 'MATH10A', 'Math for Class 10A', $classIds['Class 10A']],
+    ['English', 'ENG10B', 'English for Class 10B', $classIds['Class 10B']],
+    ['Physics', 'PHY11S', 'Physics for Class 11 Science', $classIds['Class 11 Science']],
+    ['Accountancy', 'ACC12C', 'Accountancy for Class 12 Commerce', $classIds['Class 12 Commerce']],
+    ['Business Studies', 'BST12C', 'Business Studies for Class 12 Commerce', $classIds['Class 12 Commerce']],
 ];
 foreach ($subjects as $s) {
     $pdo->prepare("INSERT IGNORE INTO subjects (name, code, description, class_id) VALUES (?, ?, ?, ?)")->execute($s);
@@ -68,13 +85,20 @@ foreach ($subjects as $s) {
     $subjectIds[$s[1]] = $stmt->fetchColumn();
 }
 
-// 4. Teachers
+// 4. Teachers (expanded to 12)
 $teachers = [
-    ['teacher1@school.com', 'amitsingh', 'Amit', 'Singh', '9876543212', 'Bangalore', $subjectIds['MATH10A'], 'M.Sc Mathematics', 10, '2014-06-01', 50000, 'active', $classIds['Class 10A']],
-    ['teacher2@school.com', 'nehapatel', 'Neha', 'Patel', '9876543213', 'Chennai', $subjectIds['ENG10A'], 'M.A. English', 8, '2016-07-15', 48000, 'active', $classIds['Class 10B']],
-    ['teacher3@school.com', 'vikramgupta', 'Vikram', 'Gupta', '9876543214', 'Kolkata', $subjectIds['SCI10A'], 'M.Sc Science', 9, '2015-08-01', 51000, 'active', $classIds['Class 9A']],
-    ['teacher4@school.com', 'sunitajain', 'Sunita', 'Jain', '9876543215', 'Mumbai', $subjectIds['ACC12C'], 'M.Com', 12, '2012-05-10', 53000, 'active', $classIds['Class 12 Commerce']],
-    ['teacher5@school.com', 'rajivmehra', 'Rajiv', 'Mehra', '9876543216', 'Delhi', $subjectIds['PHY11S'], 'M.Sc Physics', 11, '2013-09-20', 52000, 'active', $classIds['Class 11 Science']],
+    ['teacher1@school.com', 'amitsingh', 'Amit', 'Singh', '9876543212', 'Bangalore', $subjectIds['MATH1A'], 'B.Sc Mathematics', 5, '2018-06-01', 35000, 'active', $classIds['Class 1A']],
+    ['teacher2@school.com', 'nehapatel', 'Neha', 'Patel', '9876543213', 'Chennai', $subjectIds['ENG1A'], 'B.A. English', 6, '2017-07-15', 36000, 'active', $classIds['Class 1A']],
+    ['teacher3@school.com', 'vikramgupta', 'Vikram', 'Gupta', '9876543214', 'Kolkata', $subjectIds['SCI2A'], 'B.Sc Science', 7, '2016-08-01', 37000, 'active', $classIds['Class 2A']],
+    ['teacher4@school.com', 'sunitajain', 'Sunita', 'Jain', '9876543215', 'Mumbai', $subjectIds['HIN3A'], 'B.A. Hindi', 8, '2015-05-10', 38000, 'active', $classIds['Class 3A']],
+    ['teacher5@school.com', 'rajivmehra', 'Rajiv', 'Mehra', '9876543216', 'Delhi', $subjectIds['SST4A'], 'B.A. Social', 9, '2014-09-20', 39000, 'active', $classIds['Class 4A']],
+    ['teacher6@school.com', 'priyagupta', 'Priya', 'Gupta', '9876543217', 'Pune', $subjectIds['MATH5A'], 'B.Sc Mathematics', 10, '2013-06-01', 40000, 'active', $classIds['Class 5A']],
+    ['teacher7@school.com', 'manishkumar', 'Manish', 'Kumar', '9876543218', 'Lucknow', $subjectIds['ENG6A'], 'B.A. English', 11, '2012-07-15', 41000, 'active', $classIds['Class 6A']],
+    ['teacher8@school.com', 'deepashah', 'Deepa', 'Shah', '9876543219', 'Ahmedabad', $subjectIds['SCI7A'], 'B.Sc Science', 12, '2011-08-01', 42000, 'active', $classIds['Class 7A']],
+    ['teacher9@school.com', 'sureshchandra', 'Suresh', 'Chandra', '9876543220', 'Hyderabad', $subjectIds['HIN8A'], 'B.A. Hindi', 13, '2010-05-10', 43000, 'active', $classIds['Class 8A']],
+    ['teacher10@school.com', 'anitaroy', 'Anita', 'Roy', '9876543221', 'Jaipur', $subjectIds['SST9A'], 'B.A. Social', 14, '2009-09-20', 44000, 'active', $classIds['Class 9A']],
+    ['teacher11@school.com', 'alokverma', 'Alok', 'Verma', '9876543222', 'Bhopal', $subjectIds['MATH10A'], 'M.Sc Mathematics', 15, '2014-06-01', 50000, 'active', $classIds['Class 10A']],
+    ['teacher12@school.com', 'meenasingh', 'Meena', 'Singh', '9876543223', 'Surat', $subjectIds['PHY11S'], 'M.Sc Physics', 16, '2013-09-20', 52000, 'active', $classIds['Class 11 Science']],
 ];
 foreach ($teachers as $t) {
     $pdo->prepare("INSERT IGNORE INTO teachers (password, email, first_name, last_name, phone, address, subject_id, qualification, experience_years, joining_date, salary, status, class_teacher_of) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
@@ -90,14 +114,41 @@ foreach ($teachers as $t) {
     $teacherIds[$t[0]] = $stmt->fetchColumn();
 }
 
-// 5. Students
-$students = [
-    ['student1@school.com', 'arjunreddy', 'Arjun', 'Reddy', '2007-05-10', 'male', 'Hyderabad', '9876543210', 'Ramesh Reddy', '9876543211', 'parent1@school.com', $classIds['Class 10A'], 1001, '2020-06-15', 'B+', 'active'],
-    ['student2@school.com', 'zarakhan', 'Zara', 'Khan', '2008-08-22', 'female', 'Mumbai', '9876543215', 'Imran Khan', '9876543216', 'parent2@school.com', $classIds['Class 10B'], 1002, '2021-06-10', 'O+', 'active'],
-    ['student3@school.com', 'ishaanverma', 'Ishaan', 'Verma', '2007-12-05', 'male', 'Delhi', '9876543217', 'Suresh Verma', '9876543218', 'parent3@school.com', $classIds['Class 9A'], 1003, '2022-06-12', 'A+', 'active'],
-    ['student4@school.com', 'meghasharma', 'Megha', 'Sharma', '2006-03-15', 'female', 'Pune', '9876543219', 'Anil Sharma', '9876543220', 'parent4@school.com', $classIds['Class 11 Science'], 1004, '2019-06-20', 'AB+', 'active'],
-    ['student5@school.com', 'rohanjoshi', 'Rohan', 'Joshi', '2005-11-30', 'male', 'Ahmedabad', '9876543221', 'Mahesh Joshi', '9876543222', 'parent5@school.com', $classIds['Class 12 Commerce'], 1005, '2018-06-18', 'B-', 'active'],
-];
+// 5. Students (expanded to 25)
+$students = [];
+for ($i = 1; $i <= 25; $i++) {
+    $classIndex = ($i - 1) % count($classes);
+    $className = $classes[$classIndex][0];
+    $classId = $classIds[$className];
+    $roll = 1000 + $i;
+    $firstNames = ['Arjun', 'Zara', 'Ishaan', 'Megha', 'Rohan', 'Simran', 'Kabir', 'Aanya', 'Dev', 'Tara', 'Yash', 'Riya', 'Aarav', 'Anaya', 'Vivaan', 'Diya', 'Aditya', 'Saanvi', 'Krishna', 'Myra', 'Dhruv', 'Kiara', 'Aryan', 'Navya', 'Parth'];
+    $lastNames = ['Reddy', 'Khan', 'Verma', 'Sharma', 'Joshi', 'Singh', 'Patel', 'Gupta', 'Jain', 'Mehra', 'Roy', 'Chandra', 'Kumar', 'Shah', 'Chopra', 'Bansal', 'Kapoor', 'Malhotra', 'Rastogi', 'Saxena', 'Agarwal', 'Srivastava', 'Pandey', 'Tripathi', 'Dubey'];
+    $first = $firstNames[($i-1)%count($firstNames)];
+    $last = $lastNames[($i-1)%count($lastNames)];
+    $email = strtolower($first.$last."$i@school.com");
+    $username = strtolower($first.$last);
+    $gender = ($i%2==0) ? 'female' : 'male';
+    $dob = date('Y-m-d', strtotime("2005-01-01 +".($i*120).' days'));
+    $admission = date('Y-m-d', strtotime("2018-06-01 +".($i*30).' days'));
+    $students[] = [
+        $email,
+        $username,
+        $first,
+        $last,
+        $dob,
+        $gender,
+        'City '.$i,
+        '9876543'.str_pad($i,3,'0',STR_PAD_LEFT),
+        'Parent '.$first,
+        '9876543'.str_pad($i+100,3,'0',STR_PAD_LEFT),
+        'parent'.$i.'@school.com',
+        $classId,
+        $roll,
+        $admission,
+        'A+',
+        'active',
+    ];
+}
 foreach ($students as $s) {
     $pdo->prepare("INSERT IGNORE INTO students (password, email, first_name, last_name, date_of_birth, gender, address, phone, parent_name, parent_phone, parent_email, class_id, roll_number, admission_date, blood_group, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
         ->execute([
@@ -151,12 +202,32 @@ foreach ($studentAssignments as $sa) {
     $pdo->prepare("INSERT IGNORE INTO student_assignments (assignment_id, student_id, submitted_date, marks_obtained, submitted_text, submitted_file, status) VALUES (?, ?, ?, ?, ?, ?, ?)")->execute($sa);
 }
 
-// 9. Exams (varied types, classes, subjects)
-$exams = [
-    ['Maths Midterm', $subjectIds['MATH10A'], $classIds['Class 10A'], '2024-07-10', '09:00:00', '11:00:00', 100, 'midterm', 'scheduled'],
-    ['English Final', $subjectIds['ENG10A'], $classIds['Class 10B'], '2024-07-15', '10:00:00', '12:00:00', 100, 'final', 'ongoing'],
-    ['Physics Final', $subjectIds['PHY11S'], $classIds['Class 11 Science'], '2024-07-20', '13:00:00', '15:00:00', 100, 'final', 'completed'],
-];
+// 9. Exams (expanded to 22)
+$exams = [];
+for ($i = 1; $i <= 22; $i++) {
+    $classIndex = ($i - 1) % count($classes);
+    $subjectIndex = ($i - 1) % count($subjects);
+    $className = $classes[$classIndex][0];
+    $subjectCode = $subjects[$subjectIndex][1];
+    $examTypes = ['midterm', 'final', 'unit test'];
+    $statuses = ['scheduled', 'ongoing', 'completed'];
+    $examName = $subjects[$subjectIndex][0] . ' ' . $examTypes[$i % 3] . ' ' . $className;
+    $date = date('Y-m-d', strtotime("2024-07-01 +".($i*3).' days'));
+    $start = sprintf('%02d:00:00', 8 + ($i % 5));
+    $end = sprintf('%02d:00:00', 10 + ($i % 5));
+    $total = 50 + ($i % 3) * 25;
+    $exams[] = [
+        $examName,
+        $subjectIds[$subjectCode],
+        $classIds[$className],
+        $date,
+        $start,
+        $end,
+        $total,
+        $examTypes[$i % 3],
+        $statuses[$i % 3],
+    ];
+}
 foreach ($exams as $e) {
     $pdo->prepare("INSERT IGNORE INTO exams (name, subject_id, class_id, date, start_time, end_time, total_marks, exam_type, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")->execute($e);
 }

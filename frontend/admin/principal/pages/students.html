@@ -325,6 +325,7 @@
               </td>
             </tr>
           `;
+          updatePagination(0);
           return;
         }
 
@@ -355,11 +356,17 @@
           tbody.appendChild(row);
         });
 
-        updatePagination();
+        updatePagination(filteredStudents.length);
       }
 
-      function updatePagination() {
-        const totalPages = Math.ceil(students.length / itemsPerPage);
+      function updatePagination(filteredLength) {
+        const totalPages = Math.max(
+          1,
+          Math.ceil(
+            (filteredLength !== undefined ? filteredLength : students.length) /
+              itemsPerPage
+          )
+        );
         document.getElementById(
           "pageInfo"
         ).textContent = `Page ${currentPage} of ${totalPages}`;

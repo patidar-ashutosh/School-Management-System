@@ -433,6 +433,10 @@
           .addEventListener("change", filterAssignments);
       }
 
+      let assignmentsCache = [];
+      let currentPage = 1;
+      let itemsPerPage = 10;
+
       function filterAssignments() {
         const searchTerm = document
           .getElementById("assignmentSearch")
@@ -441,7 +445,6 @@
         const statusFilter = document.getElementById("statusFilter").value;
         const typeFilter = document.getElementById("typeFilter").value;
 
-        // Filter assignmentsCache
         let filtered = assignmentsCache.filter((assignment) => {
           let matches = true;
           if (
@@ -468,12 +471,18 @@
           }
           return matches;
         });
+        currentPage = 1;
+        displayFilteredAssignments(filtered);
+      }
 
-        // Render filtered assignments
+      function displayFilteredAssignments(filteredAssignments) {
         const tbody = document.getElementById("assignmentsTableBody");
         tbody.innerHTML = "";
-        if (filtered.length > 0) {
-          filtered.forEach((assignment) => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const pageAssignments = filteredAssignments.slice(startIndex, endIndex);
+        if (pageAssignments.length > 0) {
+          pageAssignments.forEach((assignment) => {
             tbody.innerHTML += `
               <tr>
                 <td>
@@ -514,6 +523,21 @@
           tbody.innerHTML =
             '<tr><td colspan="8" style="text-align:center;">No assignments found.</td></tr>';
         }
+        updatePagination(filteredAssignments.length);
+      }
+
+      function updatePagination(filteredLength) {
+        const totalPages = Math.max(
+          1,
+          Math.ceil(
+            (filteredLength !== undefined
+              ? filteredLength
+              : assignmentsCache.length) / itemsPerPage
+          )
+        );
+        document.getElementById(
+          "pageInfo"
+        ).textContent = `Page ${currentPage} of ${totalPages}`;
       }
 
       function populateClassFilterDropdown() {
@@ -658,9 +682,6 @@
             });
           });
       }
-
-      // Store assignments in a global variable for easy access
-      let assignmentsCache = [];
 
       // Fetch and render assignments for the teacher
       function fetchAssignments() {

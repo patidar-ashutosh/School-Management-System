@@ -231,6 +231,10 @@
             const activeStudents = data.data.filter(
               (s) => s.status === "active"
             );
+            // Sort by admission_date descending (latest first)
+            activeStudents.sort(
+              (a, b) => new Date(b.admission_date) - new Date(a.admission_date)
+            );
             if (activeStudents.length === 0) {
               tbody.innerHTML =
                 '<tr><td colspan="4" class="text-center">No students found</td></tr>';
@@ -276,6 +280,10 @@
             // Only show active teachers
             const activeTeachers = data.data.filter(
               (t) => t.status === "active"
+            );
+            // Sort by joining_date descending (latest first)
+            activeTeachers.sort(
+              (a, b) => new Date(b.joining_date) - new Date(a.joining_date)
             );
             if (activeTeachers.length === 0) {
               tbody.innerHTML =

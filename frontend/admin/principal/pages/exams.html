@@ -442,7 +442,7 @@
           tbody.appendChild(row);
         });
 
-        updatePagination();
+        updatePagination(filteredExams.length);
       }
 
       function formatDate(dateString) {
@@ -454,8 +454,14 @@
         });
       }
 
-      function updatePagination() {
-        const totalPages = Math.ceil(exams.length / itemsPerPage);
+      function updatePagination(filteredLength) {
+        const totalPages = Math.max(
+          1,
+          Math.ceil(
+            (filteredLength !== undefined ? filteredLength : exams.length) /
+              itemsPerPage
+          )
+        );
         document.getElementById(
           "pageInfo"
         ).textContent = `Page ${currentPage} of ${totalPages}`;

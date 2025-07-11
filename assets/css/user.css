@@ -247,6 +247,7 @@
 }
 
 .student-login .alert-dismissible {
+  margin-top: 1rem;
   padding-right: 3rem;
 }
 
