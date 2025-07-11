@@ -76,7 +76,7 @@ if ($method === 'POST') {
             
         } else if ($action === 'get_assignments') {
             // Fetch all assignments for the current teacher
-            $sql = "SELECT a.id, a.title, a.description, a.type, a.due_date, a.total_marks, a.status, a.class_id, a.subject_id, c.name as class_name, s.name as subject_name
+            $sql = "SELECT a.id, a.title, a.description, a.type, a.start_date, a.due_date, a.total_marks, a.status, a.class_id, a.subject_id, c.name as class_name, s.name as subject_name
                     FROM assignments a
                     LEFT JOIN classes c ON a.class_id = c.id
                     LEFT JOIN subjects s ON a.subject_id = s.id
@@ -94,17 +94,18 @@ if ($method === 'POST') {
             $description = trim($input['description'] ?? '');
             $class_id = $input['class_id'] ?? null;
             $subject_id = $input['subject_id'] ?? null;
+            $start_date = $input['start_date'] ?? null;
             $due_date = $input['due_date'] ?? null;
             $total_marks = $input['total_marks'] ?? 100;
             $type = $input['type'] ?? 'essays';
             $status = $input['status'] ?? 'coming';
             $teacher_id = $teacherId;
-            if (!$title || !$class_id || !$subject_id || !$due_date || !$type || !$status) {
+            if (!$title || !$class_id || !$subject_id || !$start_date || !$due_date || !$type || !$status) {
                 echo json_encode(['success' => false, 'message' => 'All fields are required.']);
                 return;
             }
-            $sql = "INSERT INTO assignments (title, description, subject_id, class_id, due_date, total_marks, teacher_id, type, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-            $db->query($sql, [$title, $description, $subject_id, $class_id, $due_date, $total_marks, $teacher_id, $type, $status]);
+            $sql = "INSERT INTO assignments (title, description, subject_id, class_id, start_date, due_date, total_marks, teacher_id, type, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $db->query($sql, [$title, $description, $subject_id, $class_id, $start_date, $due_date, $total_marks, $teacher_id, $type, $status]);
             echo json_encode(['success' => true, 'message' => 'Assignment created successfully.']);
         
         } else if ($action === 'update_assignment') {
@@ -114,17 +115,18 @@ if ($method === 'POST') {
             $description = trim($input['description'] ?? '');
             $class_id = $input['class_id'] ?? null;
             $subject_id = $input['subject_id'] ?? null;
+            $start_date = $input['start_date'] ?? null;
             $due_date = $input['due_date'] ?? null;
             $total_marks = $input['total_marks'] ?? 100;
             $type = $input['type'] ?? 'essays';
             $status = $input['status'] ?? 'coming';
-            if (!$id || !$title || !$class_id || !$subject_id || !$due_date || !$type || !$status) {
+            if (!$id || !$title || !$class_id || !$subject_id || !$start_date || !$due_date || !$type || !$status) {
                 echo json_encode(['success' => false, 'message' => 'All fields are required.']);
                 return;
             }
             // Only allow update if assignment belongs to this teacher
-            $sql = "UPDATE assignments SET title=?, description=?, subject_id=?, class_id=?, due_date=?, total_marks=?, type=?, status=? WHERE id=? AND teacher_id=?";
-            $stmt = $db->query($sql, [$title, $description, $subject_id, $class_id, $due_date, $total_marks, $type, $status, $id, $teacherId]);
+            $sql = "UPDATE assignments SET title=?, description=?, subject_id=?, class_id=?, start_date=?, due_date=?, total_marks=?, type=?, status=? WHERE id=? AND teacher_id=?";
+            $stmt = $db->query($sql, [$title, $description, $subject_id, $class_id, $start_date, $due_date, $total_marks, $type, $status, $id, $teacherId]);
             if ($stmt->rowCount() > 0) {
                 echo json_encode(['success' => true, 'message' => 'Assignment updated successfully.']);
             } else {
@@ -157,7 +159,7 @@ if ($method === 'POST') {
             $students = $db->fetchAll("SELECT id FROM students WHERE class_id = ? AND status = 'active'", [$class_id]);
             $studentIds = array_column($students, 'id');
             $total_students = count($studentIds);
-            $pending = $submitted = $graded = 0;
+            $not_submitted = $submitted = $graded = 0;
             if ($total_students > 0) {
                 // Get all student_assignments for this assignment
                 $rows = $db->fetchAll("SELECT student_id, status FROM student_assignments WHERE assignment_id = ? AND student_id IN (" . implode(",", array_fill(0, count($studentIds), '?')) . ")", array_merge([$assignment_id], $studentIds));
@@ -166,15 +168,14 @@ if ($method === 'POST') {
                     $statusMap[$row['student_id']] = $row['status'];
                 }
                 foreach ($studentIds as $sid) {
-                    $status = $statusMap[$sid] ?? 'pending';
-                    if ($status === 'pending') $pending++;
-                    else if ($status === 'submitted') $submitted++;
-                    else if ($status === 'graded') $graded++;
+                    if (!isset($statusMap[$sid])) $not_submitted++;
+                    else if ($statusMap[$sid] === 'submitted') $submitted++;
+                    else if ($statusMap[$sid] === 'graded') $graded++;
                 }
             }
             echo json_encode([
                 'success' => true,
-                'pending' => $pending,
+                'not_submitted' => $not_submitted,
                 'submitted' => $submitted,
                 'graded' => $graded,
                 'total_students' => $total_students
@@ -214,6 +215,23 @@ if ($method === 'POST') {
             $sql .= " ORDER BY sa.submitted_date DESC, sa.id DESC";
             $rows = $db->fetchAll($sql, $params);
             echo json_encode(['success' => true, 'submissions' => $rows]);
+        
+        } else if ($action === 'auto_update_assignment_status') {
+            // Auto update assignment statuses based on start_date and due_date
+            $today = date('Y-m-d');
+            // Set running: start_date <= today <= due_date, status != completed
+            $sqlRunning = "UPDATE assignments SET status='running' WHERE start_date <= ? AND due_date >= ? AND status != 'completed'";
+            $stmtRunning = $db->query($sqlRunning, [$today, $today]);
+            $updatedRunning = $stmtRunning->rowCount();
+            // Set completed: due_date < today, status != completed
+            $sqlCompleted = "UPDATE assignments SET status='completed' WHERE due_date < ? AND status != 'completed'";
+            $stmtCompleted = $db->query($sqlCompleted, [$today]);
+            $updatedCompleted = $stmtCompleted->rowCount();
+            echo json_encode([
+                'success' => true,
+                'updated_running' => $updatedRunning,
+                'updated_completed' => $updatedCompleted
+            ]);
         
         } else {
             echo json_encode(['success' => false, 'message' => 'Invalid action']);

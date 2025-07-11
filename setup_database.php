@@ -145,6 +145,7 @@ $tables = [
         description TEXT,
         subject_id INT,
         class_id INT,
+        start_date DATE,
         due_date DATE,
         total_marks INT DEFAULT 100,
         teacher_id INT,
@@ -160,9 +161,9 @@ $tables = [
         student_id INT,
         submitted_date DATETIME,
         marks_obtained DECIMAL(5,2),
-        feedback TEXT,
+        submitted_text TEXT,
         submitted_file VARCHAR(255),
-        status ENUM('pending', 'submitted', 'graded') DEFAULT 'pending',
+        status ENUM('submitted', 'graded') DEFAULT 'submitted',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )",
 
@@ -190,6 +191,7 @@ $tables = [
         used BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )",
+    
     // Add teacher_classes table for many-to-many teacher-class mapping
     'teacher_classes' => "CREATE TABLE teacher_classes (
         id INT PRIMARY KEY AUTO_INCREMENT,
@@ -394,10 +396,10 @@ try {
     echo "✓ Sample attendance created\n";
     
     // Insert sample assignments (updated to use teacher_id instead of created_by)
-    $stmt = $pdo->prepare("INSERT IGNORE INTO assignments (title, description, subject_id, class_id, due_date, total_marks, teacher_id, type, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute(['Algebra Problem Set 1', 'Solving linear equations and inequalities', $subjectIds[0], $class10AId, '2024-01-20', 100, $teacherIds[0], 'essays', 'completed']);
-    $stmt->execute(['Shakespeare Essay', 'Analysis of Hamlet soliloquy', $subjectIds[1], $class10AId, '2024-01-25', 50, $teacherIds[1], 'reports', 'running']);
-    $stmt->execute(['Physics Lab Report', 'Experiment on Newton Laws', $subjectIds[2], $class9BId, '2024-01-18', 75, $teacherIds[2], 'presentations', 'coming']);
+    $stmt = $pdo->prepare("INSERT IGNORE INTO assignments (title, description, subject_id, class_id, start_date, due_date, total_marks, teacher_id, type, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->execute(['Algebra Problem Set 1', 'Solving linear equations and inequalities', $subjectIds[0], $class10AId, '2024-01-10', '2024-01-20', 100, $teacherIds[0], 'essays', 'completed']);
+    $stmt->execute(['Shakespeare Essay', 'Analysis of Hamlet soliloquy', $subjectIds[1], $class10AId, '2024-01-15', '2024-01-25', 50, $teacherIds[1], 'reports', 'running']);
+    $stmt->execute(['Physics Lab Report', 'Experiment on Newton Laws', $subjectIds[2], $class9BId, '2024-01-08', '2024-01-18', 75, $teacherIds[2], 'presentations', 'coming']);
     echo "✓ Sample assignments created\n";
     
     // Get assignment IDs
@@ -408,9 +410,9 @@ try {
     $englishAssignmentId = $stmt->fetchColumn();
     
     // Insert sample student assignments
-    $stmt = $pdo->prepare("INSERT IGNORE INTO student_assignments (assignment_id, student_id, submitted_date, marks_obtained, feedback, status) VALUES (?, ?, ?, ?, ?, ?)");
-    $stmt->execute([$mathAssignmentId, $student1Id, '2024-01-18 15:30:00', 85, 'Good work, but show more steps', 'graded']);
-    $stmt->execute([$englishAssignmentId, $student2Id, '2024-01-23 20:15:00', 92, 'Excellent analysis and writing', 'graded']);
+    $stmt = $pdo->prepare("INSERT IGNORE INTO student_assignments (assignment_id, student_id, submitted_date, marks_obtained, submitted_text, submitted_file, status) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $stmt->execute([$mathAssignmentId, $student1Id, '2024-01-18 15:30:00', 85, 'Good work, but show more steps', null, 'graded']);
+    $stmt->execute([$englishAssignmentId, $student2Id, '2024-01-23 20:15:00', 92, 'Excellent analysis and writing', null, 'graded']);
     echo "✓ Sample student assignments created\n";
     
     // Insert sample lecturers (now as weekly schedule)

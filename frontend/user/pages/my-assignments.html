@@ -95,17 +95,6 @@
 
         <div class="dashboard-card">
           <div class="card-header">
-            <div class="card-title">Pending</div>
-            <div class="card-icon" style="background: #ffc107">
-              <i class="fas fa-clock"></i>
-            </div>
-          </div>
-          <div class="card-number" id="pendingAssignments"></div>
-          <div class="card-description">Due soon</div>
-        </div>
-
-        <div class="dashboard-card">
-          <div class="card-header">
             <div class="card-title">Overdue</div>
             <div class="card-icon" style="background: #dc3545">
               <i class="fas fa-exclamation-triangle"></i>
@@ -137,7 +126,6 @@
           </select>
           <select id="statusFilter">
             <option value="">All Status</option>
-            <option value="pending">Pending</option>
             <option value="submitted">Submitted</option>
             <option value="graded">Graded</option>
           </select>
@@ -150,13 +138,10 @@
         </div>
       </div>
 
-      <!-- Assignments List -->
+      <!-- My Assignments List -->
       <div class="card">
         <div class="card-header">
           <h3>My Assignments</h3>
-          <div class="header-actions">
-            <!-- Removed Submit Assignment button -->
-          </div>
         </div>
         <div class="card-body">
           <div class="table-container">
@@ -166,27 +151,29 @@
                   <th>Assignment</th>
                   <th>Subject</th>
                   <th>Type</th>
+                  <th>Start Date</th>
                   <th>Due Date</th>
+                  <th>Total Marks</th>
                   <th>Status</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="assignmentsTableBody">
-                <!-- Dynamic assignment rows will be rendered here -->
+                <!-- Assignment rows will be rendered by JS. No static data. -->
               </tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- Recent Submissions -->
+      <!-- My Submissions -->
       <div class="card">
         <div class="card-header">
-          <h3>Recent Submissions</h3>
+          <h3>My Submissions</h3>
         </div>
         <div class="card-body">
-          <div class="submissions-list" id="recentSubmissions">
-            <!-- Dynamic recent submissions will be rendered here -->
+          <div class="submissions-list" id="mySubmissions">
+            <!-- Dynamic submissions will be rendered here -->
           </div>
         </div>
       </div>
@@ -202,21 +189,43 @@
         <form id="submitForm">
           <div class="form-group">
             <label for="assignmentTitle">Assignment Title</label>
-            <input type="text" id="assignmentTitle" name="title" readonly />
+            <input
+              type="text"
+              id="assignmentTitle"
+              name="title"
+              readonly
+              disabled
+            />
           </div>
-          <div class="form-group">
-            <label for="assignmentFile">Upload File</label>
-            <input type="file" id="assignmentFile" name="file" required />
-            <small>Accepted formats: PDF, DOC, DOCX, ZIP (Max 10MB)</small>
-          </div>
-          <div class="form-group">
-            <label for="assignmentComments">Comments (Optional)</label>
+          <div
+            class="form-group"
+            id="essayReportAnswerGroup"
+            style="display: none"
+          >
+            <label for="essayReportAnswer">Your Answer</label>
             <textarea
-              id="assignmentComments"
-              name="comments"
-              rows="3"
-              placeholder="Add any comments or notes about your submission..."
+              id="essayReportAnswer"
+              name="essayReportAnswer"
+              rows="5"
+              placeholder="Write your answer here..."
             ></textarea>
+          </div>
+          <div
+            class="form-group"
+            id="presentationFileGroup"
+            style="display: none"
+          >
+            <label for="assignmentFile">Upload Presentation</label>
+            <input
+              type="file"
+              id="assignmentFile"
+              name="file"
+              accept=".pdf,.doc,.docx,.zip,.ppt,.pptx"
+            />
+            <small
+              >Accepted formats: PDF, DOC, DOCX, ZIP, PPT, PPTX (Max
+              10MB)</small
+            >
           </div>
           <div class="form-actions">
             <button
@@ -237,28 +246,36 @@
     <script src="/assets/js/auth.js"></script>
     <script src="/assets/js/popup-alert.js"></script>
     <script>
+      async function autoUpdateAssignmentStatuses() {
+        try {
+          await fetch("/backend/controllers/teacher_dashboard.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "auto_update_assignment_status" }),
+          });
+        } catch (e) {}
+      }
       document.addEventListener("DOMContentLoaded", function () {
-        loadAndRenderAssignments();
-        setupSearchAndFilter();
-        loadAssignmentStats();
-        loadRecentSubmissions();
+        autoUpdateAssignmentStatuses().then(() => {
+          loadAndRenderAssignments();
+          setupSearchAndFilter();
+          loadAssignmentStats();
+          loadMySubmissions();
+        });
       });
 
-      function loadAndRenderAssignments(filters = {}) {
+      // Fetch and render class assignments (coming/running)
+      function loadAndRenderAssignments() {
         const auth = new Auth();
         const user = auth.getCurrentUser();
         if (!user) return;
-        const payload = {
-          action: "get_assignments",
-          student_id: user.id,
-        };
-        if (filters.status) payload.status = filters.status;
-        if (filters.type) payload.type = filters.type;
-        if (filters.subject_id) payload.subject_id = filters.subject_id;
         fetch("/backend/controllers/students.php", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({
+            action: "get_class_assignments",
+            student_id: user.id,
+          }),
         })
           .then((res) => res.json())
           .then((data) => {
@@ -271,47 +288,37 @@
                 '<tr><td colspan="7" class="text-center text-danger">No assignments found.</td></tr>';
               return;
             }
-            renderAssignmentsTable(data.assignments, user.id);
+            renderAssignmentsTable(data.assignments);
           });
       }
 
-      function renderAssignmentsTable(assignments, studentId) {
+      function renderAssignmentsTable(assignments) {
         let html = "";
         assignments.forEach((row) => {
-          // Only show assignments for this student
-          if (row.student_id !== studentId) return;
           html += `<tr>
             <td>
               <div class="assignment-info">
-                <strong>${row.assignment_title || "-"}</strong>
+                <strong>${row.title || "-"}</strong>
                 <small>${row.description || ""}</small>
               </div>
             </td>
             <td>${row.subject_name || "-"}</td>
-            <td><span class="type-badge ${row.assignment_type}">${capitalize(
-            row.assignment_type
+            <td><span class="type-badge ${row.type}">${capitalize(
+            row.type
           )}</span></td>
+            <td>${row.start_date || "-"}</td>
             <td>${row.due_date || "-"}</td>
+            <td>${row.total_marks || "-"}</td>
             <td><span class="status-badge ${row.status}">${capitalize(
             row.status
           )}</span></td>
-            <td>
-              <div class="action-buttons">
-                <button class="btn btn-sm btn-primary" onclick="viewAssignment('${
-                  row.assignment_id
-                }')"><i class="fas fa-eye"></i></button>
-                ${
-                  row.status === "pending" || row.status === "coming"
-                    ? `<button class="btn btn-sm btn-success" onclick="submitAssignment('${row.assignment_id}')"><i class="fas fa-upload"></i></button>`
-                    : ""
-                }
-                ${
-                  row.status === "submitted" || row.status === "graded"
-                    ? `<button class="btn btn-sm btn-info" onclick="viewSubmission('${row.assignment_id}')"><i class="fas fa-file-alt"></i></button>`
-                    : ""
-                }
-              </div>
-            </td>
+          <td>
+            ${
+              row.status === "running"
+                ? `<button class='btn btn-primary btn-sm' onclick='submitAssignment(${row.id})'>Submit</button>`
+                : ""
+            }
+          </td>
           </tr>`;
         });
         if (!html) {
@@ -360,19 +367,59 @@
         showAlert(`Viewing assignment ${assignmentId}`, "info");
       }
 
+      // Patch: submitAssignment for class assignments
       function submitAssignment(assignmentId) {
-        if (assignmentId) {
-          document.getElementById("submitModalTitle").textContent =
-            "Submit Assignment";
-          document.getElementById("assignmentTitle").value =
-            "Assignment " + assignmentId;
-        } else {
-          document.getElementById("submitModalTitle").textContent =
-            "Submit New Assignment";
-          document.getElementById("assignmentTitle").value = "";
-        }
+        if (!assignmentId) return;
+        document.getElementById("submitModalTitle").textContent =
+          "Submit Assignment";
         document.getElementById("submitForm").reset();
-        document.getElementById("submitModal").style.display = "block";
+        // Fetch assignment details from backend (by id)
+        fetch("/backend/controllers/students.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "get_class_assignments",
+            student_id: new Auth().getCurrentUser().id,
+          }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success && Array.isArray(data.assignments)) {
+              const found = data.assignments.find(
+                (a) => String(a.id) === String(assignmentId)
+              );
+              if (found) {
+                document.getElementById("assignmentTitle").value =
+                  found.title || "";
+                if (found.type === "essays" || found.type === "reports") {
+                  document.getElementById(
+                    "essayReportAnswerGroup"
+                  ).style.display = "block";
+                  document.getElementById(
+                    "presentationFileGroup"
+                  ).style.display = "none";
+                } else if (found.type === "presentations") {
+                  document.getElementById(
+                    "essayReportAnswerGroup"
+                  ).style.display = "none";
+                  document.getElementById(
+                    "presentationFileGroup"
+                  ).style.display = "block";
+                } else {
+                  document.getElementById(
+                    "essayReportAnswerGroup"
+                  ).style.display = "none";
+                  document.getElementById(
+                    "presentationFileGroup"
+                  ).style.display = "none";
+                }
+                // Save assignment id for submit
+                window.currentSubmitAssignmentId = found.id;
+                window.currentSubmitAssignmentType = found.type;
+                document.getElementById("submitModal").style.display = "block";
+              }
+            }
+          });
       }
 
       function viewSubmission(assignmentId) {
@@ -386,10 +433,85 @@
       // Handle form submission
       document
         .getElementById("submitForm")
-        .addEventListener("submit", function (e) {
+        .addEventListener("submit", async function (e) {
           e.preventDefault();
-          showAlert("Assignment submitted successfully!", "success");
-          closeSubmitModal();
+          const auth = new Auth();
+          const user = auth.getCurrentUser();
+          if (!user) return;
+          let assignmentId = window.currentSubmitAssignmentId;
+          let assignmentType = window.currentSubmitAssignmentType;
+          if (!assignmentId) {
+            showAlert("Assignment not found.", "error");
+            return;
+          }
+          let payload = {
+            action: "submit_assignment",
+            student_id: user.id,
+            assignment_id: assignmentId,
+          };
+          let isFile = false;
+          if (assignmentType === "essays" || assignmentType === "reports") {
+            payload.submitted_text =
+              document.getElementById("essayReportAnswer").value;
+          } else if (assignmentType === "presentations") {
+            const fileInput = document.getElementById("assignmentFile");
+            if (fileInput.files.length > 0) {
+              isFile = true;
+            } else {
+              showAlert("Please upload a file.", "error");
+              return;
+            }
+          }
+          if (isFile) {
+            const formData = new FormData();
+            formData.append("action", "submit_assignment");
+            formData.append("student_id", user.id);
+            formData.append("assignment_id", assignmentId);
+            formData.append(
+              "submitted_file",
+              document.getElementById("assignmentFile").files[0]
+            );
+            fetch("/backend/controllers/students.php", {
+              method: "POST",
+              body: formData,
+            })
+              .then((res) => res.json())
+              .then((res) => {
+                if (res.success) {
+                  showAlert("Assignment submitted successfully!", "success");
+                  closeSubmitModal();
+                  loadAndRenderAssignments();
+                  loadMySubmissions();
+                } else {
+                  showAlert(
+                    res.message || "Failed to submit assignment.",
+                    "error"
+                  );
+                }
+              })
+              .catch(() => showAlert("Failed to submit assignment.", "error"));
+          } else {
+            fetch("/backend/controllers/students.php", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            })
+              .then((res) => res.json())
+              .then((res) => {
+                if (res.success) {
+                  showAlert("Assignment submitted successfully!", "success");
+                  closeSubmitModal();
+                  loadAndRenderAssignments();
+                  loadMySubmissions();
+                } else {
+                  showAlert(
+                    res.message || "Failed to submit assignment.",
+                    "error"
+                  );
+                }
+              })
+              .catch(() => showAlert("Failed to submit assignment.", "error"));
+          }
         });
 
       // Close modal when clicking outside
@@ -419,16 +541,14 @@
                 data.stats.total;
               document.getElementById("completedAssignments").textContent =
                 data.stats.completed;
-              document.getElementById("pendingAssignments").textContent =
-                data.stats.pending;
               document.getElementById("overdueAssignments").textContent =
                 data.stats.overdue;
             }
           });
       }
 
-      // Fetch and render recent submissions
-      function loadRecentSubmissions() {
+      // Fetch and render all submissions
+      function loadMySubmissions() {
         const auth = new Auth();
         const user = auth.getCurrentUser();
         if (!user) return;
@@ -436,33 +556,25 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            action: "get_assignments",
+            action: "get_my_submissions",
             student_id: user.id,
-            status: "submitted",
           }),
         })
           .then((res) => res.json())
           .then((data) => {
-            const container = document.getElementById("recentSubmissions");
+            const container = document.getElementById("mySubmissions");
             if (
               !data.success ||
               !Array.isArray(data.assignments) ||
               !data.assignments.length
             ) {
               container.innerHTML =
-                '<div class="text-center text-danger">No recent submissions found.</div>';
+                '<div class="text-center text-danger">No submissions found.</div>';
               return;
             }
-            // Sort by submitted_date desc, take top 3
-            const recent = data.assignments
-              .filter((a) => a.submitted_date)
-              .sort(
-                (a, b) =>
-                  new Date(b.submitted_date) - new Date(a.submitted_date)
-              )
-              .slice(0, 3);
+            // Show all submissions (status: submitted or graded)
             let html = "";
-            recent.forEach((sub) => {
+            data.assignments.forEach((sub) => {
               const dateObj = new Date(sub.submitted_date);
               const day = dateObj.getDate();
               const month = dateObj.toLocaleString("default", {
@@ -476,7 +588,7 @@
                 <div class="submission-content">
                   <div class="submission-title">${
                     sub.assignment_title || "-"
-                  }<\/div>
+                  }</div>
                   <div class="submission-details">
                     ${
                       sub.subject_name || "-"
@@ -484,8 +596,8 @@
                 hour: "2-digit",
                 minute: "2-digit",
               })}
-                  <\/div>
-                  <div class="submission-file">${
+                  </div>
+                  <div class="submission-file">$${
                     sub.submitted_file
                       ? sub.submitted_file
                       : sub.assignment_type === "quiz"
@@ -497,12 +609,14 @@
                       sub.assignment_type === "quiz" ? "%" : ""
                     }`
                   : ""
-              }<\/div>
-                <\/div>
+              }</div>
+                </div>
                 <div class="submission-status">
-                  <span class="status-badge completed">Completed<\/span>
-                <\/div>
-              <\/div>`;
+                  <span class="status-badge ${sub.status}">${
+                sub.status.charAt(0).toUpperCase() + sub.status.slice(1)
+              }</span>
+                </div>
+              </div>`;
             });
             container.innerHTML = html;
           });
@@ -553,11 +667,6 @@
         text-transform: uppercase;
       }
 
-      .status-badge.pending {
-        background: #fff3cd;
-        color: #856404;
-      }
-
       .status-badge.submitted {
         background: #d1ecf1;
         color: #0c5460;
@@ -571,16 +680,6 @@
       .status-badge.overdue {
         background: #f8d7da;
         color: #721c24;
-      }
-
-      .status-badge.coming {
-        background: #fff3cd;
-        color: #856404;
-      }
-
-      .status-badge.running {
-        background: #cce5ff;
-        color: #004085;
       }
 
       .status-badge.completed {

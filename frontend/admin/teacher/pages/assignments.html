@@ -214,6 +214,7 @@
                   <th>Assignment</th>
                   <th>Class</th>
                   <th>Subject</th>
+                  <th>Start Date</th>
                   <th>Type</th>
                   <th>Due Date</th>
                   <th>Total Marks</th>
@@ -268,6 +269,15 @@
               </select>
             </div>
             <div class="form-group">
+              <label for="assignmentStartDate">Start Date</label>
+              <input
+                type="date"
+                id="assignmentStartDate"
+                name="startDate"
+                required
+              />
+            </div>
+            <div class="form-group">
               <label for="assignmentDueDate">Due Date</label>
               <input
                 type="date"
@@ -287,7 +297,7 @@
                 required
               />
             </div>
-            <div class="form-group">
+            <div class="form-group" id="assignmentStatusGroup">
               <label for="assignmentStatus">Status</label>
               <select id="assignmentStatus" name="status" required>
                 <option value="coming">Coming</option>
@@ -351,8 +361,18 @@
         populateClassFilterDropdown();
         loadAssignmentData();
         setupSearchAndFilter();
-        fetchAssignments();
+        autoUpdateAssignmentStatuses().then(fetchAssignments);
       });
+
+      async function autoUpdateAssignmentStatuses() {
+        try {
+          await fetch("/backend/controllers/teacher_dashboard.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "auto_update_assignment_status" }),
+          });
+        } catch (e) {}
+      }
 
       // Mobile menu toggle function
       function toggleMobileMenu() {
@@ -458,6 +478,7 @@
                 </td>
                 <td>${assignment.class_name || ""}</td>
                 <td>${assignment.subject_name || ""}</td>
+                <td>${assignment.start_date || ""}</td>
                 <td><span class="type-badge ${assignment.type}">${
               assignment.type.charAt(0).toUpperCase() + assignment.type.slice(1)
             }</span></td>
@@ -588,6 +609,19 @@
         const minDate = new Date();
         minDate.setDate(minDate.getDate() + 5);
         dueDateInput.min = minDate.toISOString().split("T")[0];
+        // Set start date min to today
+        const startDateInput = document.getElementById("assignmentStartDate");
+        const today = new Date();
+        startDateInput.min = today.toISOString().split("T")[0];
+        startDateInput.value = today.toISOString().split("T")[0];
+        // Only 'coming' status, selected and disabled
+        const statusSelect = document.getElementById("assignmentStatus");
+        statusSelect.innerHTML =
+          '<option value="coming" selected>Coming</option>';
+        statusSelect.value = "coming";
+        statusSelect.disabled = true;
+        document.getElementById("assignmentStatusGroup").style.display =
+          "block";
         document.getElementById("assignmentModal").style.display = "block";
       }
 
@@ -650,6 +684,7 @@
                     </td>
                     <td>${assignment.class_name || ""}</td>
                     <td>${assignment.subject_name || ""}</td>
+                    <td>${assignment.start_date || ""}</td>
                     <td><span class="type-badge ${assignment.type}">${
                   assignment.type.charAt(0).toUpperCase() +
                   assignment.type.slice(1)
@@ -704,6 +739,7 @@
         form.description.value = assignment.description || "";
         form.class.value = assignment.class_id || "";
         form.subject.value = assignment.subject_id || "";
+        form.startDate.value = assignment.start_date || "";
         form.dueDate.value = assignment.due_date || "";
         form.totalMarks.value = assignment.total_marks || "";
         form.type.value = assignment.type || "";
@@ -713,6 +749,12 @@
         const minDate = new Date();
         minDate.setDate(minDate.getDate() + 5);
         dueDateInput.min = minDate.toISOString().split("T")[0];
+        // Enable status select for editing (will be disabled for completed/running below)
+        const statusSelect = document.getElementById("assignmentStatus");
+        statusSelect.innerHTML =
+          '<option value="coming">Coming</option><option value="running">Running</option><option value="completed">Completed</option>';
+        statusSelect.disabled = false;
+        document.getElementById("assignmentStatusGroup").style.display = "none";
         document.getElementById("assignmentModal").style.display = "block";
 
         // Disable fields based on status
@@ -726,6 +768,7 @@
           form.type.disabled = true;
           form.status.disabled = true;
           form.dueDate.disabled = false;
+          form.startDate.disabled = true; // Disable start date if running
         } else if (assignment.status === "completed") {
           // All fields disabled
           form.title.disabled = true;
@@ -851,6 +894,7 @@
           form.description,
           form.class,
           form.subject,
+          form.startDate,
           form.dueDate,
           form.totalMarks,
           form.type,
@@ -879,6 +923,7 @@
             description: form.description.value,
             class_id: form.class.value,
             subject_id: form.subject.value,
+            start_date: form.startDate.value,
             due_date: form.dueDate.value,
             total_marks: form.totalMarks.value,
             type: form.type.value,
