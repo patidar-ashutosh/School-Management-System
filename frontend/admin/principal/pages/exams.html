@@ -101,11 +101,11 @@
         <form id="examForm">
           <div class="form-row">
             <div class="form-group">
-              <label for="examName">Name</label>
+              <label for="examName">Name *</label>
               <input type="text" id="examName" name="name" required />
             </div>
             <div class="form-group">
-              <label for="subject">Subject</label>
+              <label for="subject">Subject *</label>
               <select id="subject" name="subject" required>
                 <option value="">Select Subject</option>
               </select>
@@ -113,7 +113,7 @@
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label for="class">Class</label>
+              <label for="class">Class *</label>
               <select id="class" name="class" required>
                 <option value="">Select Class</option>
               </select>
@@ -125,17 +125,17 @@
               <input type="date" id="examDate" name="exam_date" required />
             </div>
             <div class="form-group">
-              <label for="startTime">Start Time</label>
+              <label for="startTime">Start Time *</label>
               <input type="time" id="startTime" name="start_time" required />
             </div>
             <div class="form-group">
-              <label for="endTime">End Time</label>
+              <label for="endTime">End Time *</label>
               <input type="time" id="endTime" name="end_time" required />
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label for="totalMarks">Total Marks</label>
+              <label for="totalMarks">Total Marks *</label>
               <input
                 type="number"
                 id="totalMarks"
@@ -145,7 +145,7 @@
               />
             </div>
             <div class="form-group">
-              <label for="examType">Exam Type</label>
+              <label for="examType">Exam Type *</label>
               <select id="examType" name="exam_type" required>
                 <option value="">Select Type</option>
                 <option value="midterm">Midterm</option>
@@ -531,6 +531,7 @@
           subjectText.value = exam.subject_name || "";
           subjectSelect.style.display = "none";
           subjectText.style.display = "";
+          subjectSelect.removeAttribute("required");
           // Disable all fields except date, start time, end time
           document.getElementById("examName").disabled = true;
           document.getElementById("class").disabled = true;
@@ -631,6 +632,7 @@
         const subjectText = document.getElementById("subjectText");
         if (subjectSelect) subjectSelect.style.display = "";
         if (subjectText) subjectText.style.display = "none";
+        if (subjectSelect) subjectSelect.setAttribute("required", "required");
         if (subjectSelect) subjectSelect.disabled = false;
       }
 
@@ -832,6 +834,10 @@
             }
             // After loading classes, set up subject dropdown logic
             setupSubjectDropdown();
+            // If a class is already selected (e.g. after modal reset), trigger change to load subjects
+            if (classSelect.value) {
+              classSelect.dispatchEvent(new Event("change"));
+            }
           });
       }
 
@@ -842,7 +848,10 @@
         subjectSelect.innerHTML =
           '<option value="">Please select class first</option>';
         subjectSelect.disabled = true;
-        classSelect.addEventListener("change", function () {
+        // Remove any previous event listeners by cloning
+        const newClassSelect = classSelect.cloneNode(true);
+        classSelect.parentNode.replaceChild(newClassSelect, classSelect);
+        newClassSelect.addEventListener("change", function () {
           const classId = this.value;
           if (!classId) {
             subjectSelect.innerHTML =

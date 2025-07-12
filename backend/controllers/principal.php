@@ -46,6 +46,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
         $data['email'] = $current['email'];
+        // Always use the current joining_date from DB (not editable in UI)
+        $data['joining_date'] = $current['joining_date'];
         $result = $principalModel->update($principalId, $data);
         if ($result !== false) {
             echo json_encode(['success' => true, 'message' => 'Profile updated successfully']);

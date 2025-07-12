@@ -2,9 +2,7 @@
 @import url("common.css");
 
 /* Import Role-specific Styles */
-@import url("admin.css");
 @import url("user.css");
-@import url("student.css");
 @import url("teacher.css");
 @import url("principal.css");
 

@@ -204,15 +204,29 @@ foreach ($studentAssignments as $sa) {
 
 // 9. Exams (expanded to 22)
 $exams = [];
+$today = date('Y-m-d');
+$today_plus_1 = date('Y-m-d', strtotime('+1 day'));
+$today_minus_1 = date('Y-m-d', strtotime('-1 day'));
 for ($i = 1; $i <= 22; $i++) {
     $classIndex = ($i - 1) % count($classes);
     $subjectIndex = ($i - 1) % count($subjects);
     $className = $classes[$classIndex][0];
     $subjectCode = $subjects[$subjectIndex][1];
-    $examTypes = ['midterm', 'final', 'unit test'];
-    $statuses = ['scheduled', 'ongoing', 'completed'];
-    $examName = $subjects[$subjectIndex][0] . ' ' . $examTypes[$i % 3] . ' ' . $className;
-    $date = date('Y-m-d', strtotime("2024-07-01 +".($i*3).' days'));
+    // Only 'midterm' and 'final' as exam types, alternate between them
+    $examType = ($i % 2 == 0) ? 'final' : 'midterm';
+    // Distribute statuses: 8 scheduled, 7 ongoing, 7 completed
+    if ($i <= 8) {
+        $status = 'scheduled';
+        $date = $today_plus_1;
+    } elseif ($i <= 15) {
+        $status = 'ongoing';
+        $date = $today;
+    } else {
+        $status = 'completed';
+        // Alternate between today and today - 1 for completed
+        $date = ($i % 2 == 0) ? $today : $today_minus_1;
+    }
+    $examName = $subjects[$subjectIndex][0] . ' ' . ucfirst($examType) . ' ' . $className;
     $start = sprintf('%02d:00:00', 8 + ($i % 5));
     $end = sprintf('%02d:00:00', 10 + ($i % 5));
     $total = 50 + ($i % 3) * 25;
@@ -224,8 +238,8 @@ for ($i = 1; $i <= 22; $i++) {
         $start,
         $end,
         $total,
-        $examTypes[$i % 3],
-        $statuses[$i % 3],
+        $examType,
+        $status,
     ];
 }
 foreach ($exams as $e) {

@@ -81,17 +81,17 @@
         <form id="classForm">
           <div class="form-row">
             <div class="form-group">
-              <label for="className">Class Name</label>
+              <label for="className">Class Name *</label>
               <input type="text" id="className" name="className" required />
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label for="roomNumber">Room Number</label>
+              <label for="roomNumber">Room Number *</label>
               <input type="number" id="roomNumber" name="roomNumber" required />
             </div>
             <div class="form-group">
-              <label for="capacity">Capacity</label>
+              <label for="capacity">Capacity *</label>
               <input
                 type="number"
                 id="capacity"
@@ -175,17 +175,21 @@
         })
           .then((response) => response.json())
           .then((data) => {
-            if (data.success && data.classes) {
-              classes = data.classes;
-              filterClasses(); // Always filter (shows all if no search)
+            // Accept both data.classes and data.data for compatibility
+            if (data.success && (data.classes || data.data)) {
+              classes = (data.classes || data.data).sort((a, b) => a.id - b.id);
+              currentPage = 1;
+              filterClasses();
             } else {
               classes = [];
+              currentPage = 1;
               filterClasses();
             }
           })
           .catch((error) => {
             console.error("Error fetching classes:", error);
             classes = [];
+            currentPage = 1;
             filterClasses();
           });
       }
@@ -194,6 +198,7 @@
         const searchTerm = document
           .getElementById("searchInput")
           .value.toLowerCase();
+        currentPage = 1;
         filteredClasses = classes.filter((cls) => {
           const matchesSearch =
             cls.name.toLowerCase().includes(searchTerm) ||
@@ -247,8 +252,9 @@
         const totalPages = Math.max(
           1,
           Math.ceil(
-            (filteredLength !== undefined ? filteredLength : classes.length) /
-              itemsPerPage
+            (filteredLength !== undefined
+              ? filteredLength
+              : filteredClasses.length) / itemsPerPage
           )
         );
         document.getElementById(
@@ -264,8 +270,10 @@
       }
 
       function nextPage() {
-        const totalItems = filteredClasses.length;
-        const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+        const totalPages = Math.max(
+          1,
+          Math.ceil(filteredClasses.length / itemsPerPage)
+        );
         if (currentPage < totalPages) {
           currentPage++;
           displayFilteredClasses();
@@ -357,7 +365,8 @@
             if (data.success) {
               closeModal();
               fetchClassesFromDB();
-              showAlert("Class saved successfully!", "success");
+              currentPage = 1;
+              showAlert(data.message || "Class saved successfully!", "success");
             } else {
               // Robust duplicate class error detection
               if (
@@ -407,6 +416,7 @@
             if (data.success) {
               closeDeleteModal();
               fetchClassesFromDB();
+              currentPage = 1;
               showAlert("Class deleted successfully!", "success");
             } else {
               showAlert(data.message || "Failed to delete class", "error");

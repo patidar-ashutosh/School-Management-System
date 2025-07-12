@@ -89,7 +89,11 @@
                 type="tel"
                 id="phone"
                 name="phone"
+                pattern="\d{10}"
+                maxlength="10"
+                minlength="10"
                 placeholder="e.g., 9876543210"
+                title="Please enter a 10-digit phone number"
               />
             </div>
             <div class="form-group">
@@ -126,7 +130,11 @@
                 id="parentPhone"
                 name="parent_phone"
                 required
+                pattern="\d{10}"
+                maxlength="10"
+                minlength="10"
                 placeholder="e.g., 9876543210"
+                title="Please enter a 10-digit phone number"
               />
             </div>
           </div>
@@ -198,7 +206,28 @@
       function setupEventListeners() {
         document
           .getElementById("addStudentForm")
-          .addEventListener("submit", handleFormSubmit);
+          .addEventListener("submit", function (e) {
+            e.preventDefault();
+            // Validate phone fields
+            const phone = document.getElementById("phone").value.trim();
+            const parentPhone = document
+              .getElementById("parentPhone")
+              .value.trim();
+            if (phone && !/^\d{10}$/.test(phone)) {
+              showAlert("Phone number must be exactly 10 digits.", "error");
+              document.getElementById("phone").focus();
+              return;
+            }
+            if (!/^\d{10}$/.test(parentPhone)) {
+              showAlert(
+                "Parent/Guardian phone must be exactly 10 digits.",
+                "error"
+              );
+              document.getElementById("parentPhone").focus();
+              return;
+            }
+            handleFormSubmit(e);
+          });
       }
 
       async function loadClasses() {

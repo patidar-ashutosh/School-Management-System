@@ -129,7 +129,16 @@
           </div>
           <div class="form-group">
             <label for="phone">Phone *</label>
-            <input type="tel" id="phone" name="phone" required />
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              required
+              pattern="\d{10}"
+              maxlength="10"
+              minlength="10"
+              title="Please enter a 10-digit phone number"
+            />
           </div>
           <div class="form-group">
             <label for="address">Address</label>
@@ -137,12 +146,13 @@
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label for="qualification">Qualification</label>
+              <label for="qualification">Qualification *</label>
               <input
                 type="text"
                 id="qualification"
                 name="qualification"
                 placeholder="e.g., M.Tech, M.A., Ph.D."
+                required
               />
             </div>
             <div class="form-group">
@@ -168,7 +178,7 @@
               />
             </div>
             <div class="form-group">
-              <label for="salary">Salary</label>
+              <label for="salary">Salary *</label>
               <input
                 type="number"
                 id="salary"
@@ -176,6 +186,7 @@
                 min="0"
                 step="0.01"
                 placeholder="0.00"
+                required
               />
             </div>
           </div>
@@ -252,7 +263,17 @@
           .addEventListener("change", filterTeachers);
         document
           .getElementById("teacherForm")
-          .addEventListener("submit", handleFormSubmit);
+          .addEventListener("submit", function (e) {
+            e.preventDefault();
+            // Validate phone field
+            const phone = document.getElementById("phone").value.trim();
+            if (!/^\d{10}$/.test(phone)) {
+              showAlert("Phone number must be exactly 10 digits.", "error");
+              document.getElementById("phone").focus();
+              return;
+            }
+            handleFormSubmit(e);
+          });
       }
 
       async function loadTeachers() {
@@ -277,11 +298,11 @@
             displayTeachers();
           } else {
             console.error("Failed to load teachers:", data.message);
-            showNotification("Failed to load teachers", "error");
+            showAlert("Failed to load teachers", "error");
           }
         } catch (error) {
           console.error("Error loading teachers:", error);
-          showNotification("Error loading teachers", "error");
+          showAlert("Error loading teachers", "error");
         }
       }
 
@@ -742,16 +763,13 @@
           if (data.success) {
             closeModal();
             loadTeachers();
-            showNotification(
-              data.message || "Teacher saved successfully!",
-              "success"
-            );
+            showAlert(data.message || "Teacher saved successfully!", "success");
           } else {
-            showNotification(data.message || "Failed to save teacher", "error");
+            showAlert(data.message || "Failed to save teacher", "error");
           }
         } catch (error) {
           console.error("Error saving teacher:", error);
-          showNotification("Network error. Please try again.", "error");
+          showAlert("Network error. Please try again.", "error");
         } finally {
           // Reset button state
           submitBtn.disabled = false;
@@ -781,7 +799,7 @@
         const teacher = teachers.find((t) => t.id == teacherId);
 
         if (!teacher) {
-          showNotification("Teacher not found", "error");
+          showAlert("Teacher not found", "error");
           return;
         }
 
@@ -820,43 +838,17 @@
           if (data.success) {
             closeDeactivateModal();
             loadTeachers();
-            showNotification(
+            showAlert(
               data.message || "Teacher deactivated successfully!",
               "success"
             );
           } else {
-            showNotification(
-              data.message || "Failed to deactivate teacher",
-              "error"
-            );
+            showAlert(data.message || "Failed to deactivate teacher", "error");
           }
         } catch (error) {
           console.error("Error deactivating teacher:", error);
-          showNotification("Network error. Please try again.", "error");
+          showAlert("Network error. Please try again.", "error");
         }
-      }
-
-      function showNotification(message, type) {
-        // Remove existing notifications
-        const existingNotifications =
-          document.querySelectorAll(".notification");
-        existingNotifications.forEach((notification) => notification.remove());
-
-        // Create new notification
-        const notification = document.createElement("div");
-        notification.className = `notification notification-${type}`;
-        notification.innerHTML = `
-          <i class="fas fa-${
-            type === "success" ? "check-circle" : "exclamation-circle"
-          }"></i>
-          ${message}
-        `;
-        document.body.appendChild(notification);
-
-        // Auto-remove notification after 5 seconds
-        setTimeout(() => {
-          notification.remove();
-        }, 5000);
       }
 
       // On page load, also load classes for filter

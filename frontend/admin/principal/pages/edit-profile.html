@@ -45,7 +45,16 @@
             </p>
             <p>
               <strong>Phone:</strong>
-              <input type="text" id="phone" name="phone" />
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                pattern="\d{10}"
+                maxlength="10"
+                minlength="10"
+                required
+                title="Please enter a 10-digit phone number"
+              />
             </p>
             <p>
               <strong>Address:</strong>
@@ -57,7 +66,12 @@
             </p>
             <p>
               <strong>Joining Date:</strong>
-              <input type="date" id="joiningDate" name="joining_date" />
+              <input
+                type="date"
+                id="joiningDate"
+                name="joining_date"
+                disabled
+              />
             </p>
           </div>
           <div class="profile-actions">
@@ -107,14 +121,21 @@
       }
       async function submitEditProfile(e) {
         e.preventDefault();
+        // Phone validation: only 10 digits
+        const phone = document.getElementById("phone").value.trim();
+        if (!/^\d{10}$/.test(phone)) {
+          showAlert("Phone number must be exactly 10 digits.", "error");
+          document.getElementById("phone").focus();
+          return;
+        }
         const payload = {
           action: "update_profile",
           first_name: document.getElementById("firstName").value.trim(),
           last_name: document.getElementById("lastName").value.trim(),
-          phone: document.getElementById("phone").value.trim(),
+          phone: phone,
           address: document.getElementById("address").value.trim(),
           qualification: document.getElementById("qualification").value.trim(),
-          joining_date: document.getElementById("joiningDate").value,
+          // joining_date is not editable
         };
         try {
           const response = await fetch("/backend/controllers/principal.php", {

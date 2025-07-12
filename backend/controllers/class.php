@@ -65,50 +65,16 @@ if ($method === 'GET') {
 }
 
 function handleGetAllClasses($classModel) {
-    $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-    $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
-    $search = $_GET['search'] ?? '';
-    
-    $offset = ($page - 1) * $limit;
-    
     try {
-        $db = db();
-        
-        // Build search condition
-        $searchCondition = '';
-        $searchParams = [];
-        
-        if (!empty($search)) {
-            $searchCondition = "WHERE c.name LIKE ? OR c.room_number LIKE ?";
-            $searchTerm = "%$search%";
-            $searchParams = [$searchTerm, $searchTerm];
-        }
-        
-        // Get total count
-        $countSql = "SELECT COUNT(*) as total FROM classes c $searchCondition";
-        $countStmt = $db->query($countSql, $searchParams);
-        $total = $countStmt->fetch()['total'];
-        
-        // Get classes with pagination
-        $sql = "SELECT c.* FROM classes c $searchCondition ORDER BY c.created_at DESC LIMIT ? OFFSET ?";
-        $params = array_merge($searchParams, [$limit, $offset]);
-        $classes = $db->fetchAll($sql, $params);
-        
-        // Add status property to each class (since DB does not have it)
+        $classes = $classModel->getAll();
+        // Add status property to each class (for frontend compatibility)
         foreach ($classes as &$cls) {
             $cls['status'] = 'active';
         }
         unset($cls);
-        
-        $totalPages = ceil($total / $limit);
-        
         echo json_encode([
             'success' => true,
-            'classes' => $classes,
-            'total' => $total,
-            'current_page' => $page,
-            'total_pages' => $totalPages,
-            'items_per_page' => $limit
+            'classes' => $classes
         ]);
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'message' => 'Failed to load classes: ' . $e->getMessage()]);
