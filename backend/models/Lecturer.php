@@ -51,7 +51,7 @@ class Lecturer {
     }
 
     public function existsForSubjectClassDay($subject_id, $class_id, $day_of_week, $exclude_id = null) {
-        $sql = "SELECT COUNT(*) as count FROM lecturers WHERE subject_id = ? AND class_id = ? AND day_of_week = ?";
+        $sql = "SELECT COUNT(*) as count FROM lecturers WHERE subject_id = ? AND class_id = ? AND day_of_week = ? AND status != 'completed'";
         $params = [$subject_id, $class_id, $day_of_week];
         if ($exclude_id) {
             $sql .= " AND id != ?";
