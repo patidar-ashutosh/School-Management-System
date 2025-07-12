@@ -274,11 +274,16 @@
     <script src="/assets/js/auth.js"></script>
     <script src="/assets/js/popup-alert.js"></script>
     <script>
+      // Pagination variables
+      let students = [];
+      let filteredStudents = [];
+      let currentPage = 1;
+      let itemsPerPage = 10;
+
       // Load page data
       document.addEventListener("DOMContentLoaded", function () {
         loadMyStudents();
         setupSearchAndFilter();
-        loadMyClassNames();
       });
 
       // Mobile menu toggle function
@@ -326,10 +331,11 @@
           !teacherData.data.class_teacher_of
         ) {
           document.getElementById("studentsTableBody").innerHTML =
-            '<tr><td colspan="7" class="text-center">You are not assigned as class teacher of any class.</td></tr>';
+            '<tr><td colspan="3" class="text-center">You are not assigned as class teacher of any class.</td></tr>';
           document.getElementById("totalStudents").textContent = "0";
-          document.getElementById("attendanceRate").textContent = "-";
-          document.getElementById("activeStudents").textContent = "0";
+          students = [];
+          filteredStudents = [];
+          updatePagination();
           return;
         }
         const classId = teacherData.data.class_teacher_of;
@@ -342,24 +348,44 @@
         const studentsData = await studentsRes.json();
         if (!studentsData.success || !studentsData.data) {
           document.getElementById("studentsTableBody").innerHTML =
-            '<tr><td colspan="7" class="text-center">No students found for your class.</td></tr>';
+            '<tr><td colspan="3" class="text-center">No students found for your class.</td></tr>';
           document.getElementById("totalStudents").textContent = "0";
-          document.getElementById("attendanceRate").textContent = "-";
-          document.getElementById("activeStudents").textContent = "0";
+          students = [];
+          filteredStudents = [];
+          updatePagination();
           return;
         }
-        renderStudentsTable(studentsData.data);
+        students = studentsData.data;
+        filteredStudents = [...students];
+        renderStudentsTable();
       }
 
-      function renderStudentsTable(students) {
+      function renderStudentsTable() {
         const tbody = document.getElementById("studentsTableBody");
         tbody.innerHTML = "";
+
+        if (filteredStudents.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="3" class="text-center">No students found.</td></tr>';
+          updatePagination();
+          return;
+        }
+
         let activeCount = 0;
-        let className = students.length > 0 ? students[0].class_name || "" : "";
+        let className =
+          filteredStudents.length > 0
+            ? filteredStudents[0].class_name || ""
+            : "";
         document.getElementById(
           "studentListTitle"
         ).textContent = `Student List Of Your Class: ${className}`;
-        students.forEach((student) => {
+
+        // Calculate pagination
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const pageStudents = filteredStudents.slice(startIndex, endIndex);
+
+        pageStudents.forEach((student) => {
           if (student.status === "active") activeCount++;
           const row = document.createElement("tr");
           row.innerHTML = `
@@ -392,9 +418,18 @@
           `;
           tbody.appendChild(row);
         });
+
         document.getElementById("totalStudents").textContent = students.length;
-        document.getElementById("activeStudents").textContent = activeCount;
-        document.getElementById("attendanceRate").textContent = "-";
+        updatePagination();
+      }
+
+      function updatePagination() {
+        const totalPages =
+          Math.ceil(filteredStudents.length / itemsPerPage) || 1;
+        const paginationSpan = document.querySelector(".pagination span");
+        if (paginationSpan) {
+          paginationSpan.textContent = `Page ${currentPage} of ${totalPages}`;
+        }
       }
 
       function getInitials(first, last) {
@@ -419,20 +454,16 @@
           .getElementById("studentSearch")
           .value.toLowerCase();
 
-        // Only filter by name or ID
-        const tbody = document.getElementById("studentsTableBody");
-        const rows = tbody.querySelectorAll("tr");
-        rows.forEach((row) => {
-          const nameCell = row.querySelector(".student-info strong");
-          const idCell = row.querySelector(".student-info small");
-          const name = nameCell ? nameCell.textContent.toLowerCase() : "";
-          const id = idCell ? idCell.textContent.toLowerCase() : "";
-          if (name.includes(searchTerm) || id.includes(searchTerm)) {
-            row.style.display = "";
-          } else {
-            row.style.display = "none";
-          }
+        // Filter students by name or ID
+        filteredStudents = students.filter((student) => {
+          const name =
+            `${student.first_name} ${student.last_name}`.toLowerCase();
+          const id = String(student.id).toLowerCase();
+          return name.includes(searchTerm) || id.includes(searchTerm);
         });
+
+        currentPage = 1; // Reset to first page when filtering
+        renderStudentsTable();
       }
 
       function toggleSelectAll() {
@@ -517,8 +548,16 @@
       }
 
       function changePage(direction) {
-        // Implement pagination
-        console.log("Changing page:", direction);
+        const totalPages =
+          Math.ceil(filteredStudents.length / itemsPerPage) || 1;
+
+        if (direction === "prev" && currentPage > 1) {
+          currentPage--;
+          renderStudentsTable();
+        } else if (direction === "next" && currentPage < totalPages) {
+          currentPage++;
+          renderStudentsTable();
+        }
       }
 
       function closeStudentModal() {
@@ -532,35 +571,6 @@
           closeStudentModal();
         }
       };
-
-      async function loadMyClassNames() {
-        const userStr = localStorage.getItem("user");
-        if (!userStr) return;
-        const user = JSON.parse(userStr);
-        if (!user || !user.id) return;
-        // Fetch teacher info
-        const teacherRes = await fetch(
-          `/backend/controllers/teachers.php?action=get_by_id&id=${user.id}`
-        );
-        const teacherData = await teacherRes.json();
-        if (!teacherData.success || !teacherData.data) return;
-        // Class teacher of
-        const classTeacherOf =
-          teacherData.data.class_teacher_of_name ||
-          teacherData.data.class_teacher_of ||
-          "-";
-        document.getElementById("classTeacherOf").textContent = classTeacherOf;
-        // Teacher of (other classes)
-        let classesTaught = teacherData.data.classes_taught || [];
-        // Remove class_teacher_of from classes_taught if present
-        if (teacherData.data.class_teacher_of) {
-          classesTaught = classesTaught.filter(
-            (c) => c.id != teacherData.data.class_teacher_of
-          );
-        }
-        const classNames = classesTaught.map((c) => c.name).join(", ") || "-";
-        document.getElementById("teacherOfClasses").textContent = classNames;
-      }
     </script>
 
     <style>

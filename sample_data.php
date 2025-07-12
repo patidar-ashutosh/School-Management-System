@@ -149,6 +149,40 @@ for ($i = 1; $i <= 25; $i++) {
         'active',
     ];
 }
+
+// Add 16 students specifically to Class 10A
+$class10AId = $classIds['Class 10A'];
+$additionalFirstNames = ['Rahul', 'Priya', 'Amit', 'Neha', 'Vikram', 'Sunita', 'Rajiv', 'Deepa', 'Suresh', 'Anita', 'Alok', 'Meena', 'Prakash', 'Kavita', 'Sanjay', 'Rekha'];
+$additionalLastNames = ['Malhotra', 'Rastogi', 'Saxena', 'Agarwal', 'Srivastava', 'Pandey', 'Tripathi', 'Dubey', 'Mishra', 'Tiwari', 'Yadav', 'Kaur', 'Gill', 'Randhawa', 'Dhillon', 'Sidhu'];
+
+for ($i = 26; $i <= 41; $i++) {
+    $first = $additionalFirstNames[$i-26];
+    $last = $additionalLastNames[$i-26];
+    $email = strtolower($first.$last."$i@school.com");
+    $username = strtolower($first.$last);
+    $gender = ($i%2==0) ? 'female' : 'male';
+    $dob = date('Y-m-d', strtotime("2005-01-01 +".($i*120).' days'));
+    $admission = date('Y-m-d', strtotime("2018-06-01 +".($i*30).' days'));
+    $students[] = [
+        $email,
+        $username,
+        $first,
+        $last,
+        $dob,
+        $gender,
+        'City '.$i,
+        '9876543'.str_pad($i,3,'0',STR_PAD_LEFT),
+        'Parent '.$first,
+        '9876543'.str_pad($i+100,3,'0',STR_PAD_LEFT),
+        'parent'.$i.'@school.com',
+        $class10AId, // All 16 additional students go to Class 10A
+        1000 + $i,
+        $admission,
+        'A+',
+        'active',
+    ];
+}
+
 foreach ($students as $s) {
     $pdo->prepare("INSERT IGNORE INTO students (password, email, first_name, last_name, date_of_birth, gender, address, phone, parent_name, parent_phone, parent_email, class_id, roll_number, admission_date, blood_group, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
         ->execute([
@@ -171,6 +205,43 @@ $attendance = [
     [$studentIds['meghasharma4@school.com'], $classIds['Class 11 Science'], '2024-07-01', 'present', $teacherIds['teacher5@school.com']],
     [$studentIds['rohanjoshi5@school.com'], $classIds['Class 12 Commerce'], '2024-07-01', 'absent', $teacherIds['teacher4@school.com']],
 ];
+
+// Add attendance data for current date and past 5 days for Class 10A students
+$currentDate = date('Y-m-d');
+
+// Filter only Class 10A students from the students array
+$class10AStudents = [];
+foreach ($students as $student) {
+    if ($student[11] == $class10AId) { // class_id is at index 11
+        $class10AStudents[] = $student;
+    }
+}
+
+// Get Class 10A teacher ID (teacher1@school.com)
+$class10ATeacherId = $teacherIds['teacher1@school.com'];
+
+// Generate attendance for past 5 days (excluding current date)
+for ($dayOffset = 5; $dayOffset >= 1; $dayOffset--) {
+    $attendanceDate = date('Y-m-d', strtotime("-$dayOffset days"));
+    
+    foreach ($class10AStudents as $student) {
+        $studentEmail = $student[0];
+        if (isset($studentIds[$studentEmail])) {
+            $studentId = $studentIds[$studentEmail];
+            // Randomly assign present/absent (80% present, 20% absent)
+            $status = (rand(1, 100) <= 80) ? 'present' : 'absent';
+            
+            $attendance[] = [
+                $studentId,
+                $class10AId,
+                $attendanceDate,
+                $status,
+                $class10ATeacherId
+            ];
+        }
+    }
+}
+
 foreach ($attendance as $a) {
     $pdo->prepare("INSERT IGNORE INTO attendance (student_id, class_id, date, status, marked_by) VALUES (?, ?, ?, ?, ?)")->execute($a);
 }
