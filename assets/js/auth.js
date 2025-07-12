@@ -21,12 +21,17 @@ class Auth {
 
   isLoginPage() {
     const currentPath = window.location.pathname;
-    return (
+    const isLogin =
       currentPath.includes("/index.html") ||
       currentPath.endsWith("/") ||
       currentPath.includes("/login") ||
-      currentPath.includes("/frontend/index.html")
-    );
+      currentPath.includes("/frontend/index.html") ||
+      currentPath.includes("/frontend/admin/principal/index.html") ||
+      currentPath.includes("/frontend/admin/teacher/index.html") ||
+      currentPath.includes("/frontend/user/index.html") ||
+      currentPath.includes("/frontend/admin/index.html");
+
+    return isLogin;
   }
 
   setupEventListeners() {
@@ -69,7 +74,6 @@ class Auth {
       return;
     }
 
-    console.log("Attempting login with:", { email, role });
     showLoading(true);
 
     try {
@@ -101,7 +105,6 @@ class Auth {
       });
 
       const data = await response.json();
-      console.log("Login response:", data);
 
       if (data.success) {
         this.currentUser = data.user;
@@ -110,7 +113,6 @@ class Auth {
 
         // Redirect based on role
         setTimeout(() => {
-          console.log("Redirecting to dashboard for role:", data.user.role);
           this.redirectAfterLogin(data.user.role);
         }, 1000);
       } else {
@@ -133,6 +135,7 @@ class Auth {
 
       if (response.ok) {
         const data = await response.json();
+
         if (data.loggedIn) {
           this.currentUser = data.user;
           this.updateUI();
@@ -306,9 +309,6 @@ class Auth {
     );
 
     if (!hasAccess) {
-      console.log(
-        `User role ${userRole} doesn't have access to ${currentPath}`
-      );
       this.showAlert(
         `You don't have permission to access this page. Redirecting to your dashboard.`,
         "warning"
@@ -343,8 +343,6 @@ class Auth {
 
   async logout() {
     try {
-      console.log("Logging out user...");
-
       // Call backend logout
       const response = await fetch(this.apiUrl, {
         method: "POST",
@@ -356,15 +354,12 @@ class Auth {
       });
 
       const data = await response.json();
-      console.log("Logout response:", data);
 
       if (data.success) {
-        console.log("Logout successful, redirecting to login");
         this.currentUser = null;
         localStorage.removeItem("user"); // Clear user
         this.redirectToLogin();
       } else {
-        console.log("Logout failed, but clearing local data");
         this.currentUser = null;
         localStorage.removeItem("user"); // Clear user
         this.redirectToLogin();
@@ -396,7 +391,6 @@ class Auth {
         targetUrl += "/frontend/index.html";
     }
 
-    console.log("Redirecting to:", targetUrl);
     window.location.href = targetUrl;
   }
 
@@ -522,17 +516,13 @@ class Auth {
     const user = this.getCurrentUser();
     const currentUrl = window.location.href;
 
-    console.log("Checking page access:", { user, currentUrl });
-
     if (!user) {
-      console.log("No user found, redirecting to login");
       this.redirectToLogin();
       return false;
     }
 
     const expectedPage = this.getExpectedPageForRole(user.role);
     if (currentUrl !== expectedPage) {
-      console.log("User on wrong page, redirecting to expected page");
       window.location.href = expectedPage;
       return false;
     }
@@ -635,11 +625,8 @@ function toggleDropdown() {
 
 // Initialize page
 document.addEventListener("DOMContentLoaded", function () {
-  // Check authentication on protected pages
-  const currentPath = window.location.pathname;
-  if (currentPath.includes("dashboard") || currentPath.includes("manage")) {
-    auth.checkAuthStatus();
-  }
+  // Check authentication on ALL pages (including login pages)
+  auth.checkAuthStatus();
 
   // Add event listeners for dropdown
   const userInfo = document.querySelector(".user-info");

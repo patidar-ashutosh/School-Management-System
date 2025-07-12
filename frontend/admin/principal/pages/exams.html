@@ -21,6 +21,9 @@
             <button class="btn btn-primary" onclick="openAddModal()">
               <i class="fas fa-plus"></i> Add Exam
             </button>
+            <button class="btn btn-info" onclick="manualRefreshStatuses()">
+              <i class="fas fa-sync-alt"></i> Refresh Statuses
+            </button>
             <a href="principal-dashboard.html" class="btn btn-secondary">
               <i class="fas fa-arrow-left"></i> Back to Dashboard
             </a>
@@ -212,6 +215,12 @@
         setExamDateLimits();
         fetchExamsFromDB();
         setupEventListeners();
+
+        // Set up periodic auto-update every 2 minutes
+        setInterval(async () => {
+          await autoUpdateExamStatuses();
+        }, 2 * 60 * 1000); // 2 minutes
+
         // Set min/max for total marks
         const totalMarksInput = document.getElementById("totalMarks");
         if (totalMarksInput) {
@@ -250,13 +259,33 @@
 
       async function autoUpdateExamStatuses() {
         try {
-          await fetch("/backend/controllers/exams.php", {
+          console.log("Starting auto-update of exam statuses...");
+          const response = await fetch("/backend/controllers/exams.php", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ action: "auto_update_status" }),
           });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+          console.log("Auto-update response:", data);
+
+          if (data.success) {
+            console.log(
+              `Auto-update completed. Updated ${data.updated} exams.`
+            );
+            if (data.updated > 0) {
+              // If any exams were updated, refresh the exam list
+              await fetchExamsFromDB();
+            }
+          } else {
+            console.error("Auto-update failed:", data.message);
+          }
         } catch (error) {
-          // Optionally show a notification or ignore
+          console.error("Error during auto-update:", error);
         }
       }
 
@@ -811,6 +840,39 @@
 
       function showNotification(message, type) {
         showAlert(message, type);
+      }
+
+      async function manualRefreshStatuses() {
+        try {
+          const button = event.target.closest("button");
+          const originalText = button.innerHTML;
+          button.innerHTML =
+            '<i class="fas fa-spinner fa-spin"></i> Updating...';
+          button.disabled = true;
+
+          // First test the timezone
+          const timezoneResponse = await fetch(
+            "/backend/controllers/exams.php",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ action: "test_timezone" }),
+            }
+          );
+          const timezoneData = await timezoneResponse.json();
+          console.log("Server timezone info:", timezoneData);
+
+          await autoUpdateExamStatuses();
+
+          button.innerHTML = originalText;
+          button.disabled = false;
+          showNotification("Exam statuses refreshed successfully!", "success");
+        } catch (error) {
+          const button = event.target.closest("button");
+          button.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh Statuses';
+          button.disabled = false;
+          showNotification("Failed to refresh statuses", "error");
+        }
       }
 
       function loadDropdowns() {

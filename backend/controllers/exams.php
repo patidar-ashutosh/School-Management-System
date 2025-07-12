@@ -124,21 +124,43 @@ try {
                 ]);
                 break;
                 
+            case 'test_timezone':
+                $now = new DateTime('now');
+                echo json_encode([
+                    'success' => true,
+                    'current_time' => $now->format('Y-m-d H:i:s'),
+                    'timezone' => date_default_timezone_get(),
+                    'timestamp' => time()
+                ]);
+                break;
+                
             case 'auto_update_status':
                 // Get all exams with status 'ONGOING' or 'SCHEDULED'
                 $allExams = $exam->getAll();
                 $now = new DateTime('now');
                 $updated = 0;
+                
+                // Debug: Log current time
+                error_log("Auto update - Current time: " . $now->format('Y-m-d H:i:s'));
+                
                 foreach ($allExams as $ex) {
-                    if (!in_array(strtolower($ex['status']), ['ongoing', 'scheduled'])) continue;
+                    if (!in_array(strtolower($ex['status']), ['ongoing', 'scheduled'])) {
+                        continue;
+                    }
+                    
                     $examDate = $ex['date']; // Y-m-d
                     $startTime = $ex['start_time']; // H:i:s
                     $endTime = $ex['end_time']; // H:i:s
                     $status = $ex['status'];
+                    $originalStatus = $status;
+
+                    // Debug: Log exam details
+                    error_log("Exam ID: {$ex['id']}, Date: $examDate, Start: $startTime, End: $endTime, Current Status: $status");
 
                     // Case 3: Current Date > Exam Date
                     if ($now->format('Y-m-d') > $examDate) {
                         $status = 'COMPLETED';
+                        error_log("Case 3: Date passed, setting to COMPLETED");
                     }
                     // Case 1 & 2: Current Date == Exam Date
                     else if ($now->format('Y-m-d') == $examDate) {
@@ -146,16 +168,22 @@ try {
                         if ($startTime && $endTime) {
                             if ($currentTime > $endTime) {
                                 $status = 'COMPLETED';
+                                error_log("Case 2: Time passed, setting to COMPLETED");
                             } else if ($currentTime >= $startTime && $currentTime < $endTime) {
                                 $status = 'ONGOING';
+                                error_log("Case 1: Within time range, setting to ONGOING");
                             }
                         }
                     }
-                    if ($status !== $ex['status']) {
+                    
+                    if ($status !== $originalStatus) {
+                        error_log("Updating exam {$ex['id']} from $originalStatus to $status");
                         $exam->update($ex['id'], array_merge($ex, ['status' => $status]));
                         $updated++;
                     }
                 }
+                
+                error_log("Auto update completed. Updated: $updated exams");
                 echo json_encode([
                     'success' => true,
                     'message' => "Exam statuses auto-updated.",
