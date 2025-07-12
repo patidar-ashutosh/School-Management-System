@@ -281,17 +281,8 @@ foreach ($teachers as $t) {
     $teacherEmail = $t[0];
     $classTeacherOf = $t[12]; // class_teacher_of value
     if ($classTeacherOf) {
-        // Check if this combination already exists
-        $exists = false;
-        foreach ($teacherClasses as $tc) {
-            if ($tc[0] == $teacherIds[$teacherEmail] && $tc[1] == $classTeacherOf) {
-                $exists = true;
-                break;
-            }
-        }
-        if (!$exists) {
-            $teacherClasses[] = [$teacherIds[$teacherEmail], $classTeacherOf];
-        }
+        // Add this teacher-class combination to teacher_classes table
+        $teacherClasses[] = [$teacherIds[$teacherEmail], $classTeacherOf];
     }
 }
 

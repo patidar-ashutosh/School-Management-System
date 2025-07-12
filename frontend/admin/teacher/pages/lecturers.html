@@ -39,6 +39,52 @@
         background-color: #e8f5e8;
         color: #388e3c;
       }
+
+      /* Tab Navigation Styles */
+      .tab-navigation {
+        display: flex;
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 4px;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .tab-button {
+        flex: 1;
+        padding: 12px 20px;
+        border: none;
+        background: transparent;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 500;
+        color: #666;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .tab-button:hover {
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+      }
+
+      .tab-button.active {
+        background: #667eea;
+        color: white;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
     </style>
   </head>
   <body class="teacher-dashboard">
@@ -134,96 +180,170 @@
         <h1>My Lectures</h1>
         <p>Manage your scheduled lectures and view lecture details</p>
       </div>
-      <div class="dashboard-cards">
-        <div class="dashboard-card">
-          <div class="card-header">
-            <div class="card-title">Total Lectures</div>
-            <div class="card-icon" style="background: #667eea">
-              <i class="fas fa-chalkboard-teacher"></i>
-            </div>
-          </div>
-          <div class="card-number" id="totalLectures">0</div>
-          <div class="card-description">Scheduled lectures</div>
-        </div>
-        <div class="dashboard-card">
-          <div class="card-header">
-            <div class="card-title">Completed</div>
-            <div class="card-icon" style="background: #28a745">
-              <i class="fas fa-check-circle"></i>
-            </div>
-          </div>
-          <div class="card-number" id="completedLectures">0</div>
-          <div class="card-description">Completed lectures</div>
-        </div>
-        <div class="dashboard-card">
-          <div class="card-header">
-            <div class="card-title">Upcoming</div>
-            <div class="card-icon" style="background: #17a2b8">
-              <i class="fas fa-hourglass-start"></i>
-            </div>
-          </div>
-          <div class="card-number" id="upcomingLectures">0</div>
-          <div class="card-description">Incoming lectures</div>
-        </div>
-      </div>
-      <!-- Search and Filter Section -->
-      <div class="search-section">
-        <div class="search-box">
-          <input
-            type="text"
-            id="searchInput"
-            placeholder="Search lectures by subject or class..."
-          />
-          <i class="fas fa-search"></i>
-        </div>
-        <div class="filter-options">
-          <select id="statusFilter">
-            <option value="">All Status</option>
-            <option value="scheduled">Scheduled</option>
-            <option value="running">Running</option>
-            <option value="completed">Completed</option>
-          </select>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-header">
-          <h3>Lecture List</h3>
-          <div class="header-actions">
-            <button class="btn btn-primary" onclick="openAddLectureModal()">
-              <i class="fas fa-plus"></i> Add Lecture
-            </button>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="table-container">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Subject</th>
-                  <th>Class</th>
-                  <th>Day</th>
-                  <th>Start Time</th>
-                  <th>End Time</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="lecturesTableBody">
-                <!-- Dynamic rows go here -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-      <!-- Pagination -->
-      <div class="pagination">
-        <button class="btn btn-secondary" onclick="previousPage()">
-          <i class="fas fa-chevron-left"></i> Previous
+
+      <!-- Tab Navigation -->
+      <div class="tab-navigation">
+        <button
+          class="tab-button active"
+          onclick="switchTab('active')"
+          id="activeTab"
+        >
+          <i class="fas fa-calendar-week"></i> This Week's Lectures
         </button>
-        <span id="pageInfo">Page 1 of 1</span>
-        <button class="btn btn-secondary" onclick="nextPage()">
-          Next <i class="fas fa-chevron-right"></i>
+        <button
+          class="tab-button"
+          onclick="switchTab('completed')"
+          id="completedTab"
+        >
+          <i class="fas fa-history"></i> All Completed Lectures
         </button>
+      </div>
+
+      <!-- Active Lectures Tab Content -->
+      <div id="activeTabContent" class="tab-content active">
+        <div class="dashboard-cards">
+          <div class="dashboard-card">
+            <div class="card-header">
+              <div class="card-title">Total Lectures</div>
+              <div class="card-icon" style="background: #667eea">
+                <i class="fas fa-chalkboard-teacher"></i>
+              </div>
+            </div>
+            <div class="card-number" id="totalLectures">0</div>
+            <div class="card-description">Scheduled lectures</div>
+          </div>
+          <div class="dashboard-card">
+            <div class="card-header">
+              <div class="card-title">Completed</div>
+              <div class="card-icon" style="background: #28a745">
+                <i class="fas fa-check-circle"></i>
+              </div>
+            </div>
+            <div class="card-number" id="completedLectures">0</div>
+            <div class="card-description">Completed lectures</div>
+          </div>
+          <div class="dashboard-card">
+            <div class="card-header">
+              <div class="card-title">Upcoming</div>
+              <div class="card-icon" style="background: #17a2b8">
+                <i class="fas fa-hourglass-start"></i>
+              </div>
+            </div>
+            <div class="card-number" id="upcomingLectures">0</div>
+            <div class="card-description">Incoming lectures</div>
+          </div>
+        </div>
+
+        <!-- Search and Filter Section -->
+        <div class="search-section">
+          <div class="search-box">
+            <input
+              type="text"
+              id="searchInput"
+              placeholder="Search lectures by subject or class..."
+            />
+            <i class="fas fa-search"></i>
+          </div>
+          <div class="filter-options">
+            <select id="statusFilter">
+              <option value="">All Status</option>
+              <option value="scheduled">Scheduled</option>
+              <option value="running">Running</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>This Week's Lectures</h3>
+            <div class="header-actions">
+              <button class="btn btn-primary" onclick="openAddLectureModal()">
+                <i class="fas fa-plus"></i> Add Lecture
+              </button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Subject</th>
+                    <th>Class</th>
+                    <th>Day</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="lecturesTableBody">
+                  <!-- Dynamic rows go here -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination">
+          <button class="btn btn-secondary" onclick="previousPage()">
+            <i class="fas fa-chevron-left"></i> Previous
+          </button>
+          <span id="pageInfo">Page 1 of 1</span>
+          <button class="btn btn-secondary" onclick="nextPage()">
+            Next <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Completed Lectures Tab Content -->
+      <div id="completedTabContent" class="tab-content">
+        <div class="page-header">
+          <h2>Completed Lecture History</h2>
+          <p>View all your completed lectures</p>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>All Completed Lectures</h3>
+            <div class="header-actions">
+              <span class="completed-count"
+                >Total Completed:
+                <span id="totalCompletedLectures">0</span></span
+              >
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Subject</th>
+                    <th>Class</th>
+                    <th>Day</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Completed Date</th>
+                  </tr>
+                </thead>
+                <tbody id="completedLecturesTableBody">
+                  <!-- Dynamic completed lecture rows will be rendered here -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Completed Lectures Pagination -->
+        <div class="pagination">
+          <button class="btn btn-secondary" onclick="previousCompletedPage()">
+            <i class="fas fa-chevron-left"></i> Previous
+          </button>
+          <span id="completedPageInfo">Page 1 of 1</span>
+          <button class="btn btn-secondary" onclick="nextCompletedPage()">
+            Next <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
       </div>
     </main>
     <!-- Add/Edit Lecture Modal -->
@@ -276,8 +396,6 @@
               <label for="status">Status</label>
               <select id="status" name="status" required>
                 <option value="scheduled">Scheduled</option>
-                <option value="running">Running</option>
-                <option value="completed">Completed</option>
               </select>
             </div>
           </div>
@@ -315,29 +433,64 @@
         </div>
       </div>
     </div>
-    <div
-      id="customAlert"
-      class="alert d-none position-fixed top-0 start-50 translate-middle-x mt-3"
-      style="z-index: 9999; min-width: 300px"
-    >
-      <span id="alertMsg"></span>
-    </div>
     <script src="/assets/js/auth.js"></script>
     <script src="/assets/js/popup-alert.js"></script>
     <script>
       let lectures = [];
       let filteredLectures = [];
+      let completedLectures = [];
+      let filteredCompletedLectures = [];
       let currentPage = 1;
+      let currentCompletedPage = 1;
       let itemsPerPage = 10;
       let editingLectureId = null;
       let deleteLectureId = null;
       let deleteLectureSubject = "";
 
       document.addEventListener("DOMContentLoaded", function () {
-        fetchLecturesFromDB();
+        autoUpdateLectureStatuses().then(() => {
+          fetchLecturesFromDB();
+        });
         loadClassesDropdown(); // Only load classes, not subjects
         setupLectureEventListeners();
       });
+
+      async function autoUpdateLectureStatuses() {
+        try {
+          const response = await fetch("/backend/controllers/lecturers.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "auto_update_status" }),
+          });
+          const data = await response.json();
+          if (data.success) {
+            console.log("Lecture statuses updated automatically");
+          }
+        } catch (error) {
+          console.error("Error updating lecture statuses:", error);
+        }
+      }
+
+      function switchTab(tabName) {
+        // Remove active class from all tabs and content
+        document
+          .querySelectorAll(".tab-button")
+          .forEach((btn) => btn.classList.remove("active"));
+        document
+          .querySelectorAll(".tab-content")
+          .forEach((content) => content.classList.remove("active"));
+
+        // Add active class to selected tab and content
+        if (tabName === "active") {
+          document.getElementById("activeTab").classList.add("active");
+          document.getElementById("activeTabContent").classList.add("active");
+        } else if (tabName === "completed") {
+          document.getElementById("completedTab").classList.add("active");
+          document
+            .getElementById("completedTabContent")
+            .classList.add("active");
+        }
+      }
 
       function setupLectureEventListeners() {
         document
@@ -345,10 +498,58 @@
           .addEventListener("submit", handleLectureFormSubmit);
         document
           .getElementById("searchInput")
-          .addEventListener("input", filterLectures);
+          .addEventListener("input", function () {
+            filterLectures();
+            filterCompletedLectures();
+          });
         document
           .getElementById("statusFilter")
           .addEventListener("change", filterLectures);
+
+        // Add real-time time validation
+        document
+          .getElementById("startTime")
+          .addEventListener("change", validateTimeDifference);
+        document
+          .getElementById("endTime")
+          .addEventListener("change", validateTimeDifference);
+      }
+
+      function validateTimeDifference() {
+        const startTime = document.getElementById("startTime").value;
+        const endTime = document.getElementById("endTime").value;
+        const endTimeInput = document.getElementById("endTime");
+
+        if (startTime && endTime) {
+          const start = new Date(`2000-01-01T${startTime}`);
+          const end = new Date(`2000-01-01T${endTime}`);
+          const diffInMinutes = (end - start) / (1000 * 60);
+
+          if (diffInMinutes < 30) {
+            endTimeInput.style.borderColor = "#dc3545";
+            endTimeInput.style.backgroundColor = "#fff5f5";
+            // Show small error message below the input
+            let errorMsg = endTimeInput.parentNode.querySelector(".time-error");
+            if (!errorMsg) {
+              errorMsg = document.createElement("div");
+              errorMsg.className = "time-error";
+              errorMsg.style.color = "#dc3545";
+              errorMsg.style.fontSize = "0.8rem";
+              errorMsg.style.marginTop = "4px";
+              endTimeInput.parentNode.appendChild(errorMsg);
+            }
+            errorMsg.textContent =
+              "End time must be at least 30 minutes after start time";
+          } else {
+            endTimeInput.style.borderColor = "";
+            endTimeInput.style.backgroundColor = "";
+            const errorMsg =
+              endTimeInput.parentNode.querySelector(".time-error");
+            if (errorMsg) {
+              errorMsg.remove();
+            }
+          }
+        }
       }
 
       function fetchLecturesFromDB() {
@@ -366,18 +567,28 @@
           .then((response) => response.json())
           .then((data) => {
             if (data.success && data.data) {
-              lectures = data.data;
+              // Separate completed lectures from active lectures
+              lectures = data.data.filter((lec) => lec.status !== "completed");
+              completedLectures = data.data.filter(
+                (lec) => lec.status === "completed"
+              );
+
               filterLectures();
+              filterCompletedLectures();
               updateLectureStats();
             } else {
               lectures = [];
+              completedLectures = [];
               filterLectures();
+              filterCompletedLectures();
               updateLectureStats();
             }
           })
           .catch((error) => {
             lectures = [];
+            completedLectures = [];
             filterLectures();
+            filterCompletedLectures();
             updateLectureStats();
           });
       }
@@ -402,34 +613,60 @@
         loadLectures();
       }
 
+      function filterCompletedLectures() {
+        const searchTerm = document
+          .getElementById("searchInput")
+          .value.toLowerCase();
+        filteredCompletedLectures = completedLectures.filter((lec) => {
+          const matchesSubject = (lec.subject_name || "")
+            .toLowerCase()
+            .includes(searchTerm);
+          const matchesClass = (lec.class_name || "")
+            .toLowerCase()
+            .includes(searchTerm);
+          const matchesSearch = matchesSubject || matchesClass;
+          return matchesSearch;
+        });
+        currentCompletedPage = 1;
+        loadCompletedLectures();
+      }
+
       function loadLectures() {
         const tbody = document.getElementById("lecturesTableBody");
         tbody.innerHTML = "";
         const startIndex = (currentPage - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
         const pageLectures = filteredLectures.slice(startIndex, endIndex);
-        pageLectures.forEach((lec) => {
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${lec.subject_name || ""}</td>
-            <td>${lec.class_name || ""}</td>
-            <td>${lec.day_of_week || ""}</td>
-            <td>${lec.start_time || ""}</td>
-            <td>${lec.end_time || ""}</td>
-            <td><span class="status-badge ${lec.status}">${capitalize(
-            lec.status
-          )}</span></td>
-            <td>
-              <button class="btn btn-sm btn-primary" onclick="editLecture('${
-                lec.id
-              }')"><i class="fas fa-edit"></i></button>
-              <button class="btn btn-sm btn-danger" onclick="deleteLecture('${
-                lec.id
-              }', '${lec.subject_name}')"><i class="fas fa-trash"></i></button>
-            </td>
-          `;
-          tbody.appendChild(row);
-        });
+
+        if (pageLectures.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="7" class="text-center">No active lectures found.</td></tr>';
+        } else {
+          pageLectures.forEach((lec) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${lec.subject_name || ""}</td>
+              <td>${lec.class_name || ""}</td>
+              <td>${lec.day_of_week || ""}</td>
+              <td>${lec.start_time || ""}</td>
+              <td>${lec.end_time || ""}</td>
+              <td><span class="status-badge ${lec.status}">${capitalize(
+              lec.status
+            )}</span></td>
+              <td>
+                <button class="btn btn-sm btn-primary" onclick="editLecture('${
+                  lec.id
+                }')"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-sm btn-danger" onclick="deleteLecture('${
+                  lec.id
+                }', '${
+              lec.subject_name
+            }')"><i class="fas fa-trash"></i></button>
+              </td>
+            `;
+            tbody.appendChild(row);
+          });
+        }
         updateLecturePagination();
       }
 
@@ -439,6 +676,38 @@
           lectures.filter((l) => l.status === "completed").length;
         document.getElementById("upcomingLectures").textContent =
           lectures.filter((l) => l.status === "scheduled").length;
+        document.getElementById("totalCompletedLectures").textContent =
+          completedLectures.length;
+      }
+
+      function loadCompletedLectures() {
+        const tbody = document.getElementById("completedLecturesTableBody");
+        tbody.innerHTML = "";
+        const startIndex = (currentCompletedPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const pageCompletedLectures = filteredCompletedLectures.slice(
+          startIndex,
+          endIndex
+        );
+
+        if (pageCompletedLectures.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="6" class="text-center">No completed lectures found.</td></tr>';
+        } else {
+          pageCompletedLectures.forEach((lec) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${lec.subject_name || ""}</td>
+              <td>${lec.class_name || ""}</td>
+              <td>${lec.day_of_week || ""}</td>
+              <td>${lec.start_time || ""}</td>
+              <td>${lec.end_time || ""}</td>
+              <td>${formatDateTime(lec.updated_at)}</td>
+            `;
+            tbody.appendChild(row);
+          });
+        }
+        updateCompletedLecturePagination();
       }
 
       function updateLecturePagination() {
@@ -447,6 +716,14 @@
         document.getElementById(
           "pageInfo"
         ).textContent = `Page ${currentPage} of ${totalPages}`;
+      }
+
+      function updateCompletedLecturePagination() {
+        const totalPages =
+          Math.ceil(filteredCompletedLectures.length / itemsPerPage) || 1;
+        document.getElementById(
+          "completedPageInfo"
+        ).textContent = `Page ${currentCompletedPage} of ${totalPages}`;
       }
 
       function previousPage() {
@@ -462,6 +739,22 @@
         if (currentPage < totalPages) {
           currentPage++;
           loadLectures();
+        }
+      }
+
+      function previousCompletedPage() {
+        if (currentCompletedPage > 1) {
+          currentCompletedPage--;
+          loadCompletedLectures();
+        }
+      }
+
+      function nextCompletedPage() {
+        const totalPages =
+          Math.ceil(filteredCompletedLectures.length / itemsPerPage) || 1;
+        if (currentCompletedPage < totalPages) {
+          currentCompletedPage++;
+          loadCompletedLectures();
         }
       }
 
@@ -561,6 +854,34 @@
         document.getElementById("lectureForm").reset();
         loadClassesDropdown();
         loadSubjectDropdownForTeacher();
+
+        // Show status field and set it to scheduled for new lectures
+        const statusField = document.querySelector(".form-group:has(#status)");
+        if (statusField) {
+          statusField.style.display = "block";
+        }
+        const statusSelect = document.getElementById("status");
+        statusSelect.value = "scheduled";
+        statusSelect.disabled = true;
+
+        // Set minimum end time to 30 minutes after start time
+        const startTimeInput = document.getElementById("startTime");
+        const endTimeInput = document.getElementById("endTime");
+
+        startTimeInput.addEventListener("change", function () {
+          if (this.value) {
+            const startTime = new Date(`2000-01-01T${this.value}`);
+            const minEndTime = new Date(startTime.getTime() + 30 * 60000); // 30 minutes
+            const minEndTimeStr = minEndTime.toTimeString().slice(0, 5);
+            endTimeInput.min = minEndTimeStr;
+
+            // If end time is already set and less than minimum, update it
+            if (endTimeInput.value && endTimeInput.value < minEndTimeStr) {
+              endTimeInput.value = minEndTimeStr;
+            }
+          }
+        });
+
         document.getElementById("lectureModal").style.display = "block";
       }
 
@@ -585,7 +906,15 @@
                 data.data.start_time.slice(0, 5);
               document.getElementById("endTime").value =
                 data.data.end_time.slice(0, 5);
-              document.getElementById("status").value = data.data.status;
+
+              // Hide status field when editing since it's not changeable
+              const statusField = document.querySelector(
+                ".form-group:has(#status)"
+              );
+              if (statusField) {
+                statusField.style.display = "none";
+              }
+
               document.getElementById("lectureModal").style.display = "block";
             } else {
               showAlert(data.message || "Failed to load lecture data", "error");
@@ -599,14 +928,63 @@
       function closeLectureModal() {
         document.getElementById("lectureModal").style.display = "none";
         editingLectureId = null;
+
+        // Reset and enable all form fields
+        const form = document.getElementById("lectureForm");
+        const subjectDropdown = document.getElementById("subject");
+        const classDropdown = document.getElementById("class");
+        const dayDropdown = document.getElementById("day");
+        const startTimeInput = document.getElementById("startTime");
+        const endTimeInput = document.getElementById("endTime");
+        const statusDropdown = document.getElementById("status");
+
+        // Enable all fields
+        subjectDropdown.disabled = false;
+        classDropdown.disabled = false;
+        dayDropdown.disabled = false;
+        startTimeInput.disabled = false;
+        endTimeInput.disabled = false;
+        statusDropdown.disabled = false;
+
+        // Show status field and reset to only show scheduled option
+        const statusField = document.querySelector(".form-group:has(#status)");
+        if (statusField) {
+          statusField.style.display = "block";
+        }
+        statusDropdown.innerHTML =
+          '<option value="scheduled">Scheduled</option>';
+
+        // Reset form
+        form.reset();
       }
 
       function handleLectureFormSubmit(e) {
         e.preventDefault();
+
+        // Validate time difference
+        const startTime = document.getElementById("startTime").value;
+        const endTime = document.getElementById("endTime").value;
+
+        if (startTime && endTime) {
+          const start = new Date(`2000-01-01T${startTime}`);
+          const end = new Date(`2000-01-01T${endTime}`);
+          const diffInMinutes = (end - start) / (1000 * 60);
+
+          if (diffInMinutes < 30) {
+            showAlert(
+              "End time must be at least 30 minutes after start time.",
+              "error"
+            );
+            document.getElementById("endTime").focus();
+            return;
+          }
+        }
+
         const user = localStorage.getItem("user");
         const teacher = user ? JSON.parse(user) : null;
         if (!teacher) return;
         const formData = new FormData(e.target);
+
         // Always use teacher's subject_id
         let subjectId = null;
         // Try to get from dropdown (if present and not empty)
@@ -616,13 +994,29 @@
         } else if (teacher.subject_id) {
           subjectId = teacher.subject_id;
         }
+
+        // Get status value - if field is hidden, use the current lecture's status or default to 'scheduled'
+        let statusValue = formData.get("status");
+        if (!statusValue) {
+          if (editingLectureId) {
+            // When editing, get the current lecture's status
+            const currentLecture = lectures.find(
+              (l) => l.id == editingLectureId
+            );
+            statusValue = currentLecture ? currentLecture.status : "scheduled";
+          } else {
+            // When adding new, default to scheduled
+            statusValue = "scheduled";
+          }
+        }
+
         const lectureData = {
           subject_id: subjectId,
           class_id: formData.get("class"),
           day_of_week: formData.get("day"),
           start_time: formData.get("startTime"),
           end_time: formData.get("endTime"),
-          status: formData.get("status"),
+          status: statusValue,
           teacher_id: teacher.id,
         };
         fetch(`/backend/controllers/lecturers.php`, {
@@ -637,9 +1031,14 @@
           .then((response) => response.json())
           .then((data) => {
             if (data.success) {
+              // Store whether we were editing before closing modal
+              const wasEditing = editingLectureId !== null;
               closeLectureModal();
               fetchLecturesFromDB();
-              showAlert("Lecture saved successfully!", "success");
+              const message = wasEditing
+                ? "Lecture updated successfully!"
+                : "Lecture added successfully!";
+              showAlert(message, "success");
             } else {
               showAlert(data.message || "Failed to save lecture", "error");
             }

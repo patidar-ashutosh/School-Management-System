@@ -88,6 +88,14 @@ try {
                     ]);
                 }
                 break;
+            case 'auto_update_status':
+                $updatedCount = $lecturer->autoUpdateStatus();
+                echo json_encode([
+                    'success' => true,
+                    'message' => "Updated $updatedCount lecture statuses",
+                    'updated_count' => $updatedCount
+                ]);
+                break;
             default:
                 throw new Exception('Invalid action');
         }
