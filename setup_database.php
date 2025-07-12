@@ -102,7 +102,7 @@ $tables = [
         day_of_week ENUM('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') NOT NULL,
         start_time TIME NOT NULL,
         end_time TIME NOT NULL,
-        status ENUM('completed', 'incoming') DEFAULT 'incoming',
+        status ENUM('scheduled', 'running', 'completed') DEFAULT 'scheduled',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     )",

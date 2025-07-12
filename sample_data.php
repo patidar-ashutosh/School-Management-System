@@ -165,11 +165,11 @@ foreach ($students as $s) {
 
 // 6. Attendance (varied: present/absent, different days, different teachers)
 $attendance = [
-    [$studentIds['student1@school.com'], $classIds['Class 10A'], '2024-07-01', 'present', $teacherIds['teacher1@school.com']],
-    [$studentIds['student2@school.com'], $classIds['Class 10B'], '2024-07-01', 'absent', $teacherIds['teacher2@school.com']],
-    [$studentIds['student3@school.com'], $classIds['Class 9A'], '2024-07-01', 'present', $teacherIds['teacher3@school.com']],
-    [$studentIds['student4@school.com'], $classIds['Class 11 Science'], '2024-07-01', 'present', $teacherIds['teacher5@school.com']],
-    [$studentIds['student5@school.com'], $classIds['Class 12 Commerce'], '2024-07-01', 'absent', $teacherIds['teacher4@school.com']],
+    [$studentIds['arjunreddy1@school.com'], $classIds['Class 10A'], '2024-07-01', 'present', $teacherIds['teacher1@school.com']],
+    [$studentIds['zarakhan2@school.com'], $classIds['Class 10B'], '2024-07-01', 'absent', $teacherIds['teacher2@school.com']],
+    [$studentIds['ishaanverma3@school.com'], $classIds['Class 9A'], '2024-07-01', 'present', $teacherIds['teacher3@school.com']],
+    [$studentIds['meghasharma4@school.com'], $classIds['Class 11 Science'], '2024-07-01', 'present', $teacherIds['teacher5@school.com']],
+    [$studentIds['rohanjoshi5@school.com'], $classIds['Class 12 Commerce'], '2024-07-01', 'absent', $teacherIds['teacher4@school.com']],
 ];
 foreach ($attendance as $a) {
     $pdo->prepare("INSERT IGNORE INTO attendance (student_id, class_id, date, status, marked_by) VALUES (?, ?, ?, ?, ?)")->execute($a);
@@ -178,7 +178,7 @@ foreach ($attendance as $a) {
 // 7. Assignments (varied types, statuses, teachers, classes)
 $assignments = [
     ['Algebra Test', 'Algebraic expressions', $subjectIds['MATH10A'], $classIds['Class 10A'], '2024-06-20', '2024-06-27', 100, $teacherIds['teacher1@school.com'], 'essays', 'completed'],
-    ['English Essay', 'Essay on Indian Independence', $subjectIds['ENG10A'], $classIds['Class 10B'], '2024-06-22', '2024-06-29', 50, $teacherIds['teacher2@school.com'], 'reports', 'running'],
+    ['English Essay', 'Essay on Indian Independence', $subjectIds['ENG10B'], $classIds['Class 10B'], '2024-06-22', '2024-06-29', 50, $teacherIds['teacher2@school.com'], 'reports', 'running'],
     ['Physics Lab', 'Experiment on Light', $subjectIds['PHY11S'], $classIds['Class 11 Science'], '2024-06-25', '2024-07-02', 75, $teacherIds['teacher5@school.com'], 'presentations', 'coming'],
 ];
 foreach ($assignments as $a) {
@@ -194,9 +194,9 @@ foreach ($assignments as $a) {
 
 // 8. Student Assignments (submissions, graded/ungraded)
 $studentAssignments = [
-    [$assignmentIds['Algebra Test'], $studentIds['student1@school.com'], '2024-06-26 10:00:00', 95, 'Well done', null, 'graded'],
-    [$assignmentIds['English Essay'], $studentIds['student2@school.com'], '2024-06-28 12:00:00', 88, 'Good analysis', null, 'graded'],
-    [$assignmentIds['Physics Lab'], $studentIds['student4@school.com'], null, null, null, null, 'submitted'],
+    [$assignmentIds['Algebra Test'], $studentIds['arjunreddy1@school.com'], '2024-06-26 10:00:00', 95, 'Well done', null, 'graded'],
+    [$assignmentIds['English Essay'], $studentIds['zarakhan2@school.com'], '2024-06-28 12:00:00', 88, 'Good analysis', null, 'graded'],
+    [$assignmentIds['Physics Lab'], $studentIds['meghasharma4@school.com'], null, null, null, null, 'submitted'],
 ];
 foreach ($studentAssignments as $sa) {
     $pdo->prepare("INSERT IGNORE INTO student_assignments (assignment_id, student_id, submitted_date, marks_obtained, submitted_text, submitted_file, status) VALUES (?, ?, ?, ?, ?, ?, ?)")->execute($sa);
@@ -247,10 +247,20 @@ foreach ($exams as $e) {
 }
 
 // 10. Lecturers (weekly schedule, different days, times, teachers, classes)
+$today = date('Y-m-d');
+$today_day = date('l'); // Current day name (Monday, Tuesday, etc.)
+$tomorrow = date('Y-m-d', strtotime('+1 day'));
+$tomorrow_day = date('l', strtotime('+1 day'));
+$yesterday = date('Y-m-d', strtotime('-1 day'));
+$yesterday_day = date('l', strtotime('-1 day'));
+
 $lecturers = [
-    [$subjectIds['MATH10A'], $teacherIds['teacher1@school.com'], $classIds['Class 10A'], 'Monday', '08:00:00', '09:00:00', 'incoming'],
-    [$subjectIds['ENG10A'], $teacherIds['teacher2@school.com'], $classIds['Class 10B'], 'Tuesday', '09:00:00', '10:00:00', 'incoming'],
-    [$subjectIds['PHY11S'], $teacherIds['teacher5@school.com'], $classIds['Class 11 Science'], 'Wednesday', '10:00:00', '11:00:00', 'completed'],
+    // Today's lecture - Running
+    [$subjectIds['MATH10A'], $teacherIds['teacher1@school.com'], $classIds['Class 10A'], $today_day, '08:00:00', '09:00:00', 'running'],
+    // Tomorrow's lecture - Scheduled
+    [$subjectIds['ENG10B'], $teacherIds['teacher2@school.com'], $classIds['Class 10B'], $tomorrow_day, '09:00:00', '10:00:00', 'scheduled'],
+    // Yesterday's lecture - Completed
+    [$subjectIds['PHY11S'], $teacherIds['teacher5@school.com'], $classIds['Class 11 Science'], $yesterday_day, '10:00:00', '11:00:00', 'completed'],
 ];
 foreach ($lecturers as $l) {
     $pdo->prepare("INSERT IGNORE INTO lecturers (subject_id, teacher_id, class_id, day_of_week, start_time, end_time, status) VALUES (?, ?, ?, ?, ?, ?, ?)")->execute($l);
@@ -265,6 +275,26 @@ $teacherClasses = [
     [$teacherIds['teacher4@school.com'], $classIds['Class 12 Commerce']],
     [$teacherIds['teacher5@school.com'], $classIds['Class 11 Science']],
 ];
+
+// Add class_teacher_of assignments to teacher_classes table
+foreach ($teachers as $t) {
+    $teacherEmail = $t[0];
+    $classTeacherOf = $t[12]; // class_teacher_of value
+    if ($classTeacherOf) {
+        // Check if this combination already exists
+        $exists = false;
+        foreach ($teacherClasses as $tc) {
+            if ($tc[0] == $teacherIds[$teacherEmail] && $tc[1] == $classTeacherOf) {
+                $exists = true;
+                break;
+            }
+        }
+        if (!$exists) {
+            $teacherClasses[] = [$teacherIds[$teacherEmail], $classTeacherOf];
+        }
+    }
+}
+
 foreach ($teacherClasses as $tc) {
     $pdo->prepare("INSERT IGNORE INTO teacher_classes (teacher_id, class_id) VALUES (?, ?)")->execute($tc);
 }
