@@ -8,17 +8,17 @@ class Lecturer {
     }
 
     public function getByTeacher($teacher_id) {
-        $sql = "SELECT l.*, s.name as subject_name, c.name as class_name FROM lecturers l LEFT JOIN subjects s ON l.subject_id = s.id LEFT JOIN classes c ON l.class_id = c.id WHERE l.teacher_id = ? ORDER BY FIELD(l.day_of_week, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'), l.start_time";
+        $sql = "SELECT l.*, s.name as subject_name, c.name as class_name FROM lecturers l LEFT JOIN subjects s ON l.subject_id = s.id LEFT JOIN classes c ON l.class_id = c.id WHERE l.teacher_id = ? ORDER BY l.date, l.start_time";
         return $this->db->fetchAll($sql, [$teacher_id]);
     }
 
     public function add($data) {
-        $sql = "INSERT INTO lecturers (subject_id, teacher_id, class_id, day_of_week, start_time, end_time, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
+        $sql = "INSERT INTO lecturers (subject_id, teacher_id, class_id, date, start_time, end_time, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
         $this->db->query($sql, [
             $data['subject_id'],
             $data['teacher_id'],
             $data['class_id'],
-            $data['day_of_week'],
+            $data['date'],
             $data['start_time'],
             $data['end_time'],
             $data['status']
@@ -27,12 +27,12 @@ class Lecturer {
     }
 
     public function edit($id, $data) {
-        $sql = "UPDATE lecturers SET subject_id = ?, teacher_id = ?, class_id = ?, day_of_week = ?, start_time = ?, end_time = ?, status = ?, updated_at = NOW() WHERE id = ?";
+        $sql = "UPDATE lecturers SET subject_id = ?, teacher_id = ?, class_id = ?, date = ?, start_time = ?, end_time = ?, status = ?, updated_at = NOW() WHERE id = ?";
         $this->db->query($sql, [
             $data['subject_id'],
             $data['teacher_id'],
             $data['class_id'],
-            $data['day_of_week'],
+            $data['date'],
             $data['start_time'],
             $data['end_time'],
             $data['status'],
@@ -50,9 +50,25 @@ class Lecturer {
         return $this->db->fetch($sql, [$id]);
     }
 
-    public function existsForSubjectClassDay($subject_id, $class_id, $day_of_week, $exclude_id = null) {
-        $sql = "SELECT COUNT(*) as count FROM lecturers WHERE subject_id = ? AND class_id = ? AND day_of_week = ? AND status != 'completed'";
-        $params = [$subject_id, $class_id, $day_of_week];
+    public function getAll() {
+        $sql = "SELECT l.*, s.name as subject_name, c.name as class_name FROM lecturers l LEFT JOIN subjects s ON l.subject_id = s.id LEFT JOIN classes c ON l.class_id = c.id ORDER BY l.date, l.start_time";
+        return $this->db->fetchAll($sql);
+    }
+
+    public function getCompletedByDateRange($teacher_id, $start_date, $end_date) {
+        $sql = "SELECT l.*, s.name as subject_name, c.name as class_name 
+                FROM lecturers l 
+                LEFT JOIN subjects s ON l.subject_id = s.id 
+                LEFT JOIN classes c ON l.class_id = c.id 
+                WHERE l.teacher_id = ? AND l.status = 'completed' 
+                AND l.date BETWEEN ? AND ?
+                ORDER BY l.date DESC, l.start_time";
+        return $this->db->fetchAll($sql, [$teacher_id, $start_date, $end_date]);
+    }
+
+    public function existsForSubjectClassDay($subject_id, $class_id, $date, $exclude_id = null) {
+        $sql = "SELECT COUNT(*) as count FROM lecturers WHERE subject_id = ? AND class_id = ? AND date = ? AND status != 'completed'";
+        $params = [$subject_id, $class_id, $date];
         if ($exclude_id) {
             $sql .= " AND id != ?";
             $params[] = $exclude_id;
@@ -67,54 +83,66 @@ class Lecturer {
         // Get current date and time
         $currentDate = date('Y-m-d');
         $currentTime = date('H:i:s');
-        $currentDay = date('l'); // Monday, Tuesday, etc.
+        
+        // Debug: Log current date and time
+        error_log("Auto Update - Current Date: $currentDate, Current Time: $currentTime");
         
         // Get all lectures
-        $sql = "SELECT id, day_of_week, start_time, end_time, status FROM lecturers WHERE status != 'completed'";
+        $sql = "SELECT id, date, start_time, end_time, status FROM lecturers WHERE status != 'completed'";
         $lectures = $this->db->fetchAll($sql);
+        
+        error_log("Auto Update - Found " . count($lectures) . " non-completed lectures");
         
         foreach ($lectures as $lecture) {
             $newStatus = $lecture['status'];
+            $lectureId = $lecture['id'];
+            $lectureDate = $lecture['date'];
+            $startTime = $lecture['start_time'];
+            $endTime = $lecture['end_time'];
+            $currentStatus = $lecture['status'];
             
-            // Condition 1: Same day, current time between start and end time -> running
-            if ($lecture['day_of_week'] === $currentDay) {
-                if ($currentTime >= $lecture['start_time'] && $currentTime <= $lecture['end_time']) {
-                    if ($lecture['status'] !== 'running') {
+            error_log("Processing Lecture ID: $lectureId, Date: $lectureDate, Start: $startTime, End: $endTime, Current Status: $currentStatus");
+            
+            // Condition 1: Same date, current time between start and end time -> running
+            if ($lectureDate === $currentDate) {
+                error_log("Lecture is today's date");
+                if ($currentTime >= $startTime && $currentTime <= $endTime) {
+                    error_log("Current time is between start and end time");
+                    if ($currentStatus !== 'running') {
                         $newStatus = 'running';
+                        error_log("Changing status from $currentStatus to running");
                     }
                 }
-                // Condition 3: Same day, current time after end time -> completed
-                elseif ($currentTime > $lecture['end_time']) {
-                    if ($lecture['status'] !== 'completed') {
+                // Condition 3: Same date, current time after end time -> completed
+                elseif ($currentTime > $endTime) {
+                    error_log("Current time is after end time");
+                    if ($currentStatus !== 'completed') {
                         $newStatus = 'completed';
+                        error_log("Changing status from $currentStatus to completed");
                     }
                 }
             }
-            // Condition 2: Lecture day is before today -> completed
-            else {
-                $dayOrder = [
-                    'Monday' => 1, 'Tuesday' => 2, 'Wednesday' => 3, 
-                    'Thursday' => 4, 'Friday' => 5, 'Saturday' => 6
-                ];
-                
-                $lectureDayOrder = $dayOrder[$lecture['day_of_week']] ?? 0;
-                $currentDayOrder = $dayOrder[$currentDay] ?? 0;
-                
-                if ($lectureDayOrder < $currentDayOrder) {
-                    if ($lecture['status'] !== 'completed') {
-                        $newStatus = 'completed';
-                    }
+            // Condition 2: Lecture date is before today -> completed
+            elseif ($lectureDate < $currentDate) {
+                error_log("Lecture date is before today");
+                if ($currentStatus !== 'completed') {
+                    $newStatus = 'completed';
+                    error_log("Changing status from $currentStatus to completed");
                 }
             }
             
             // Update status if it changed
-            if ($newStatus !== $lecture['status']) {
+            if ($newStatus !== $currentStatus) {
                 $updateSql = "UPDATE lecturers SET status = ?, updated_at = NOW() WHERE id = ?";
-                $this->db->query($updateSql, [$newStatus, $lecture['id']]);
+                $this->db->query($updateSql, [$newStatus, $lectureId]);
                 $updatedCount++;
+                error_log("Updated Lecture ID: $lectureId from $currentStatus to $newStatus");
+            } else {
+                error_log("No status change needed for Lecture ID: $lectureId");
             }
         }
         
+        error_log("Auto Update - Total updated: $updatedCount");
         return $updatedCount;
     }
 } 

@@ -248,22 +248,22 @@ foreach ($exams as $e) {
 
 // 10. Lecturers (weekly schedule, different days, times, teachers, classes)
 $today = date('Y-m-d');
-$today_day = date('l'); // Current day name (Monday, Tuesday, etc.)
 $tomorrow = date('Y-m-d', strtotime('+1 day'));
-$tomorrow_day = date('l', strtotime('+1 day'));
+$day_after_tomorrow = date('Y-m-d', strtotime('+2 days'));
 $yesterday = date('Y-m-d', strtotime('-1 day'));
-$yesterday_day = date('l', strtotime('-1 day'));
 
 $lecturers = [
     // Today's lecture - Running
-    [$subjectIds['MATH10A'], $teacherIds['teacher1@school.com'], $classIds['Class 10A'], $today_day, '08:00:00', '09:00:00', 'running'],
+    [$subjectIds['MATH10A'], $teacherIds['teacher1@school.com'], $classIds['Class 10A'], $today, '08:00:00', '09:00:00', 'running'],
     // Tomorrow's lecture - Scheduled
-    [$subjectIds['ENG10B'], $teacherIds['teacher2@school.com'], $classIds['Class 10B'], $tomorrow_day, '09:00:00', '10:00:00', 'scheduled'],
+    [$subjectIds['ENG10B'], $teacherIds['teacher2@school.com'], $classIds['Class 10B'], $tomorrow, '09:00:00', '10:00:00', 'scheduled'],
+    // Day after tomorrow's lecture - Scheduled
+    [$subjectIds['PHY11S'], $teacherIds['teacher5@school.com'], $classIds['Class 11 Science'], $day_after_tomorrow, '10:00:00', '11:00:00', 'scheduled'],
     // Yesterday's lecture - Completed
-    [$subjectIds['PHY11S'], $teacherIds['teacher5@school.com'], $classIds['Class 11 Science'], $yesterday_day, '10:00:00', '11:00:00', 'completed'],
+    [$subjectIds['SCI2A'], $teacherIds['teacher3@school.com'], $classIds['Class 2A'], $yesterday, '11:00:00', '12:00:00', 'completed'],
 ];
 foreach ($lecturers as $l) {
-    $pdo->prepare("INSERT IGNORE INTO lecturers (subject_id, teacher_id, class_id, day_of_week, start_time, end_time, status) VALUES (?, ?, ?, ?, ?, ?, ?)")->execute($l);
+    $pdo->prepare("INSERT IGNORE INTO lecturers (subject_id, teacher_id, class_id, date, start_time, end_time, status) VALUES (?, ?, ?, ?, ?, ?, ?)")->execute($l);
 }
 
 // 11. Teacher Classes (many-to-many)

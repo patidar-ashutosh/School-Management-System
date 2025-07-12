@@ -202,7 +202,7 @@ try {
                         LEFT JOIN subjects s ON l.subject_id = s.id
                         LEFT JOIN teachers t ON l.teacher_id = t.id
                         WHERE l.class_id = ? AND l.status IN ('completed', 'incoming')
-                        ORDER BY FIELD(l.day_of_week, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'), l.start_time";
+                        ORDER BY l.date, l.start_time";
                 $rows = $db->fetchAll($sql, [$class_id]);
                 echo json_encode(['success' => true, 'data' => $rows]);
                 return;

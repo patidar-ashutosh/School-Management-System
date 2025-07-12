@@ -210,17 +210,7 @@
               </div>
             </div>
             <div class="card-number" id="totalLectures">0</div>
-            <div class="card-description">Scheduled lectures</div>
-          </div>
-          <div class="dashboard-card">
-            <div class="card-header">
-              <div class="card-title">Completed</div>
-              <div class="card-icon" style="background: #28a745">
-                <i class="fas fa-check-circle"></i>
-              </div>
-            </div>
-            <div class="card-number" id="completedLectures">0</div>
-            <div class="card-description">Completed lectures</div>
+            <div class="card-description">Of This Week</div>
           </div>
           <div class="dashboard-card">
             <div class="card-header">
@@ -269,7 +259,7 @@
                   <tr>
                     <th>Subject</th>
                     <th>Class</th>
-                    <th>Day</th>
+                    <th>Date</th>
                     <th>Start Time</th>
                     <th>End Time</th>
                     <th>Status</th>
@@ -303,6 +293,26 @@
           <p>View all your completed lectures</p>
         </div>
 
+        <!-- Week Filter for Completed Lectures -->
+        <div class="filter-section" style="margin-bottom: 1rem">
+          <div class="filter-options">
+            <label
+              for="weekDatePicker"
+              style="margin-right: 10px; font-weight: 500"
+              >Select Week:</label
+            >
+            <input
+              type="date"
+              id="weekDatePicker"
+              onchange="filterCompletedLecturesByWeek()"
+            />
+            <span
+              id="selectedWeekRange"
+              style="margin-left: 10px; color: #666; font-size: 0.9rem"
+            ></span>
+          </div>
+        </div>
+
         <div class="card">
           <div class="card-header">
             <h3>All Completed Lectures</h3>
@@ -320,10 +330,9 @@
                   <tr>
                     <th>Subject</th>
                     <th>Class</th>
-                    <th>Day</th>
+                    <th>Date</th>
                     <th>Start Time</th>
                     <th>End Time</th>
-                    <th>Completed Date</th>
                   </tr>
                 </thead>
                 <tbody id="completedLecturesTableBody">
@@ -368,15 +377,8 @@
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label for="day">Day</label>
-              <select id="day" name="day" required>
-                <option value="Monday">Monday</option>
-                <option value="Tuesday">Tuesday</option>
-                <option value="Wednesday">Wednesday</option>
-                <option value="Thursday">Thursday</option>
-                <option value="Friday">Friday</option>
-                <option value="Saturday">Saturday</option>
-              </select>
+              <label for="date">Date</label>
+              <input type="date" id="date" name="date" required />
             </div>
           </div>
           <div class="form-row">
@@ -574,13 +576,35 @@
               );
 
               filterLectures();
-              filterCompletedLectures();
+
+              // Set default date to today and load data
+              setTimeout(() => {
+                const today = new Date();
+                const datePicker = document.getElementById("weekDatePicker");
+                if (datePicker) {
+                  datePicker.value = today.toISOString().split("T")[0];
+                  // Load this week's completed lectures by default
+                  filterCompletedLecturesByWeek();
+                }
+              }, 100);
+
               updateLectureStats();
             } else {
               lectures = [];
               completedLectures = [];
               filterLectures();
-              filterCompletedLectures();
+
+              // Set default date to today and load data
+              setTimeout(() => {
+                const today = new Date();
+                const datePicker = document.getElementById("weekDatePicker");
+                if (datePicker) {
+                  datePicker.value = today.toISOString().split("T")[0];
+                  // Load this week's completed lectures by default
+                  filterCompletedLecturesByWeek();
+                }
+              }, 100);
+
               updateLectureStats();
             }
           })
@@ -588,7 +612,18 @@
             lectures = [];
             completedLectures = [];
             filterLectures();
-            filterCompletedLectures();
+
+            // Set default date to today and load data
+            setTimeout(() => {
+              const today = new Date();
+              const datePicker = document.getElementById("weekDatePicker");
+              if (datePicker) {
+                datePicker.value = today.toISOString().split("T")[0];
+                // Load this week's completed lectures by default
+                filterCompletedLecturesByWeek();
+              }
+            }, 100);
+
             updateLectureStats();
           });
       }
@@ -617,6 +652,7 @@
         const searchTerm = document
           .getElementById("searchInput")
           .value.toLowerCase();
+
         filteredCompletedLectures = completedLectures.filter((lec) => {
           const matchesSubject = (lec.subject_name || "")
             .toLowerCase()
@@ -629,6 +665,70 @@
         });
         currentCompletedPage = 1;
         loadCompletedLectures();
+      }
+
+      function filterCompletedLecturesByWeek() {
+        let selectedDate = document.getElementById("weekDatePicker").value;
+        const user = localStorage.getItem("user");
+        const teacher = user ? JSON.parse(user) : null;
+
+        if (!teacher) return;
+
+        // If no date is selected, default to today
+        if (!selectedDate) {
+          const today = new Date();
+          selectedDate = today.toISOString().split("T")[0];
+          document.getElementById("weekDatePicker").value = selectedDate;
+        }
+
+        // Calculate week range based on selected date
+        const date = new Date(selectedDate);
+        const dayOfWeek = date.getDay(); // 0=Sunday, 1=Monday, ...
+
+        // Find Monday of the selected week
+        const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // If Sunday, go back 6 days
+        const monday = new Date(date);
+        monday.setDate(date.getDate() - daysToMonday);
+
+        // Find Sunday of the selected week
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+
+        // Update the week range display
+        const mondayStr = monday.toLocaleDateString();
+        const sundayStr = sunday.toLocaleDateString();
+        document.getElementById(
+          "selectedWeekRange"
+        ).textContent = `(${mondayStr} - ${sundayStr})`;
+
+        fetch(`/backend/controllers/lecturers.php`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "get_completed_by_date_range",
+            teacher_id: teacher.id,
+            start_date: monday.toISOString().split("T")[0],
+            end_date: sunday.toISOString().split("T")[0],
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success && data.data) {
+              completedLectures = data.data;
+              filterCompletedLectures();
+              updateLectureStats();
+            } else {
+              completedLectures = [];
+              filterCompletedLectures();
+              updateLectureStats();
+            }
+          })
+          .catch((error) => {
+            console.error("Error fetching completed lectures:", error);
+            completedLectures = [];
+            filterCompletedLectures();
+            updateLectureStats();
+          });
       }
 
       function loadLectures() {
@@ -647,21 +747,19 @@
             row.innerHTML = `
               <td>${lec.subject_name || ""}</td>
               <td>${lec.class_name || ""}</td>
-              <td>${lec.day_of_week || ""}</td>
+              <td>${formatDate(lec.date) || ""}</td>
               <td>${lec.start_time || ""}</td>
               <td>${lec.end_time || ""}</td>
               <td><span class="status-badge ${lec.status}">${capitalize(
               lec.status
             )}</span></td>
               <td>
-                <button class="btn btn-sm btn-primary" onclick="editLecture('${
-                  lec.id
-                }')"><i class="fas fa-edit"></i></button>
-                <button class="btn btn-sm btn-danger" onclick="deleteLecture('${
-                  lec.id
-                }', '${
-              lec.subject_name
-            }')"><i class="fas fa-trash"></i></button>
+                ${
+                  lec.status === "running"
+                    ? '<span class="text-muted"></span>'
+                    : `<button class="btn btn-sm btn-primary" onclick="editLecture('${lec.id}')"><i class="fas fa-edit"></i></button>
+                   <button class="btn btn-sm btn-danger" onclick="deleteLecture('${lec.id}', '${lec.subject_name}')"><i class="fas fa-trash"></i></button>`
+                }
               </td>
             `;
             tbody.appendChild(row);
@@ -672,8 +770,6 @@
 
       function updateLectureStats() {
         document.getElementById("totalLectures").textContent = lectures.length;
-        document.getElementById("completedLectures").textContent =
-          lectures.filter((l) => l.status === "completed").length;
         document.getElementById("upcomingLectures").textContent =
           lectures.filter((l) => l.status === "scheduled").length;
         document.getElementById("totalCompletedLectures").textContent =
@@ -699,10 +795,9 @@
             row.innerHTML = `
               <td>${lec.subject_name || ""}</td>
               <td>${lec.class_name || ""}</td>
-              <td>${lec.day_of_week || ""}</td>
+              <td>${formatDate(lec.date) || ""}</td>
               <td>${lec.start_time || ""}</td>
               <td>${lec.end_time || ""}</td>
-              <td>${formatDateTime(lec.updated_at)}</td>
             `;
             tbody.appendChild(row);
           });
@@ -855,6 +950,29 @@
         loadClassesDropdown();
         loadSubjectDropdownForTeacher();
 
+        // Set min and max date to next week's Monday to Sunday
+        const dateInput = document.getElementById("date");
+        const today = new Date();
+        // Find next week's Monday
+        const dayOfWeek = today.getDay(); // 0=Sunday, 1=Monday, ...
+        const daysUntilNextMonday = (8 - dayOfWeek) % 7 || 7;
+        const nextMonday = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate() + daysUntilNextMonday
+        );
+        // Next week's Sunday
+        const nextSunday = new Date(
+          nextMonday.getFullYear(),
+          nextMonday.getMonth(),
+          nextMonday.getDate() + 6
+        );
+        const minDate = nextMonday.toISOString().split("T")[0];
+        const maxDate = nextSunday.toISOString().split("T")[0];
+        dateInput.min = minDate;
+        dateInput.max = maxDate;
+        dateInput.value = minDate;
+
         // Show status field and set it to scheduled for new lectures
         const statusField = document.querySelector(".form-group:has(#status)");
         if (statusField) {
@@ -901,7 +1019,28 @@
               loadSubjectDropdownForTeacher(data.data.subject_id);
               document.getElementById("class").value = data.data.class_id;
               document.getElementById("subject").value = data.data.subject_id;
-              document.getElementById("day").value = data.data.day_of_week;
+
+              // Set min and max date to next week's Monday to Sunday
+              const dateInput = document.getElementById("date");
+              const today = new Date();
+              const dayOfWeek = today.getDay();
+              const daysUntilNextMonday = (8 - dayOfWeek) % 7 || 7;
+              const nextMonday = new Date(
+                today.getFullYear(),
+                today.getMonth(),
+                today.getDate() + daysUntilNextMonday
+              );
+              const nextSunday = new Date(
+                nextMonday.getFullYear(),
+                nextMonday.getMonth(),
+                nextMonday.getDate() + 6
+              );
+              const minDate = nextMonday.toISOString().split("T")[0];
+              const maxDate = nextSunday.toISOString().split("T")[0];
+              dateInput.min = minDate;
+              dateInput.max = maxDate;
+              dateInput.value = data.data.date;
+
               document.getElementById("startTime").value =
                 data.data.start_time.slice(0, 5);
               document.getElementById("endTime").value =
@@ -933,7 +1072,7 @@
         const form = document.getElementById("lectureForm");
         const subjectDropdown = document.getElementById("subject");
         const classDropdown = document.getElementById("class");
-        const dayDropdown = document.getElementById("day");
+        const dateInput = document.getElementById("date");
         const startTimeInput = document.getElementById("startTime");
         const endTimeInput = document.getElementById("endTime");
         const statusDropdown = document.getElementById("status");
@@ -941,7 +1080,7 @@
         // Enable all fields
         subjectDropdown.disabled = false;
         classDropdown.disabled = false;
-        dayDropdown.disabled = false;
+        dateInput.disabled = false;
         startTimeInput.disabled = false;
         endTimeInput.disabled = false;
         statusDropdown.disabled = false;
@@ -1013,7 +1152,7 @@
         const lectureData = {
           subject_id: subjectId,
           class_id: formData.get("class"),
-          day_of_week: formData.get("day"),
+          date: formData.get("date"),
           start_time: formData.get("startTime"),
           end_time: formData.get("endTime"),
           status: statusValue,
@@ -1088,6 +1227,12 @@
         if (!dt) return "";
         const d = new Date(dt);
         return d.toLocaleString();
+      }
+
+      function formatDate(dateString) {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        return date.toLocaleDateString();
       }
 
       function capitalize(str) {
