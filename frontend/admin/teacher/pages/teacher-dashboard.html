@@ -88,7 +88,7 @@
             </div>
           </div>
           <div class="card-number" id="totalLectures">Loading...</div>
-          <div class="card-description">Lectures assigned to you</div>
+          <div class="card-description">Upcoming lectures</div>
         </div>
 
         <div class="dashboard-card">
@@ -100,17 +100,6 @@
           </div>
           <div class="card-number" id="totalStudents">Loading...</div>
           <div class="card-description">Students in your classes</div>
-        </div>
-
-        <div class="dashboard-card">
-          <div class="card-header">
-            <div class="card-title">Active Assignments</div>
-            <div class="card-icon" style="background: #ffc107">
-              <i class="fas fa-tasks"></i>
-            </div>
-          </div>
-          <div class="card-number" id="totalAssignments">Loading...</div>
-          <div class="card-description">Pending assignments</div>
         </div>
 
         <div class="dashboard-card">
@@ -129,26 +118,18 @@
       <div class="card">
         <div class="card-header">
           <h3>My Lectures</h3>
-          <a href="lecturers.html" class="btn btn-primary btn-sm">View All</a>
         </div>
         <div class="card-body">
-          <div class="table-responsive">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Subject</th>
-                  <th>Start Time</th>
-                  <th>End Time</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="myLectures">
-                <tr>
-                  <td colspan="5" class="text-center">Loading lectures...</td>
-                </tr>
-              </tbody>
-            </table>
+          <div class="text-center py-4">
+            <i class="fas fa-chalkboard-teacher fa-3x text-muted mb-3"></i>
+            <h4>Manage Your Lectures</h4>
+            <p class="text-muted">
+              View and manage your scheduled lectures, take attendance, and
+              track your teaching schedule.
+            </p>
+            <a href="lecturers.html" class="btn btn-primary">
+              <i class="fas fa-arrow-right"></i> Go to Lectures
+            </a>
           </div>
         </div>
       </div>
@@ -156,27 +137,19 @@
       <!-- Recent Students -->
       <div class="card">
         <div class="card-header">
-          <h3>Recent Students</h3>
-          <a href="my-students.html" class="btn btn-primary btn-sm">View All</a>
+          <h3>My Students</h3>
         </div>
         <div class="card-body">
-          <div class="table-responsive">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Student ID</th>
-                  <th>Name</th>
-                  <th>Class</th>
-                  <th>Attendance</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="recentStudents">
-                <tr>
-                  <td colspan="5" class="text-center">Loading students...</td>
-                </tr>
-              </tbody>
-            </table>
+          <div class="text-center py-4">
+            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+            <h4>Manage Your Students</h4>
+            <p class="text-muted">
+              View student profiles, track attendance, manage assignments, and
+              monitor academic progress.
+            </p>
+            <a href="my-students.html" class="btn btn-primary">
+              <i class="fas fa-arrow-right"></i> Go to Students
+            </a>
           </div>
         </div>
       </div>
@@ -196,8 +169,6 @@
       // Load dashboard data
       document.addEventListener("DOMContentLoaded", function () {
         loadDashboardData();
-        loadMyClasses();
-        loadRecentStudents();
         updateUserName();
       });
 
@@ -232,8 +203,6 @@
               data.stats.total_lectures || 0;
             document.getElementById("totalStudents").textContent =
               data.stats.total_students || 0;
-            document.getElementById("totalAssignments").textContent =
-              data.stats.total_assignments || 0;
             document.getElementById("attendanceRate").textContent = `${
               data.stats.attendance_rate || 0
             }%`;
@@ -244,118 +213,6 @@
         } catch (error) {
           console.error("Error loading dashboard data:", error);
           showAlert("Error loading dashboard data", "danger");
-        }
-      }
-
-      async function loadMyClasses() {
-        try {
-          const auth = new Auth();
-          const user = auth.getCurrentUser();
-
-          if (!user) return;
-
-          const response = await fetch("/backend/controllers/classes.php", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              action: "get_by_teacher",
-              teacher_id: user.id,
-              limit: 5,
-            }),
-          });
-
-          const data = await response.json();
-
-          if (data.success) {
-            const tbody = document.getElementById("myLectures");
-            tbody.innerHTML = "";
-
-            if (data.data.length === 0) {
-              tbody.innerHTML =
-                '<tr><td colspan="5" class="text-center">No lectures assigned</td></tr>';
-              return;
-            }
-
-            data.data.forEach((classItem) => {
-              const row = document.createElement("tr");
-              row.innerHTML = `
-                <td>${classItem.subject_name || "Not assigned"}</td>
-                <td>${classItem.start_time || "Not set"}</td>
-                <td>${classItem.end_time || "Not set"}</td>
-                <td><span class="badge bg-${
-                  classItem.status === "active" ? "success" : "secondary"
-                }">${classItem.status}</span></td>
-                <td>
-                  <a href="lecturers.html" class="btn btn-sm btn-primary">View</a>
-                </td>
-              `;
-              tbody.appendChild(row);
-            });
-          } else {
-            document.getElementById("myLectures").innerHTML =
-              '<tr><td colspan="5" class="text-center text-danger">Failed to load lectures</td></tr>';
-          }
-        } catch (error) {
-          console.error("Error loading lectures:", error);
-          document.getElementById("myLectures").innerHTML =
-            '<tr><td colspan="5" class="text-center text-danger">Error loading lectures</td></tr>';
-        }
-      }
-
-      async function loadRecentStudents() {
-        try {
-          const auth = new Auth();
-          const user = auth.getCurrentUser();
-
-          if (!user) return;
-
-          const response = await fetch("/backend/controllers/students.php", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              action: "get_by_teacher",
-              teacher_id: user.id,
-              limit: 5,
-            }),
-          });
-
-          const data = await response.json();
-
-          if (data.success) {
-            const tbody = document.getElementById("recentStudents");
-            tbody.innerHTML = "";
-
-            if (data.data.length === 0) {
-              tbody.innerHTML =
-                '<tr><td colspan="5" class="text-center">No students found</td></tr>';
-              return;
-            }
-
-            data.data.forEach((student) => {
-              const row = document.createElement("tr");
-              row.innerHTML = `
-                <td>${student.roll_number || "N/A"}</td>
-                <td>${student.first_name} ${student.last_name}</td>
-                <td>${student.class_name || "Not Assigned"}</td>
-                <td>${student.attendance_percentage || 0}%</td>
-                <td><span class="badge bg-${
-                  student.status === "active" ? "success" : "secondary"
-                }">${student.status}</span></td>
-              `;
-              tbody.appendChild(row);
-            });
-          } else {
-            document.getElementById("recentStudents").innerHTML =
-              '<tr><td colspan="5" class="text-center text-danger">Failed to load students</td></tr>';
-          }
-        } catch (error) {
-          console.error("Error loading students:", error);
-          document.getElementById("recentStudents").innerHTML =
-            '<tr><td colspan="5" class="text-center text-danger">Error loading students</td></tr>';
         }
       }
 

@@ -29,6 +29,12 @@ if ($method === 'POST') {
             // Get teacher dashboard statistics
             $stats = [];
             
+            // Get total upcoming lectures (from today onwards)
+            $today = date('Y-m-d');
+            $sql = "SELECT COUNT(*) as count FROM lecturers WHERE teacher_id = ? AND date >= ?";
+            $result = $db->fetch($sql, [$teacherId, $today]);
+            $stats['total_lectures'] = $result['count'];
+            
             // Get total classes assigned to this teacher (via lecturers)
             $sql = "SELECT COUNT(DISTINCT l.class_id) as count FROM lecturers l WHERE l.teacher_id = ?";
             $result = $db->fetch($sql, [$teacherId]);
