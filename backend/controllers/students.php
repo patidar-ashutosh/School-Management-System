@@ -236,18 +236,36 @@ try {
                 }
                 $studentId = $input['student_id'];
                 $db = $student->getDb();
+                
+                // Get student's class
+                $studentData = $student->getById($studentId);
+                $classId = $studentData['class_id'] ?? null;
+                
                 // Total assignments (only those submitted or graded)
                 $total = $db->fetch("SELECT COUNT(*) as count FROM student_assignments WHERE student_id = ?", [$studentId])['count'];
+                
                 // Completed assignments (graded or submitted)
                 $completed = $db->fetch("SELECT COUNT(*) as count FROM student_assignments WHERE student_id = ? AND status IN ('graded', 'submitted')", [$studentId])['count'];
-                // Overdue assignments (submitted/graded and due_date < today)
-                $overdue = $db->fetch("SELECT COUNT(*) as count FROM student_assignments sa JOIN assignments a ON sa.assignment_id = a.id WHERE sa.student_id = ? AND a.due_date < CURDATE()", [$studentId])['count'];
+                
+                // Submitted assignments (status = submitted)
+                $submitted = $db->fetch("SELECT COUNT(*) as count FROM student_assignments WHERE student_id = ? AND status = 'submitted'", [$studentId])['count'];
+                
+                // Running assignments (not submitted by this student, due date not passed)
+                $running = 0;
+                $upcoming = 0;
+                if ($classId) {
+                    $running = $db->fetch("SELECT COUNT(*) as count FROM assignments a WHERE a.class_id = ? AND a.status = 'running' AND a.due_date >= CURDATE() AND a.id NOT IN (SELECT assignment_id FROM student_assignments WHERE student_id = ?)", [$classId, $studentId])['count'];
+                    
+                    $upcoming = $db->fetch("SELECT COUNT(*) as count FROM assignments a WHERE a.class_id = ? AND a.status = 'coming' AND a.due_date >= CURDATE() AND a.id NOT IN (SELECT assignment_id FROM student_assignments WHERE student_id = ?)", [$classId, $studentId])['count'];
+                }
+                
                 echo json_encode([
                     'success' => true,
                     'stats' => [
-                        'total' => $total,
+                        'total' => $running, // Show running assignments count
+                        'upcoming' => $upcoming, // Show upcoming assignments count
                         'completed' => $completed,
-                        'overdue' => $overdue
+                        'overdue' => $submitted // Show submitted assignments count
                     ]
                 ]);
                 break;
@@ -295,7 +313,18 @@ try {
                 }
                 $studentId = $input['student_id'];
                 $db = $student->getDb();
-                $sql = "SELECT sa.*, a.title as assignment_title, a.description, a.type as assignment_type, a.due_date, a.total_marks, a.subject_id, a.class_id, a.status as assignment_status, sub.name as subject_name FROM student_assignments sa JOIN assignments a ON sa.assignment_id = a.id LEFT JOIN subjects sub ON a.subject_id = sub.id WHERE sa.student_id = ? AND sa.status IN ('submitted', 'graded') ORDER BY sa.submitted_date DESC, sa.id DESC";
+                $sql = "SELECT sa.*, a.title as assignment_title, a.description, a.type as assignment_type, a.due_date, a.total_marks, a.subject_id, a.class_id, a.status as assignment_status, sub.name as subject_name FROM student_assignments sa JOIN assignments a ON sa.assignment_id = a.id LEFT JOIN subjects sub ON a.subject_id = sub.id WHERE sa.student_id = ? AND sa.status = 'submitted' ORDER BY sa.submitted_date DESC, sa.id DESC";
+                $rows = $db->fetchAll($sql, [$studentId]);
+                echo json_encode(['success' => true, 'assignments' => $rows]);
+                break;
+                
+            case 'get_graded_assignments':
+                if (!isset($input['student_id'])) {
+                    throw new Exception('Student ID is required');
+                }
+                $studentId = $input['student_id'];
+                $db = $student->getDb();
+                $sql = "SELECT sa.*, a.title as assignment_title, a.description, a.type as assignment_type, a.due_date, a.total_marks, a.subject_id, a.class_id, a.status as assignment_status, sub.name as subject_name FROM student_assignments sa JOIN assignments a ON sa.assignment_id = a.id LEFT JOIN subjects sub ON a.subject_id = sub.id WHERE sa.student_id = ? AND sa.status = 'graded' ORDER BY sa.submitted_date DESC, sa.id DESC";
                 $rows = $db->fetchAll($sql, [$studentId]);
                 echo json_encode(['success' => true, 'assignments' => $rows]);
                 break;

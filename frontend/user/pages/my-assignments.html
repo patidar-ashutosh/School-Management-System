@@ -73,13 +73,24 @@
       <div class="dashboard-cards">
         <div class="dashboard-card">
           <div class="card-header">
-            <div class="card-title">Total Assignments</div>
+            <div class="card-title">Running Assignments</div>
             <div class="card-icon" style="background: #667eea">
               <i class="fas fa-tasks"></i>
             </div>
           </div>
           <div class="card-number" id="totalAssignments"></div>
-          <div class="card-description">This semester</div>
+          <div class="card-description">Running</div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Upcoming Assignments</div>
+            <div class="card-icon" style="background: #ffc107">
+              <i class="fas fa-calendar-plus"></i>
+            </div>
+          </div>
+          <div class="card-number" id="upcomingAssignments"></div>
+          <div class="card-description">Coming</div>
         </div>
 
         <div class="dashboard-card">
@@ -95,13 +106,13 @@
 
         <div class="dashboard-card">
           <div class="card-header">
-            <div class="card-title">Overdue</div>
+            <div class="card-title">Submitted Assignments</div>
             <div class="card-icon" style="background: #dc3545">
-              <i class="fas fa-exclamation-triangle"></i>
+              <i class="fas fa-upload"></i>
             </div>
           </div>
           <div class="card-number" id="overdueAssignments"></div>
-          <div class="card-description">Past deadline</div>
+          <div class="card-description">Submitted</div>
         </div>
       </div>
 
@@ -174,6 +185,18 @@
         <div class="card-body">
           <div class="submissions-list" id="mySubmissions">
             <!-- Dynamic submissions will be rendered here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Graded Assignments -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Graded Assignments</h3>
+        </div>
+        <div class="card-body">
+          <div class="graded-assignments-list" id="gradedAssignments">
+            <!-- Dynamic graded assignments will be rendered here -->
           </div>
         </div>
       </div>
@@ -284,6 +307,7 @@
           setupSearchAndFilter();
           loadAssignmentStats();
           loadMySubmissions();
+          loadGradedAssignments();
         });
       });
 
@@ -577,6 +601,8 @@
             if (data.success && data.stats) {
               document.getElementById("totalAssignments").textContent =
                 data.stats.total;
+              document.getElementById("upcomingAssignments").textContent =
+                data.stats.upcoming;
               document.getElementById("completedAssignments").textContent =
                 data.stats.completed;
               document.getElementById("overdueAssignments").textContent =
@@ -607,10 +633,10 @@
               !data.assignments.length
             ) {
               container.innerHTML =
-                '<div class="text-center text-danger">No submissions found.</div>';
+                '<div class="text-center text-danger">No submitted assignments found.</div>';
               return;
             }
-            // Show all submissions (status: submitted or graded)
+            // Show only submitted assignments (status: submitted, not graded)
             let html = "";
             data.assignments.forEach((sub, idx) => {
               const dateObj = new Date(sub.submitted_date);
@@ -647,13 +673,8 @@
                         : ""
                     }
                   </div>
-                  <div class="submission-score" style="color:#333;font-size:0.97em;">
-                    ${
-                      sub.marks_obtained !== null &&
-                      sub.marks_obtained !== undefined
-                        ? `Score: <b>${sub.marks_obtained}</b>`
-                        : ""
-                    }
+                  <div class="submission-status-text" style="color:#ffc107;font-size:0.9em;font-weight:500;">
+                    Awaiting teacher review
                   </div>
                 </div>
                 <div class="submission-status">
@@ -675,6 +696,104 @@
                   showSubmittedTextModal(
                     sub.assignment_title,
                     sub.submitted_text
+                  );
+                });
+              });
+          });
+      }
+
+      // Fetch and render graded assignments
+      function loadGradedAssignments() {
+        const auth = new Auth();
+        const user = auth.getCurrentUser();
+        if (!user) return;
+        fetch("/backend/controllers/students.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "get_graded_assignments",
+            student_id: user.id,
+          }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            const container = document.getElementById("gradedAssignments");
+            if (
+              !data.success ||
+              !Array.isArray(data.assignments) ||
+              !data.assignments.length
+            ) {
+              container.innerHTML =
+                '<div class="text-center text-danger">No graded assignments found.</div>';
+              return;
+            }
+
+            let html = "";
+            data.assignments.forEach((assignment, idx) => {
+              const submittedDate = new Date(assignment.submitted_date);
+
+              html += `<div class="graded-assignment-item">
+                <div class="graded-assignment-header">
+                  <div class="graded-assignment-title">${
+                    assignment.assignment_title || "-"
+                  }</div>
+                  <div class="graded-assignment-subject">${
+                    assignment.subject_name || "-"
+                  }</div>
+                </div>
+                <div class="graded-assignment-details">
+                  <div class="graded-assignment-info">
+                    <span><strong>Type:</strong> ${capitalize(
+                      assignment.assignment_type || "-"
+                    )}</span>
+                    <span><strong>Submitted:</strong> ${submittedDate.toLocaleDateString()}</span>
+                  </div>
+                  <div class="graded-assignment-score">
+                    <div class="score-display">
+                      <span class="score-label">Score:</span>
+                      <span class="score-value">${
+                        assignment.marks_obtained || 0
+                      }/${assignment.total_marks || 0}</span>
+                    </div>
+                    <div class="score-percentage">
+                      ${
+                        assignment.total_marks
+                          ? Math.round(
+                              ((assignment.marks_obtained || 0) /
+                                assignment.total_marks) *
+                                100
+                            )
+                          : 0
+                      }%
+                    </div>
+                  </div>
+                </div>
+                <div class="graded-assignment-actions">
+                  ${
+                    assignment.assignment_type === "presentations" &&
+                    assignment.submitted_file
+                      ? `<a href="/${assignment.submitted_file}" download class="btn btn-sm btn-info">Download File</a>`
+                      : (assignment.assignment_type === "essays" ||
+                          assignment.assignment_type === "reports") &&
+                        assignment.submitted_text
+                      ? `<button class="btn btn-sm btn-info view-graded-text-btn" data-index="${idx}">View Answer</button>`
+                      : ""
+                  }
+                </div>
+              </div>`;
+            });
+            container.innerHTML = html;
+
+            // Add event listeners for view buttons
+            document
+              .querySelectorAll(".view-graded-text-btn")
+              .forEach((btn) => {
+                btn.addEventListener("click", function () {
+                  const idx = this.getAttribute("data-index");
+                  const assignment = data.assignments[idx];
+                  showSubmittedTextModal(
+                    assignment.assignment_title,
+                    assignment.submitted_text
                   );
                 });
               });
@@ -893,6 +1012,102 @@
         background: #f8f8f8;
         margin-bottom: 0;
         box-sizing: border-box;
+      }
+
+      /* Graded Assignments Styles */
+      .graded-assignments-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .graded-assignment-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #28a745;
+      }
+
+      .graded-assignment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      .graded-assignment-title {
+        font-weight: 600;
+        color: #333;
+        font-size: 1.1rem;
+      }
+
+      .graded-assignment-subject {
+        color: #666;
+        font-size: 0.9rem;
+        background: #e9ecef;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+      }
+
+      .graded-assignment-details {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .graded-assignment-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        color: #666;
+        font-size: 0.9rem;
+      }
+
+      .graded-assignment-info span {
+        display: block;
+      }
+
+      .graded-assignment-score {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+        min-width: 120px;
+      }
+
+      .score-display {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .score-label {
+        font-size: 0.9rem;
+        color: #666;
+      }
+
+      .score-value {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #28a745;
+      }
+
+      .score-percentage {
+        font-size: 0.8rem;
+        color: #666;
+        background: #e9ecef;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+      }
+
+      .graded-assignment-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
       }
     </style>
   </body>

@@ -151,11 +151,12 @@ class Student {
 
     public function getPendingAssignmentsStats($classId, $studentId = null) {
         if ($studentId) {
-            // Count assignments that the specific student has NOT submitted
+            // Count assignments that the specific student has NOT submitted AND due date is not passed
             $sql = "SELECT a.type, COUNT(*) as count 
                     FROM assignments a 
                     WHERE a.class_id = ? 
                     AND a.status IN ('coming', 'running')
+                    AND a.due_date >= CURDATE()  -- Due date is not passed
                     AND a.id NOT IN (
                         SELECT assignment_id 
                         FROM student_assignments 
@@ -165,7 +166,7 @@ class Student {
             return $this->db->fetchAll($sql, [$classId, $studentId]);
         } else {
             // Fallback to original behavior for backward compatibility
-            $sql = "SELECT type, COUNT(*) as count FROM assignments WHERE class_id = ? AND status IN ('coming', 'running') GROUP BY type";
+            $sql = "SELECT type, COUNT(*) as count FROM assignments WHERE class_id = ? AND status IN ('coming', 'running') AND due_date >= CURDATE() GROUP BY type";
             return $this->db->fetchAll($sql, [$classId]);
         }
     }

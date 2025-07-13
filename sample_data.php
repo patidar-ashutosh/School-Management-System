@@ -282,6 +282,12 @@ $studentAssignments = [
     [$assignmentIds['Algebra Test'], $studentIds['arjunreddy1@school.com'], '2024-06-26 10:00:00', 95, 'Well done', null, 'graded'],
     [$assignmentIds['English Essay'], $studentIds['zarakhan2@school.com'], '2024-06-28 12:00:00', 88, 'Good analysis', null, 'graded'],
     [$assignmentIds['Physics Lab'], $studentIds['meghasharma4@school.com'], null, null, null, null, 'submitted'],
+    // Add more assignments for student1@school.com (arjunreddy1@school.com)
+    [$assignmentIds['Mathematics Assignment'], $studentIds['arjunreddy1@school.com'], '2024-06-25 14:30:00', 85, 'Good work on quadratic equations', null, 'graded'],
+    [$assignmentIds['English Literature Report'], $studentIds['arjunreddy1@school.com'], '2024-06-24 11:15:00', 92, 'Excellent analysis of Shakespeare plays', null, 'graded'],
+    [$assignmentIds['Science Research Essay'], $studentIds['arjunreddy1@school.com'], '2024-06-23 16:45:00', null, 'Research on renewable energy sources', null, 'submitted'],
+    [$assignmentIds['History Report'], $studentIds['arjunreddy1@school.com'], '2024-06-22 09:20:00', 78, 'Comprehensive report on Indian Freedom Movement', null, 'graded'],
+    [$assignmentIds['Numbers Assignment'], $studentIds['arjunreddy1@school.com'], '2024-06-21 13:10:00', 100, 'Perfect! All numbers written correctly', null, 'graded'],
 ];
 foreach ($studentAssignments as $sa) {
     $pdo->prepare("INSERT IGNORE INTO student_assignments (assignment_id, student_id, submitted_date, marks_obtained, submitted_text, submitted_file, status) VALUES (?, ?, ?, ?, ?, ?, ?)")->execute($sa);

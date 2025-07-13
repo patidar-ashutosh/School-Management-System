@@ -47,17 +47,6 @@ try {
                     $subjects = $subject->getByClass($studentData['class_id']);
                 }
                 
-                // Count pending assignments by type
-                $pendingAssignments = 0;
-                $pendingAssignmentsByType = ['essays' => 0, 'reports' => 0, 'presentations' => 0];
-                if ($studentData['class_id']) {
-                    $result = $student->getPendingAssignmentsStats($studentData['class_id'], $studentId);
-                    foreach ($result as $row) {
-                        $pendingAssignments += $row['count'];
-                        $pendingAssignmentsByType[$row['type']] = $row['count'];
-                    }
-                }
-                
                 // Calculate attendance percentage
                 $attendancePercentage = 0;
                 if ($studentId) {
@@ -69,9 +58,7 @@ try {
                 
                 $stats = [
                     'total_subjects' => count($subjects),
-                    'attendance_percentage' => $attendancePercentage,
-                    'pending_assignments' => $pendingAssignments,
-                    'pending_assignments_by_type' => $pendingAssignmentsByType
+                    'attendance_percentage' => $attendancePercentage
                 ];
                 
                 echo json_encode([

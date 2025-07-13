@@ -129,17 +129,6 @@
           <div class="card-number" id="attendance">Loading...</div>
           <div class="card-description">This semester</div>
         </div>
-
-        <div class="dashboard-card">
-          <div class="card-header">
-            <div class="card-title">Pending Assignments</div>
-            <div class="card-icon" style="background: #dc3545">
-              <i class="fas fa-tasks"></i>
-            </div>
-          </div>
-          <div class="card-number" id="pendingAssignments">Loading...</div>
-          <div class="card-description">Due this week</div>
-        </div>
       </div>
 
       <!-- My Subjects -->
@@ -233,8 +222,6 @@
             document.getElementById("attendance").textContent = `${
               data.stats.attendance_percentage || 0
             }%`;
-            document.getElementById("pendingAssignments").textContent =
-              data.stats.pending_assignments || 0;
           } else {
             console.error("Failed to load dashboard data:", data.message);
             showError("Failed to load dashboard data");
