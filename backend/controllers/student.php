@@ -41,20 +41,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'update_profile') {
         requireRole('student');
         $studentId = getCurrentUserId();
-        $fields = [
-            'first_name', 'last_name', 'phone', 'address', 'gender', 'date_of_birth', 'parent_name', 'parent_phone', 'parent_email', 'blood_group', 'email'
-        ];
-        $data = [];
-        foreach ($fields as $field) {
-            $data[$field] = $input[$field] ?? null;
-        }
-        // Email should not be updated, but is required by the update method signature
+        
+        // Get current student data to preserve existing values
         $current = $student->getById($studentId);
         if (!$current) {
             echo json_encode(['success' => false, 'message' => 'Student not found']);
             exit;
         }
+        
+        $fields = [
+            'first_name', 'last_name', 'phone', 'address', 'gender', 'date_of_birth', 
+            'parent_name', 'parent_phone', 'parent_email', 'blood_group', 'email'
+        ];
+        
+        $data = [];
+        foreach ($fields as $field) {
+            $data[$field] = $input[$field] ?? null;
+        }
+        
+        // Preserve existing class_id and admission_date if not provided
+        $data['class_id'] = $current['class_id'];
+        $data['admission_date'] = $current['admission_date'];
+        
+        // Email should not be updated, but is required by the update method signature
         $data['email'] = $current['email'];
+        
         $result = $student->update($studentId, $data);
         if ($result !== false) {
             echo json_encode(['success' => true, 'message' => 'Profile updated successfully']);

@@ -134,10 +134,12 @@
             </p>
           </div>
           <div class="profile-actions">
+            <a href="profile.html" class="btn btn-secondary"
+              ><i class="fas fa-arrow-left"></i> Back</a
+            >
             <button type="submit" class="btn btn-primary">
               <i class="fas fa-save"></i> Save Changes
             </button>
-            <a href="profile.html" class="btn btn-secondary">Cancel</a>
           </div>
         </form>
       </main>
@@ -208,6 +210,8 @@
           parent_phone: document.getElementById("parentPhone").value.trim(),
           parent_email: document.getElementById("parentEmail").value.trim(),
           blood_group: document.getElementById("bloodGroup").value.trim(),
+          class_name: document.getElementById("studentClass").value,
+          admission_date: document.getElementById("admissionDate").value,
         };
         try {
           const response = await fetch("/backend/controllers/student.php", {
