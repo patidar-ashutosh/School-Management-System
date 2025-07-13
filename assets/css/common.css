@@ -93,6 +93,10 @@ body {
   font-size: 1.5rem;
 }
 
+.user-info span {
+  color: #000;
+}
+
 .dropdown-menu {
   position: absolute;
   top: 100%;
