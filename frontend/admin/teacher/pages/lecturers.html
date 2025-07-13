@@ -745,23 +745,23 @@
           pageLectures.forEach((lec) => {
             const row = document.createElement("tr");
             row.innerHTML = `
-              <td>${lec.subject_name || ""}</td>
-              <td>${lec.class_name || ""}</td>
+            <td>${lec.subject_name || ""}</td>
+            <td>${lec.class_name || ""}</td>
               <td>${formatDate(lec.date) || ""}</td>
-              <td>${lec.start_time || ""}</td>
-              <td>${lec.end_time || ""}</td>
-              <td><span class="status-badge ${lec.status}">${capitalize(
+            <td>${lec.start_time || ""}</td>
+            <td>${lec.end_time || ""}</td>
+            <td><span class="status-badge ${lec.status}">${capitalize(
               lec.status
             )}</span></td>
-              <td>
+            <td>
                 ${
                   lec.status === "running"
                     ? '<span class="text-muted"></span>'
                     : `<button class="btn btn-sm btn-primary" onclick="editLecture('${lec.id}')"><i class="fas fa-edit"></i></button>
                    <button class="btn btn-sm btn-danger" onclick="deleteLecture('${lec.id}', '${lec.subject_name}')"><i class="fas fa-trash"></i></button>`
                 }
-              </td>
-            `;
+            </td>
+          `;
             tbody.appendChild(row);
           });
         }

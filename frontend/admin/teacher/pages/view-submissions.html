@@ -119,6 +119,21 @@
         <h1>View Assignment Submissions</h1>
         <p>Filter and review student submissions for your assignments</p>
       </div>
+
+      <!-- Pending Reviews Statistics -->
+      <div class="dashboard-cards">
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">Pending Reviews</div>
+            <div class="card-icon" style="background: #ffc107">
+              <i class="fas fa-eye"></i>
+            </div>
+          </div>
+          <div class="card-number" id="pendingReviews">-</div>
+          <div class="card-description">Need grading</div>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-header">
           <h3>Filters</h3>
@@ -209,43 +224,122 @@
         fetchAssignmentsForFilters();
         setupFilterListeners();
         fetchAndRenderSubmissions();
+        fetchPendingReviewsCount();
       });
 
-      function fetchAssignmentsForFilters() {
+      function fetchPendingReviewsCount() {
         fetch("/backend/controllers/teacher_dashboard.php", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "get_assignments" }),
+          body: JSON.stringify({ action: "get_pending_reviews_count" }),
         })
-          .then((res) => res.json())
+          .then((response) => response.json())
           .then((data) => {
-            if (!data.success || !Array.isArray(data.assignments)) return;
-            allAssignments = data.assignments;
-            // Unique subjects and classes from assignments
-            const subjectMap = {};
-            const classMap = {};
-            data.assignments.forEach((a) => {
-              if (a.subject_id && a.subject_name)
-                subjectMap[a.subject_id] = a.subject_name;
-              if (a.class_id && a.class_name)
-                classMap[a.class_id] = a.class_name;
-            });
-            allSubjects = Object.entries(subjectMap).map(([id, name]) => ({
-              id,
-              name,
-            }));
-            allClasses = Object.entries(classMap).map(([id, name]) => ({
-              id,
-              name,
-            }));
-            populateFilterOptions();
+            if (data.success) {
+              document.getElementById("pendingReviews").textContent =
+                data.pending_reviews || "0";
+            } else {
+              document.getElementById("pendingReviews").textContent = "0";
+            }
+          })
+          .catch((error) => {
+            console.error("Error fetching pending reviews:", error);
+            document.getElementById("pendingReviews").textContent = "0";
           });
       }
 
-      function populateFilterOptions() {
+      function fetchAssignmentsForFilters() {
+        // First get the current teacher's subject
+        const user =
+          window.authManager && window.authManager.getCurrentUser
+            ? window.authManager.getCurrentUser()
+            : JSON.parse(localStorage.getItem("user"));
+
+        if (!user) {
+          console.error("User not authenticated");
+          return;
+        }
+
+        // Get teacher's subject
+        fetch("/backend/controllers/teachers.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_by_id", id: user.id }),
+        })
+          .then((response) => response.json())
+          .then((teacherData) => {
+            if (
+              !teacherData.success ||
+              !teacherData.data ||
+              !teacherData.data.subject_id
+            ) {
+              // No subject assigned to teacher
+              populateFilterOptions([], []);
+              return;
+            }
+
+            // Get subject name
+            fetch("/backend/controllers/subjects.php", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                action: "get_by_id",
+                id: teacherData.data.subject_id,
+              }),
+            })
+              .then((response) => response.json())
+              .then((subjectData) => {
+                if (subjectData.success && subjectData.data) {
+                  allSubjects = [
+                    {
+                      id: teacherData.data.subject_id,
+                      name: subjectData.data.name,
+                    },
+                  ];
+                } else {
+                  allSubjects = [];
+                }
+
+                // Now get assignments to extract unique classes
+                fetch("/backend/controllers/teacher_dashboard.php", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ action: "get_assignments" }),
+                })
+                  .then((res) => res.json())
+                  .then((data) => {
+                    if (!data.success || !Array.isArray(data.assignments)) {
+                      populateFilterOptions(allSubjects, []);
+                      return;
+                    }
+
+                    // Extract unique classes from assignments
+                    const classMap = {};
+                    data.assignments.forEach((a) => {
+                      if (a.class_id && a.class_name) {
+                        classMap[a.class_id] = a.class_name;
+                      }
+                    });
+                    allClasses = Object.entries(classMap).map(([id, name]) => ({
+                      id,
+                      name,
+                    }));
+
+                    populateFilterOptions(allSubjects, allClasses);
+                  });
+              });
+          });
+      }
+
+      function populateFilterOptions(subjects, classes) {
         const subjectFilter = document.getElementById("subjectFilter");
         const classFilter = document.getElementById("classFilter");
         const noAssignmentsMsg = document.getElementById("noAssignmentsMsg");
+
+        // Update global variables
+        allSubjects = subjects || [];
+        allClasses = classes || [];
+
         if (allSubjects.length === 0 || allClasses.length === 0) {
           subjectFilter.innerHTML = '<option value="">All Subjects</option>';
           classFilter.innerHTML = '<option value="">All Classes</option>';
@@ -267,6 +361,7 @@
               }</option>`
           )
           .join("");
+        subjectFilter.disabled = true; // Disable subject filter since teacher has only one subject
         classFilter.innerHTML = allClasses
           .map(
             (c, i) =>

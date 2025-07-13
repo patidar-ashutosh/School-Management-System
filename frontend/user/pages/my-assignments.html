@@ -316,6 +316,21 @@
       }
 
       function renderAssignmentsTable(assignments) {
+        // Sort assignments: running first, then coming
+        assignments.sort((a, b) => {
+          // Define status priority: running = 1, coming = 2, completed = 3
+          const statusPriority = {
+            running: 1,
+            coming: 2,
+            completed: 3,
+          };
+
+          const aPriority = statusPriority[a.status] || 4;
+          const bPriority = statusPriority[b.status] || 4;
+
+          return aPriority - bPriority;
+        });
+
         let html = "";
         assignments.forEach((row) => {
           html += `<tr>

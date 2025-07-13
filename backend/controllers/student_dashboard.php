@@ -49,17 +49,27 @@ try {
                 
                 // Count pending assignments by type
                 $pendingAssignments = 0;
-                $pendingAssignmentsByType = ['quiz' => 0, 'project' => 0];
+                $pendingAssignmentsByType = ['essays' => 0, 'reports' => 0, 'presentations' => 0];
                 if ($studentData['class_id']) {
-                    $result = $student->getPendingAssignmentsStats($studentData['class_id']);
+                    $result = $student->getPendingAssignmentsStats($studentData['class_id'], $studentId);
                     foreach ($result as $row) {
                         $pendingAssignments += $row['count'];
                         $pendingAssignmentsByType[$row['type']] = $row['count'];
                     }
                 }
+                
+                // Calculate attendance percentage
+                $attendancePercentage = 0;
+                if ($studentId) {
+                    $db = $student->getDb();
+                    $total = $db->fetch("SELECT COUNT(*) as total FROM attendance WHERE student_id = ?", [$studentId])['total'];
+                    $present = $db->fetch("SELECT COUNT(*) as present FROM attendance WHERE student_id = ? AND status = 'present'", [$studentId])['present'];
+                    $attendancePercentage = ($total > 0) ? round(($present / $total) * 100) : 0;
+                }
+                
                 $stats = [
                     'total_subjects' => count($subjects),
-                    'attendance_percentage' => 0, // Placeholder - implement based on attendance table
+                    'attendance_percentage' => $attendancePercentage,
                     'pending_assignments' => $pendingAssignments,
                     'pending_assignments_by_type' => $pendingAssignmentsByType
                 ];

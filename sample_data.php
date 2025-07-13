@@ -150,8 +150,8 @@ for ($i = 1; $i <= 25; $i++) {
     ];
 }
 
-// Add 16 students specifically to Class 10A
-$class10AId = $classIds['Class 10A'];
+// Add 16 students specifically to Class 1A
+$class1AId = $classIds['Class 1A'];
 $additionalFirstNames = ['Rahul', 'Priya', 'Amit', 'Neha', 'Vikram', 'Sunita', 'Rajiv', 'Deepa', 'Suresh', 'Anita', 'Alok', 'Meena', 'Prakash', 'Kavita', 'Sanjay', 'Rekha'];
 $additionalLastNames = ['Malhotra', 'Rastogi', 'Saxena', 'Agarwal', 'Srivastava', 'Pandey', 'Tripathi', 'Dubey', 'Mishra', 'Tiwari', 'Yadav', 'Kaur', 'Gill', 'Randhawa', 'Dhillon', 'Sidhu'];
 
@@ -175,7 +175,7 @@ for ($i = 26; $i <= 41; $i++) {
         'Parent '.$first,
         '9876543'.str_pad($i+100,3,'0',STR_PAD_LEFT),
         'parent'.$i.'@school.com',
-        $class10AId, // All 16 additional students go to Class 10A
+        $class1AId, // All 16 additional students go to Class 1A
         1000 + $i,
         $admission,
         'A+',
@@ -206,25 +206,25 @@ $attendance = [
     [$studentIds['rohanjoshi5@school.com'], $classIds['Class 12 Commerce'], '2024-07-01', 'absent', $teacherIds['teacher4@school.com']],
 ];
 
-// Add attendance data for current date and past 5 days for Class 10A students
+// Add attendance data for current date and past 5 days for Class 1A students
 $currentDate = date('Y-m-d');
 
-// Filter only Class 10A students from the students array
-$class10AStudents = [];
+// Filter only Class 1A students from the students array
+$class1AStudents = [];
 foreach ($students as $student) {
-    if ($student[11] == $class10AId) { // class_id is at index 11
-        $class10AStudents[] = $student;
+    if ($student[11] == $classIds['Class 1A']) { // class_id is at index 11
+        $class1AStudents[] = $student;
     }
 }
 
-// Get Class 10A teacher ID (teacher1@school.com)
-$class10ATeacherId = $teacherIds['teacher1@school.com'];
+// Get Class 1A teacher ID (teacher1@school.com)
+$class1ATeacherId = $teacherIds['teacher1@school.com'];
 
 // Generate attendance for past 5 days (excluding current date)
 for ($dayOffset = 5; $dayOffset >= 1; $dayOffset--) {
     $attendanceDate = date('Y-m-d', strtotime("-$dayOffset days"));
     
-    foreach ($class10AStudents as $student) {
+    foreach ($class1AStudents as $student) {
         $studentEmail = $student[0];
         if (isset($studentIds[$studentEmail])) {
             $studentId = $studentIds[$studentEmail];
@@ -233,10 +233,10 @@ for ($dayOffset = 5; $dayOffset >= 1; $dayOffset--) {
             
             $attendance[] = [
                 $studentId,
-                $class10AId,
+                $classIds['Class 1A'],
                 $attendanceDate,
                 $status,
-                $class10ATeacherId
+                $class1ATeacherId
             ];
         }
     }
@@ -251,6 +251,20 @@ $assignments = [
     ['Algebra Test', 'Algebraic expressions', $subjectIds['MATH10A'], $classIds['Class 10A'], '2024-06-20', '2024-06-27', 100, $teacherIds['teacher1@school.com'], 'essays', 'completed'],
     ['English Essay', 'Essay on Indian Independence', $subjectIds['ENG10B'], $classIds['Class 10B'], '2024-06-22', '2024-06-29', 50, $teacherIds['teacher2@school.com'], 'reports', 'running'],
     ['Physics Lab', 'Experiment on Light', $subjectIds['PHY11S'], $classIds['Class 11 Science'], '2024-06-25', '2024-07-02', 75, $teacherIds['teacher5@school.com'], 'presentations', 'coming'],
+    // New assignments with running/coming status and essays/reports types
+    ['Mathematics Assignment', 'Solve quadratic equations and word problems', $subjectIds['MATH1A'], $classIds['Class 1A'], date('Y-m-d', strtotime('-2 days')), date('Y-m-d', strtotime('+5 days')), 80, $teacherIds['teacher1@school.com'], 'essays', 'running'],
+    ['English Literature Report', 'Write a detailed report on Shakespeare plays', $subjectIds['ENG1A'], $classIds['Class 1A'], date('Y-m-d', strtotime('-1 day')), date('Y-m-d', strtotime('+7 days')), 60, $teacherIds['teacher2@school.com'], 'reports', 'running'],
+    ['Science Research Essay', 'Research and write about renewable energy sources', $subjectIds['SCI2A'], $classIds['Class 2A'], date('Y-m-d'), date('Y-m-d', strtotime('+10 days')), 90, $teacherIds['teacher3@school.com'], 'essays', 'coming'],
+    ['History Report', 'Write a comprehensive report on Indian Freedom Movement', $subjectIds['SST4A'], $classIds['Class 4A'], date('Y-m-d', strtotime('+2 days')), date('Y-m-d', strtotime('+12 days')), 70, $teacherIds['teacher5@school.com'], 'reports', 'coming'],
+    ['Geography Essay', 'Essay on climate change and its global impact', $subjectIds['SST9A'], $classIds['Class 9A'], date('Y-m-d', strtotime('+3 days')), date('Y-m-d', strtotime('+15 days')), 85, $teacherIds['teacher10@school.com'], 'essays', 'coming'],
+    ['Hindi Literature Report', 'Report on modern Hindi literature and authors', $subjectIds['HIN3A'], $classIds['Class 3A'], date('Y-m-d', strtotime('+1 day')), date('Y-m-d', strtotime('+8 days')), 55, $teacherIds['teacher4@school.com'], 'reports', 'coming'],
+    // Class 1A specific assignments
+    ['Basic Math Problems', 'Solve addition and subtraction word problems', $subjectIds['MATH1A'], $classIds['Class 1A'], date('Y-m-d', strtotime('-3 days')), date('Y-m-d', strtotime('+3 days')), 50, $teacherIds['teacher1@school.com'], 'essays', 'running'],
+    ['My Family Essay', 'Write an essay about your family members', $subjectIds['ENG1A'], $classIds['Class 1A'], date('Y-m-d', strtotime('-1 day')), date('Y-m-d', strtotime('+6 days')), 40, $teacherIds['teacher2@school.com'], 'essays', 'running'],
+    ['Animals Report', 'Write a report about your favorite animal', $subjectIds['SCI2A'], $classIds['Class 1A'], date('Y-m-d'), date('Y-m-d', strtotime('+8 days')), 45, $teacherIds['teacher3@school.com'], 'reports', 'coming'],
+    ['Festivals Essay', 'Essay about Indian festivals and celebrations', $subjectIds['SST4A'], $classIds['Class 1A'], date('Y-m-d', strtotime('+1 day')), date('Y-m-d', strtotime('+9 days')), 35, $teacherIds['teacher5@school.com'], 'essays', 'coming'],
+    ['Hindi Poems Report', 'Report on famous Hindi poems for children', $subjectIds['HIN3A'], $classIds['Class 1A'], date('Y-m-d', strtotime('+2 days')), date('Y-m-d', strtotime('+10 days')), 30, $teacherIds['teacher4@school.com'], 'reports', 'coming'],
+    ['Numbers Assignment', 'Practice writing numbers 1-100 in words', $subjectIds['MATH1A'], $classIds['Class 1A'], date('Y-m-d', strtotime('+3 days')), date('Y-m-d', strtotime('+11 days')), 25, $teacherIds['teacher1@school.com'], 'essays', 'coming'],
 ];
 foreach ($assignments as $a) {
     $pdo->prepare("INSERT IGNORE INTO assignments (title, description, subject_id, class_id, start_date, due_date, total_marks, teacher_id, type, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")->execute($a);
@@ -313,6 +327,24 @@ for ($i = 1; $i <= 22; $i++) {
         $status,
     ];
 }
+
+// Add 10 exams specifically for Class 1A
+$class1AExams = [
+    ['Mathematics Midterm Class 1A', $subjectIds['MATH1A'], $classIds['Class 1A'], $today, '09:00:00', '10:00:00', 50, 'midterm', 'ongoing'],
+    ['English Final Class 1A', $subjectIds['ENG1A'], $classIds['Class 1A'], $today, '10:00:00', '11:00:00', 60, 'final', 'ongoing'],
+    ['Mathematics Final Class 1A', $subjectIds['MATH1A'], $classIds['Class 1A'], date('Y-m-d', strtotime('+2 days')), '09:00:00', '10:00:00', 50, 'final', 'scheduled'],
+    ['English Midterm Class 1A', $subjectIds['ENG1A'], $classIds['Class 1A'], date('Y-m-d', strtotime('+3 days')), '10:00:00', '11:00:00', 60, 'midterm', 'scheduled'],
+    ['Science Midterm Class 1A', $subjectIds['SCI2A'], $classIds['Class 1A'], date('Y-m-d', strtotime('+4 days')), '11:00:00', '12:00:00', 45, 'midterm', 'scheduled'],
+    ['Hindi Final Class 1A', $subjectIds['HIN3A'], $classIds['Class 1A'], date('Y-m-d', strtotime('+5 days')), '09:00:00', '10:00:00', 40, 'final', 'scheduled'],
+    ['Social Studies Midterm Class 1A', $subjectIds['SST4A'], $classIds['Class 1A'], date('Y-m-d', strtotime('+6 days')), '10:00:00', '11:00:00', 55, 'midterm', 'scheduled'],
+    ['Mathematics Midterm Class 1A', $subjectIds['MATH1A'], $classIds['Class 1A'], date('Y-m-d', strtotime('+7 days')), '11:00:00', '12:00:00', 50, 'midterm', 'scheduled'],
+    ['English Final Class 1A', $subjectIds['ENG1A'], $classIds['Class 1A'], date('Y-m-d', strtotime('+8 days')), '09:00:00', '10:00:00', 60, 'final', 'scheduled'],
+    ['Science Final Class 1A', $subjectIds['SCI2A'], $classIds['Class 1A'], date('Y-m-d', strtotime('+9 days')), '10:00:00', '11:00:00', 45, 'final', 'scheduled'],
+];
+
+// Merge Class 1A exams with existing exams array
+$exams = array_merge($exams, $class1AExams);
+
 foreach ($exams as $e) {
     $pdo->prepare("INSERT IGNORE INTO exams (name, subject_id, class_id, date, start_time, end_time, total_marks, exam_type, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")->execute($e);
 }
@@ -323,16 +355,68 @@ $tomorrow = date('Y-m-d', strtotime('+1 day'));
 $day_after_tomorrow = date('Y-m-d', strtotime('+2 days'));
 $yesterday = date('Y-m-d', strtotime('-1 day'));
 
+// Get current week dates (Monday to Friday, excluding today)
+$currentWeekStart = date('Y-m-d', strtotime('monday this week'));
+$currentWeekEnd = date('Y-m-d', strtotime('friday this week'));
+
 $lecturers = [
-    // Today's lecture - Running
-    [$subjectIds['MATH10A'], $teacherIds['teacher1@school.com'], $classIds['Class 10A'], $today, '08:00:00', '09:00:00', 'running'],
     // Tomorrow's lecture - Scheduled
-    [$subjectIds['ENG10B'], $teacherIds['teacher2@school.com'], $classIds['Class 10B'], $tomorrow, '09:00:00', '10:00:00', 'scheduled'],
+    [$subjectIds['MATH10A'], $teacherIds['teacher1@school.com'], $classIds['Class 10A'], $tomorrow, '08:00:00', '09:00:00', 'scheduled'],
     // Day after tomorrow's lecture - Scheduled
-    [$subjectIds['PHY11S'], $teacherIds['teacher5@school.com'], $classIds['Class 11 Science'], $day_after_tomorrow, '10:00:00', '11:00:00', 'scheduled'],
+    [$subjectIds['ENG10B'], $teacherIds['teacher2@school.com'], $classIds['Class 10B'], $day_after_tomorrow, '09:00:00', '10:00:00', 'scheduled'],
+    // Next week's lecture - Scheduled
+    [$subjectIds['PHY11S'], $teacherIds['teacher5@school.com'], $classIds['Class 11 Science'], date('Y-m-d', strtotime('+1 week')), '10:00:00', '11:00:00', 'scheduled'],
     // Yesterday's lecture - Completed
     [$subjectIds['SCI2A'], $teacherIds['teacher3@school.com'], $classIds['Class 2A'], $yesterday, '11:00:00', '12:00:00', 'completed'],
 ];
+
+// Add 5 completed lectures for different teachers and classes
+$completedLectures = [
+    [$subjectIds['MATH1A'], $teacherIds['teacher1@school.com'], $classIds['Class 1A'], date('Y-m-d', strtotime('-3 days')), '08:00:00', '09:00:00', 'completed'],
+    [$subjectIds['ENG1A'], $teacherIds['teacher2@school.com'], $classIds['Class 1A'], date('Y-m-d', strtotime('-4 days')), '09:00:00', '10:00:00', 'completed'],
+    [$subjectIds['SCI2A'], $teacherIds['teacher3@school.com'], $classIds['Class 2A'], date('Y-m-d', strtotime('-5 days')), '10:00:00', '11:00:00', 'completed'],
+    [$subjectIds['HIN3A'], $teacherIds['teacher4@school.com'], $classIds['Class 3A'], date('Y-m-d', strtotime('-6 days')), '11:00:00', '12:00:00', 'completed'],
+    [$subjectIds['SST4A'], $teacherIds['teacher5@school.com'], $classIds['Class 4A'], date('Y-m-d', strtotime('-7 days')), '12:00:00', '13:00:00', 'completed'],
+];
+
+// Merge completed lectures with existing lecturers array
+$lecturers = array_merge($lecturers, $completedLectures);
+
+// Add sample lectures for teacher1@school.com for current week (excluding today)
+$teacher1SubjectId = $subjectIds['MATH1A']; // teacher1@school.com teaches MATH1A
+$teacher1ClassId = $classIds['Class 1A']; // teacher1@school.com is class teacher of Class 1A
+
+// Generate lectures for each day of the current week (Monday to Friday)
+for ($i = 0; $i < 5; $i++) {
+    $lectureDate = date('Y-m-d', strtotime("monday this week +$i days"));
+    
+    // Skip today's date
+    if ($lectureDate === $today) {
+        continue;
+    }
+    
+    // Use future dates to ensure scheduled status
+    if ($lectureDate <= $today) {
+        // For past dates, use next week instead
+        $lectureDate = date('Y-m-d', strtotime("monday next week +$i days"));
+    }
+    
+    // Generate different time slots for variety
+    $startHour = 8 + ($i % 3); // 8, 9, 10, 8, 9
+    $startTime = sprintf('%02d:00:00', $startHour);
+    $endTime = sprintf('%02d:00:00', $startHour + 1);
+    
+    $lecturers[] = [
+        $teacher1SubjectId,
+        $teacherIds['teacher1@school.com'],
+        $teacher1ClassId,
+        $lectureDate,
+        $startTime,
+        $endTime,
+        'scheduled' // Always scheduled since we're using future dates
+    ];
+}
+
 foreach ($lecturers as $l) {
     $pdo->prepare("INSERT IGNORE INTO lecturers (subject_id, teacher_id, class_id, date, start_time, end_time, status) VALUES (?, ?, ?, ?, ?, ?, ?)")->execute($l);
 }

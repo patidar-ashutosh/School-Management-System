@@ -149,9 +149,25 @@ class Student {
         return $this->db->fetchAll($sql);
     }
 
-    public function getPendingAssignmentsStats($classId) {
-        $sql = "SELECT type, COUNT(*) as count FROM assignments WHERE class_id = ? AND status = 'active' GROUP BY type";
-        return $this->db->fetchAll($sql, [$classId]);
+    public function getPendingAssignmentsStats($classId, $studentId = null) {
+        if ($studentId) {
+            // Count assignments that the specific student has NOT submitted
+            $sql = "SELECT a.type, COUNT(*) as count 
+                    FROM assignments a 
+                    WHERE a.class_id = ? 
+                    AND a.status IN ('coming', 'running')
+                    AND a.id NOT IN (
+                        SELECT assignment_id 
+                        FROM student_assignments 
+                        WHERE student_id = ?
+                    )
+                    GROUP BY a.type";
+            return $this->db->fetchAll($sql, [$classId, $studentId]);
+        } else {
+            // Fallback to original behavior for backward compatibility
+            $sql = "SELECT type, COUNT(*) as count FROM assignments WHERE class_id = ? AND status IN ('coming', 'running') GROUP BY type";
+            return $this->db->fetchAll($sql, [$classId]);
+        }
     }
 
     public function getDb() {

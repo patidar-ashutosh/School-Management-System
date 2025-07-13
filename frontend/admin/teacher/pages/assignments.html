@@ -46,6 +46,9 @@
                 ><i class="fas fa-tasks"></i> Assignments</a
               >
             </li>
+            <li>
+              <a href="exams.html"><i class="fas fa-file-alt"></i> Exams</a>
+            </li>
           </ul>
         </nav>
 
@@ -95,6 +98,9 @@
               ><i class="fas fa-tasks"></i> Assignments</a
             >
           </li>
+          <li>
+            <a href="exams.html"><i class="fas fa-file-alt"></i> Exams</a>
+          </li>
         </ul>
       </nav>
     </header>
@@ -114,41 +120,41 @@
               <i class="fas fa-tasks"></i>
             </div>
           </div>
-          <div class="card-number" id="totalAssignments">15</div>
+          <div class="card-number" id="totalAssignments">-</div>
           <div class="card-description">Active assignments</div>
         </div>
 
         <div class="dashboard-card">
           <div class="card-header">
-            <div class="card-title">Due This Week</div>
+            <div class="card-title">Running Assignments</div>
             <div class="card-icon" style="background: #ffc107">
-              <i class="fas fa-clock"></i>
+              <i class="fas fa-play-circle"></i>
             </div>
           </div>
-          <div class="card-number" id="dueThisWeek">3</div>
-          <div class="card-description">Assignments due</div>
+          <div class="card-number" id="runningAssignments">-</div>
+          <div class="card-description">Currently active</div>
         </div>
 
         <div class="dashboard-card">
           <div class="card-header">
-            <div class="card-title">Average Submission</div>
+            <div class="card-title">Coming Assignments</div>
             <div class="card-icon" style="background: #28a745">
-              <i class="fas fa-check-circle"></i>
+              <i class="fas fa-calendar-plus"></i>
             </div>
           </div>
-          <div class="card-number" id="avgSubmission">85%</div>
-          <div class="card-description">Submission rate</div>
+          <div class="card-number" id="comingAssignments">-</div>
+          <div class="card-description">Scheduled to start</div>
         </div>
 
         <div class="dashboard-card">
           <div class="card-header">
-            <div class="card-title">Pending Reviews</div>
+            <div class="card-title">Completed Assignments</div>
             <div class="card-icon" style="background: #17a2b8">
-              <i class="fas fa-eye"></i>
+              <i class="fas fa-check-double"></i>
             </div>
           </div>
-          <div class="card-number" id="pendingReviews">12</div>
-          <div class="card-description">Need grading</div>
+          <div class="card-number" id="completedAssignments">-</div>
+          <div class="card-description">Finished assignments</div>
         </div>
       </div>
 
@@ -167,12 +173,6 @@
               onclick="window.location.href='view-submissions.html'"
             >
               <i class="fas fa-file-alt"></i> View Submissions
-            </button>
-            <button
-              class="btn btn-info"
-              onclick="window.location.href='exams.html'"
-            >
-              <i class="fas fa-file-alt"></i> Exams
             </button>
           </div>
         </div>
@@ -247,11 +247,11 @@
         <form id="assignmentForm">
           <div class="form-row">
             <div class="form-group">
-              <label for="assignmentTitle">Assignment Title</label>
+              <label for="assignmentTitle">Assignment Title *</label>
               <input type="text" id="assignmentTitle" name="title" required />
             </div>
             <div class="form-group">
-              <label for="assignmentType">Type</label>
+              <label for="assignmentType">Type *</label>
               <select id="assignmentType" name="type" required>
                 <option value="">Select type...</option>
                 <option value="essays">Essays</option>
@@ -262,7 +262,7 @@
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label for="assignmentClass">Class</label>
+              <label for="assignmentClass">Class *</label>
               <select id="assignmentClass" name="class" required>
                 <option value="">Select class...</option>
               </select>
@@ -284,7 +284,7 @@
               />
             </div>
             <div class="form-group">
-              <label for="assignmentDueDate">Due Date</label>
+              <label for="assignmentDueDate">Due Date *</label>
               <input
                 type="date"
                 id="assignmentDueDate"
@@ -293,7 +293,7 @@
               />
             </div>
             <div class="form-group">
-              <label for="assignmentTotalMarks">Total Marks</label>
+              <label for="assignmentTotalMarks">Total Marks *</label>
               <input
                 type="number"
                 id="assignmentTotalMarks"
@@ -313,7 +313,7 @@
             </div>
           </div>
           <div class="form-group">
-            <label for="assignmentDescription">Description</label>
+            <label for="assignmentDescription">Description *</label>
             <textarea
               id="assignmentDescription"
               name="description"
@@ -360,10 +360,6 @@
           window.authManager && window.authManager.getCurrentUser
             ? window.authManager.getCurrentUser()
             : JSON.parse(localStorage.getItem("user"));
-        console.log(
-          "[DEBUG] On page load, teacher user.id:",
-          window.currentUser && window.currentUser.id
-        );
         populateClassFilterDropdown();
         loadAssignmentData();
         setupSearchAndFilter();
@@ -410,12 +406,55 @@
       });
 
       function loadAssignmentData() {
-        setTimeout(() => {
-          document.getElementById("totalAssignments").textContent = "15";
-          document.getElementById("dueThisWeek").textContent = "3";
-          document.getElementById("avgSubmission").textContent = "85%";
-          document.getElementById("pendingReviews").textContent = "12";
-        }, 1000);
+        // Fetch real assignment statistics from database
+        fetchAssignmentStatistics();
+      }
+
+      async function fetchAssignmentStatistics() {
+        // Show loading state initially
+        document.getElementById("totalAssignments").textContent = "Loading...";
+        document.getElementById("runningAssignments").textContent =
+          "Loading...";
+        document.getElementById("comingAssignments").textContent = "Loading...";
+        document.getElementById("completedAssignments").textContent =
+          "Loading...";
+
+        try {
+          const response = await fetch(
+            "/backend/controllers/teacher_dashboard.php",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ action: "get_assignment_statistics" }),
+            }
+          );
+
+          const data = await response.json();
+
+          if (data.success) {
+            document.getElementById("totalAssignments").textContent =
+              data.total_assignments || "0";
+            document.getElementById("runningAssignments").textContent =
+              data.running_assignments || "0";
+            document.getElementById("comingAssignments").textContent =
+              data.coming_assignments || "0";
+            document.getElementById("completedAssignments").textContent =
+              data.completed_assignments || "0";
+          } else {
+            // Fallback to 0 if API fails
+            document.getElementById("totalAssignments").textContent = "0";
+            document.getElementById("runningAssignments").textContent = "0";
+            document.getElementById("comingAssignments").textContent = "0";
+            document.getElementById("completedAssignments").textContent = "0";
+          }
+        } catch (error) {
+          console.error("Error fetching assignment statistics:", error);
+          // Fallback to 0 if network error
+          document.getElementById("totalAssignments").textContent = "0";
+          document.getElementById("runningAssignments").textContent = "0";
+          document.getElementById("comingAssignments").textContent = "0";
+          document.getElementById("completedAssignments").textContent = "0";
+        }
       }
 
       function setupSearchAndFilter() {
@@ -508,12 +547,17 @@
                     <button class="btn btn-sm btn-primary" onclick="viewAssignment('${
                       assignment.id
                     }')"><i class="fas fa-eye"></i></button>
-                    <button class="btn btn-sm btn-success" onclick="editAssignment('${
-                      assignment.id
-                    }')"><i class="fas fa-edit"></i></button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteAssignment('${
-                      assignment.id
-                    }')"><i class="fas fa-trash"></i></button>
+                    ${
+                      assignment.status !== "completed"
+                        ? `<button class="btn btn-sm btn-success" onclick="editAssignment('${assignment.id}')"><i class="fas fa-edit"></i></button>`
+                        : ""
+                    }
+                    ${
+                      assignment.status !== "completed" &&
+                      assignment.status !== "running"
+                        ? `<button class="btn btn-sm btn-danger" onclick="deleteAssignment('${assignment.id}')"><i class="fas fa-trash"></i></button>`
+                        : ""
+                    }
                   </div>
                 </td>
               </tr>
@@ -568,10 +612,8 @@
         const user = window.currentUser;
         const subjectDropdown = document.getElementById("assignmentSubject");
         if (!user || !subjectDropdown) {
-          console.log("No user or subjectDropdown");
           return;
         }
-        console.log("[DEBUG] fetchSubjectDropdownForTeacher user.id:", user.id);
         fetch(`/backend/controllers/teachers.php`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -579,10 +621,6 @@
         })
           .then((response) => response.json())
           .then((data) => {
-            console.log(
-              "[DEBUG] fetchSubjectDropdownForTeacher teacher response:",
-              data
-            );
             subjectDropdown.innerHTML = "";
             if (data.success && data.data && data.data.subject_id) {
               fetch(`/backend/controllers/subjects.php`, {
@@ -595,10 +633,6 @@
               })
                 .then((response) => response.json())
                 .then((subjectData) => {
-                  console.log(
-                    "[DEBUG] fetchSubjectDropdownForTeacher subject response:",
-                    subjectData
-                  );
                   if (
                     subjectData.success &&
                     subjectData.data &&
@@ -695,6 +729,7 @@
             const tbody = document.getElementById("assignmentsTableBody");
             tbody.innerHTML = "";
             assignmentsCache = data.assignments || [];
+
             if (
               data.success &&
               Array.isArray(data.assignments) &&
@@ -733,7 +768,8 @@
                             : ""
                         }
                         ${
-                          assignment.status !== "completed"
+                          assignment.status !== "completed" &&
+                          assignment.status !== "running"
                             ? `<button class="btn btn-sm btn-danger" onclick="deleteAssignment('${assignment.id}')"><i class="fas fa-trash"></i></button>`
                             : ""
                         }
@@ -746,6 +782,11 @@
               tbody.innerHTML =
                 '<tr><td colspan="8" style="text-align:center;">No assignments found.</td></tr>';
             }
+            // Refresh statistics after loading assignments
+            fetchAssignmentStatistics();
+          })
+          .catch((error) => {
+            console.error("Error in fetchAssignments:", error);
           });
       }
 
@@ -863,10 +904,12 @@
               </table>
               <h3>Student Status</h3>
               <table class="details-table">
-                <tr><th>Pending</th><td>${data.pending}</td></tr>
-                <tr><th>Submitted</th><td>${data.submitted}</td></tr>
-                <tr><th>Graded</th><td>${data.graded}</td></tr>
-                <tr><th>Total Students</th><td>${data.total_students}</td></tr>
+                <tr><th>Pending</th><td>${data.not_submitted || 0}</td></tr>
+                <tr><th>Submitted</th><td>${data.submitted || 0}</td></tr>
+                <tr><th>Graded</th><td>${data.graded || 0}</td></tr>
+                <tr><th>Total Students</th><td>${
+                  data.total_students || 0
+                }</td></tr>
               </table>
             `;
           })
@@ -899,7 +942,7 @@
                 res.success ? "success" : "error"
               );
               if (res.success) {
-                fetchAssignments();
+                fetchAssignments(); // This will also refresh statistics
               }
             })
             .catch(() => {
@@ -916,6 +959,11 @@
       function closeAssignmentModal() {
         document.getElementById("assignmentModal").style.display = "none";
         const form = document.getElementById("assignmentForm");
+
+        // Reset form
+        form.reset();
+
+        // Re-enable all fields
         [
           form.title,
           form.description,
@@ -926,7 +974,23 @@
           form.totalMarks,
           form.type,
           form.status,
-        ].forEach((f) => (f.disabled = false));
+        ].forEach((f) => {
+          f.disabled = false;
+        });
+
+        // Reset edit assignment ID
+        editAssignmentId = null;
+
+        // Clear any cached form data
+        form.title.value = "";
+        form.description.value = "";
+        form.class.value = "";
+        form.subject.value = "";
+        form.startDate.value = "";
+        form.dueDate.value = "";
+        form.totalMarks.value = "";
+        form.type.value = "";
+        form.status.value = "";
       }
 
       // Handle form submission
@@ -970,20 +1034,38 @@
           })
             .then((response) => response.json())
             .then((res) => {
-              console.log("Backend response:", res); // Debug backend response
               if (res.success) {
-                console.log("editAssignmentId:", editAssignmentId); // Debug editAssignmentId
                 const msg = editAssignmentId
                   ? "Assignment updated successfully!"
                   : "Assignment saved successfully!";
+
+                // Close modal first
                 closeAssignmentModal();
-                fetchAssignments();
-                showAlert(msg, "success");
+
+                // Reset edit assignment ID
                 editAssignmentId = null;
+
+                // Show success message
+                showAlert(msg, "success");
+
+                // Force page reload after a short delay to ensure data is refreshed
+                setTimeout(() => {
+                  fetchAssignments();
+                  // Also refresh statistics
+                  fetchAssignmentStatistics();
+
+                  // If the data still doesn't refresh after 2 seconds, force a page reload
+                  setTimeout(() => {
+                    location.reload();
+                  }, 2000);
+                }, 500);
               } else {
                 showAlert(res.message || "Failed to save assignment.", "error");
-                closeAssignmentModal();
               }
+            })
+            .catch((error) => {
+              console.error("Error saving assignment:", error);
+              showAlert("Network error. Please try again.", "error");
             });
         });
 

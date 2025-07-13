@@ -250,6 +250,51 @@ if ($method === 'POST') {
             $db->query("UPDATE student_assignments SET marks_obtained = ?, status = 'graded' WHERE id = ?", [$marks, $student_assignment_id]);
             echo json_encode(['success' => true, 'message' => 'Marks assigned successfully.']);
         
+        } else if ($action === 'get_assignment_statistics') {
+            // Get assignment statistics for the current teacher
+            $today = date('Y-m-d');
+            
+            // Total assignments (all statuses except completed)
+            $sql = "SELECT COUNT(*) as count FROM assignments WHERE teacher_id = ? AND status != 'completed'";
+            $result = $db->fetch($sql, [$teacherId]);
+            $total_assignments = $result['count'];
+            
+            // Running assignments
+            $sql = "SELECT COUNT(*) as count FROM assignments WHERE teacher_id = ? AND status = 'running'";
+            $result = $db->fetch($sql, [$teacherId]);
+            $running_assignments = $result['count'];
+            
+            // Coming assignments
+            $sql = "SELECT COUNT(*) as count FROM assignments WHERE teacher_id = ? AND status = 'coming'";
+            $result = $db->fetch($sql, [$teacherId]);
+            $coming_assignments = $result['count'];
+            
+            // Completed assignments
+            $sql = "SELECT COUNT(*) as count FROM assignments WHERE teacher_id = ? AND status = 'completed'";
+            $result = $db->fetch($sql, [$teacherId]);
+            $completed_assignments = $result['count'];
+            
+            echo json_encode([
+                'success' => true,
+                'total_assignments' => $total_assignments,
+                'running_assignments' => $running_assignments,
+                'coming_assignments' => $coming_assignments,
+                'completed_assignments' => $completed_assignments
+            ]);
+        
+        } else if ($action === 'get_pending_reviews_count') {
+            // Get count of pending reviews (submitted but not graded)
+            $sql = "SELECT COUNT(*) as count FROM student_assignments sa
+                    JOIN assignments a ON sa.assignment_id = a.id
+                    WHERE a.teacher_id = ? AND sa.status = 'submitted'";
+            $result = $db->fetch($sql, [$teacherId]);
+            $pending_reviews = $result['count'];
+            
+            echo json_encode([
+                'success' => true,
+                'pending_reviews' => $pending_reviews
+            ]);
+        
         } else {
             echo json_encode(['success' => false, 'message' => 'Invalid action']);
         }
