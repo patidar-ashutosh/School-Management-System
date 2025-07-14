@@ -40,13 +40,16 @@ if ($method === 'POST') {
             $result = $db->fetch($sql, [$teacherId]);
             $stats['total_classes'] = $result['count'];
             
-            // Get total students in teacher's classes (via lecturers)
-            $sql = "SELECT COUNT(DISTINCT s.id) as count
-                    FROM students s
-                    INNER JOIN lecturers l ON s.class_id = l.class_id
-                    WHERE l.teacher_id = ? AND s.status = 'active'";
-            $result = $db->fetch($sql, [$teacherId]);
-            $stats['total_students'] = $result['count'];
+            // Get total students in the class where this teacher is class_teacher_of
+            $teacherRow = $db->fetch("SELECT class_teacher_of FROM teachers WHERE id = ?", [$teacherId]);
+            $classTeacherOf = $teacherRow && !empty($teacherRow['class_teacher_of']) ? $teacherRow['class_teacher_of'] : null;
+            if ($classTeacherOf) {
+                $sql = "SELECT COUNT(*) as count FROM students WHERE class_id = ? AND status = 'active'";
+                $result = $db->fetch($sql, [$classTeacherOf]);
+                $stats['total_students'] = $result['count'];
+            } else {
+                $stats['total_students'] = 0;
+            }
             
             // Get total active assignments (for classes taught by this teacher)
             $sql = "SELECT COUNT(*) as count, type FROM assignments a

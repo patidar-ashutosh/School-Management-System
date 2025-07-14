@@ -386,6 +386,8 @@
           return;
         }
         students = studentsData.data;
+        // Only show active students
+        students = students.filter((s) => s.status === "active");
         filteredStudents = [...students];
         renderStudentsTable();
       }
