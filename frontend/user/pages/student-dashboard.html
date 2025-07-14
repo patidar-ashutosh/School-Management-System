@@ -354,5 +354,17 @@
           });
       }
     </script>
+    <script>
+      // Auto-highlight active nav item
+      (function () {
+        const navLinks = document.querySelectorAll(".main-nav ul li a");
+        const currentPage = location.pathname.split("/").pop();
+        navLinks.forEach((link) => {
+          if (link.getAttribute("href") === currentPage) {
+            link.parentElement.classList.add("active");
+          }
+        });
+      })();
+    </script>
   </body>
 </html>

@@ -312,6 +312,30 @@
   gap: 2rem;
 }
 
+.student-dashboard .main-nav ul li {
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  transition: box-shadow 0.2s, background 0.2s;
+  box-shadow: 0 1px 4px rgba(102, 126, 234, 0.06);
+}
+.student-dashboard .main-nav ul li:hover {
+  background: rgba(255, 255, 255, 0.22);
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.13);
+  border-color: #4facfe;
+}
+
+.student-dashboard .main-nav ul li.active,
+.student-dashboard .main-nav ul li.active a {
+  background: #4facfe;
+  border-color: #4facfe;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(79, 172, 254, 0.13);
+}
+.student-dashboard .main-nav ul li.active a {
+  color: #fff !important;
+}
+
 .student-dashboard .main-nav a {
   color: white;
   text-decoration: none;
