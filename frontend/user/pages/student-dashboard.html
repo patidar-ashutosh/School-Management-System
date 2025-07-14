@@ -165,6 +165,7 @@
         loadDashboardData();
         loadMySubjects();
         updateUserName();
+        fetchAndUpdateHeaderName();
       });
 
       async function loadDashboardData() {
@@ -289,6 +290,35 @@
           document.getElementById(
             "userName"
           ).textContent = `${user.first_name} ${user.last_name}`;
+        }
+      }
+
+      async function fetchAndUpdateHeaderName() {
+        try {
+          const response = await fetch("/backend/controllers/student.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "get_profile" }),
+          });
+          const data = await response.json();
+          if (data.success && data.profile) {
+            // Update localStorage and header
+            const auth = new Auth();
+            const user = auth.getCurrentUser();
+            user.first_name = data.profile.first_name;
+            user.last_name = data.profile.last_name;
+            localStorage.setItem("user", JSON.stringify(user));
+            auth.currentUser = user;
+            // Update header name
+            const userNameEls = document.querySelectorAll(
+              "#userName, [data-username]"
+            );
+            userNameEls.forEach((el) => {
+              el.textContent = user.first_name + " " + user.last_name;
+            });
+          }
+        } catch (err) {
+          // ignore
         }
       }
 
