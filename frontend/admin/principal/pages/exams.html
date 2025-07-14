@@ -1005,14 +1005,21 @@
         subjectFilterDropdown.innerHTML =
           '<option value="">All Subjects</option>';
         allSubjects.forEach((subject) => {
-          if (
-            subject.status === "active" &&
-            (!classId || String(subject.class_id) === String(classId))
-          ) {
-            const option = document.createElement("option");
-            option.value = subject.name;
-            option.textContent = subject.name;
-            subjectFilterDropdown.appendChild(option);
+          if (subject.status === "active") {
+            // subject.class_ids is a comma-separated string of class ids
+            if (
+              !classId ||
+              (subject.class_ids &&
+                subject.class_ids
+                  .split(",")
+                  .map((id) => id.trim())
+                  .includes(classId))
+            ) {
+              const option = document.createElement("option");
+              option.value = subject.name;
+              option.textContent = subject.name;
+              subjectFilterDropdown.appendChild(option);
+            }
           }
         });
       }

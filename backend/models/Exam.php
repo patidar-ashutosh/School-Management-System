@@ -65,7 +65,12 @@ class Exam {
     }
 
     public function getByClass($classId) {
-        $sql = "SELECT * FROM exams WHERE class_id = ? ORDER BY date DESC";
+        $sql = "SELECT e.*, c.name as class_name, s.name as subject_name
+                FROM exams e
+                LEFT JOIN classes c ON e.class_id = c.id
+                LEFT JOIN subjects s ON e.subject_id = s.id
+                WHERE e.class_id = ?
+                ORDER BY e.date DESC";
         return $this->db->fetchAll($sql, [$classId]);
     }
 
