@@ -69,7 +69,6 @@ $tables = [
         name VARCHAR(100) NOT NULL, -- not unique, can repeat in different classes
         code VARCHAR(20) UNIQUE NOT NULL,
         description TEXT,
-        class_id INT,
         status ENUM('active', 'inactive') DEFAULT 'active',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -199,6 +198,14 @@ $tables = [
         class_id INT NOT NULL,
         FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE CASCADE,
         FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE
+    )",
+    // Add subject_classes table for many-to-many subject-class mapping
+    'subject_classes' => "CREATE TABLE subject_classes (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        subject_id INT NOT NULL,
+        class_id INT NOT NULL,
+        FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
+        FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE
     )"
 ];
 
@@ -220,7 +227,7 @@ $foreignKeys = [
     // classes
     // REMOVED: "ALTER TABLE classes ADD CONSTRAINT fk_classes_teacher FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE SET NULL",
     // subjects
-    "ALTER TABLE subjects ADD CONSTRAINT fk_subjects_class FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE SET NULL",
+    // REMOVED: "ALTER TABLE subjects ADD CONSTRAINT fk_subjects_class FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE SET NULL",
     // teachers
     "ALTER TABLE teachers ADD CONSTRAINT fk_teachers_subject FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE SET NULL",
     // teachers - class_teacher_of
@@ -267,5 +274,6 @@ echo "- Teachers table: Separate table for teachers with login credentials (usin
 echo "- Students table: Separate table for students with login credentials (using id as student ID, roll_number auto-increment)\n";
 echo "- Assignments table: Updated to use teacher_id instead of created_by\n";
 echo "- Complete academic management system with attendance, grades, exams, etc.\n";
-echo "- teacher_classes table: Many-to-many mapping for teachers and classes they teach\n\n";
+echo "- teacher_classes table: Many-to-many mapping for teachers and classes they teach\n";
+echo "- subject_classes table: Many-to-many mapping for subjects and classes they are taught in\n\n";
 ?> 

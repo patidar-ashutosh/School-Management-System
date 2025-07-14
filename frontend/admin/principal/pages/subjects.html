@@ -81,11 +81,11 @@
             ></textarea>
           </div>
           <div class="form-group">
-            <label for="classSelect">Class: *</label>
-            <select id="classSelect" name="class_id" required>
-              <option value="">Select a class</option>
+            <label for="classSelect">Classes: *</label>
+            <select id="classSelect" name="class_ids" multiple required>
               <!-- Classes will be populated by JavaScript -->
             </select>
+            <small>Select one or more classes</small>
           </div>
           <div class="form-actions">
             <button
@@ -180,7 +180,7 @@
                     <td>${subject.code}</td>
                     <td>${subject.name}</td>
                     <td>${subject.description}</td>
-                    <td>${subject.class_name || "N/A"}</td>
+                    <td>${subject.class_names || "N/A"}</td>
                     <td>
                         <button class="btn btn-sm btn-primary" onclick="editSubject('${
                           subject.code
@@ -231,7 +231,7 @@
         editingSubjectCode = null;
         document.getElementById("modalTitle").textContent = "Add New Subject";
         document.getElementById("subjectForm").reset();
-        loadClassesDropdown();
+        loadClassesDropdown([]);
         document.getElementById("subjectModal").style.display = "block";
       }
 
@@ -242,7 +242,14 @@
           document.getElementById("modalTitle").textContent = "Edit Subject";
           document.getElementById("subjectName").value = subject.name;
           document.getElementById("description").value = subject.description;
-          loadClassesDropdown(subject.class_id);
+          // Parse class_ids as array of numbers
+          let selectedClassIds = [];
+          if (subject.class_ids) {
+            selectedClassIds = subject.class_ids
+              .split(",")
+              .map((id) => id.trim());
+          }
+          loadClassesDropdown(selectedClassIds);
           document.getElementById("subjectModal").style.display = "block";
         }
       }
@@ -258,7 +265,9 @@
         const subjectData = {
           name: formData.get("subjectName").toLowerCase(),
           description: formData.get("description"),
-          class_id: formData.get("class_id"),
+          class_ids: Array.from(
+            document.getElementById("classSelect").selectedOptions
+          ).map((opt) => opt.value),
         };
         if (editingSubjectCode) {
           // Edit subject (update in DB)
@@ -280,7 +289,7 @@
             } else {
               if (data.message && data.message.includes("unique")) {
                 showAlert(
-                  "This subject already exists in the selected class. Please use a different name or class.",
+                  "This subject already exists in the selected class(es). Please use a different name or class.",
                   "error"
                 );
               } else {
@@ -309,7 +318,7 @@
             } else {
               if (data.message && data.message.includes("unique")) {
                 showAlert(
-                  "This subject already exists in the selected class. Please use a different name or class.",
+                  "This subject already exists in the selected class(es). Please use a different name or class.",
                   "error"
                 );
               } else {
@@ -361,7 +370,7 @@
       }
 
       // Fetch classes and populate the classSelect dropdown
-      function loadClassesDropdown(selectedId = "") {
+      function loadClassesDropdown(selectedIds = []) {
         fetch("/backend/controllers/classes.php", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -370,13 +379,13 @@
           .then((response) => response.json())
           .then((data) => {
             const classSelect = document.getElementById("classSelect");
-            classSelect.innerHTML = '<option value="">Select a class</option>';
+            classSelect.innerHTML = "";
             if (data.success && data.data) {
               data.data.forEach((cls) => {
                 const option = document.createElement("option");
                 option.value = cls.id;
                 option.textContent = cls.name;
-                if (selectedId && String(cls.id) === String(selectedId)) {
+                if (selectedIds && selectedIds.includes(String(cls.id))) {
                   option.selected = true;
                 }
                 classSelect.appendChild(option);

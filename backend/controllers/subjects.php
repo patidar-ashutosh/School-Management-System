@@ -58,14 +58,14 @@ try {
                 if (!isset($input['name'])) {
                     throw new Exception('Subject name is required');
                 }
-                if (!isset($input['class_id'])) {
-                    throw new Exception('Class ID is required for subject creation');
+                if (!isset($input['class_ids']) || !is_array($input['class_ids']) || count($input['class_ids']) === 0) {
+                    throw new Exception('At least one class is required for subject creation');
                 }
                 $subjectData = [
                     'name' => strtolower(trim($input['name'])),
                     'description' => $input['description'] ?? null,
                     'status' => $input['status'] ?? 'active',
-                    'class_id' => $input['class_id']
+                    'class_ids' => $input['class_ids']
                 ];
                 $subjectId = $subject->create($subjectData);
                 echo json_encode([
@@ -89,14 +89,14 @@ try {
                 if (!isset($input['name'])) {
                     throw new Exception('Subject name is required');
                 }
-                if (!isset($input['class_id'])) {
-                    throw new Exception('Class ID is required for subject update');
+                if (!isset($input['class_ids']) || !is_array($input['class_ids']) || count($input['class_ids']) === 0) {
+                    throw new Exception('At least one class is required for subject update');
                 }
                 $subjectData = [
                     'name' => strtolower(trim($input['name'])),
                     'description' => $input['description'] ?? null,
                     'status' => $input['status'] ?? 'active',
-                    'class_id' => $input['class_id']
+                    'class_ids' => $input['class_ids']
                 ];
                 $subject->update($subjectId, $subjectData);
                 echo json_encode([

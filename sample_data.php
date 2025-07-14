@@ -52,16 +52,16 @@ foreach ($classes as $c) {
 
 // 3. Subjects (7 subjects)
 $subjects = [
-    ['Mathematics', 'MATH', 'Mathematics for all classes', null],
-    ['English', 'ENG', 'English for all classes', null],
-    ['Science', 'SCI', 'Science for all classes', null],
-    ['Hindi', 'HIN', 'Hindi for all classes', null],
-    ['Social Studies', 'SST', 'Social Studies for all classes', null],
-    ['Computer Science', 'CS', 'Computer Science for all classes', null],
-    ['Physical Education', 'PE', 'Physical Education for all classes', null],
+    ['Mathematics', 'MATH', 'Mathematics for all classes'],
+    ['English', 'ENG', 'English for all classes'],
+    ['Science', 'SCI', 'Science for all classes'],
+    ['Hindi', 'HIN', 'Hindi for all classes'],
+    ['Social Studies', 'SST', 'Social Studies for all classes'],
+    ['Computer Science', 'CS', 'Computer Science for all classes'],
+    ['Business Education', 'BE', 'Business Education for all classes'], // replaced Physical Education
 ];
 foreach ($subjects as $s) {
-    $pdo->prepare("INSERT IGNORE INTO subjects (name, code, description, class_id) VALUES (?, ?, ?, ?)")->execute($s);
+    $pdo->prepare("INSERT IGNORE INTO subjects (name, code, description) VALUES (?, ?, ?)")->execute($s);
 }
 
 // Fetch subject IDs
@@ -72,6 +72,25 @@ foreach ($subjects as $s) {
     $subjectIds[$s[1]] = $stmt->fetchColumn();
 }
 
+// Custom subject-class mapping
+$classNameToId = array_flip($classIds); // for reverse lookup
+$subjectClassMap = [
+    'MATH' => ['Class 1', 'Class 2', 'Class 3', 'Class 4'],
+    'ENG' => ['Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 8', 'Class 9', 'Class 10'],
+    'HIN' => ['Class 1', 'Class 2', 'Class 3', 'Class 4'],
+    'SST' => ['Class 5', 'Class 6', 'Class 7', 'Class 8'],
+    'SCI' => ['Class 8', 'Class 9', 'Class 10'],
+    'CS'  => ['Class 8', 'Class 9', 'Class 10'],
+    'BE'  => ['Class 8', 'Class 9', 'Class 10'],
+];
+foreach ($subjectClassMap as $subjectCode => $classNames) {
+    $subjectId = $subjectIds[$subjectCode];
+    foreach ($classNames as $className) {
+        $classId = $classIds[$className];
+        $pdo->prepare("INSERT IGNORE INTO subject_classes (subject_id, class_id) VALUES (?, ?)")->execute([$subjectId, $classId]);
+    }
+}
+
 // 4. Teachers (10 teachers with specific class assignments)
 $teachers = [
     ['teacher1@school.com', 'amitsingh', 'Amit', 'Singh', '9876543212', 'Bangalore', $subjectIds['MATH'], 'B.Sc Mathematics', 5, '2018-06-01', 35000, 'active', $classIds['Class 1']], // Teacher 1: Class 1, 2, 3
@@ -80,7 +99,7 @@ $teachers = [
     ['teacher4@school.com', 'sunitajain', 'Sunita', 'Jain', '9876543215', 'Mumbai', $subjectIds['HIN'], 'B.A. Hindi', 8, '2015-05-10', 38000, 'active', $classIds['Class 4']], // Teacher 4: Class 4, 6
     ['teacher5@school.com', 'rajivmehra', 'Rajiv', 'Mehra', '9876543216', 'Delhi', $subjectIds['SST'], 'B.A. Social', 9, '2014-09-20', 39000, 'active', $classIds['Class 5']], // Teacher 5: Class 5, 7
     ['teacher6@school.com', 'priyagupta', 'Priya', 'Gupta', '9876543217', 'Pune', $subjectIds['CS'], 'B.Tech Computer Science', 10, '2013-06-01', 40000, 'active', $classIds['Class 6']], // Teacher 6: Class 6, 8
-    ['teacher7@school.com', 'manishkumar', 'Manish', 'Kumar', '9876543218', 'Lucknow', $subjectIds['PE'], 'B.P.Ed', 11, '2012-07-15', 41000, 'active', $classIds['Class 7']], // Teacher 7: Class 7, 9
+    ['teacher7@school.com', 'manishkumar', 'Manish', 'Kumar', '9876543218', 'Lucknow', $subjectIds['BE'], 'B.P.Ed', 11, '2012-07-15', 41000, 'active', $classIds['Class 7']], // Teacher 7: Class 7, 9
     ['teacher8@school.com', 'deepashah', 'Deepa', 'Shah', '9876543219', 'Ahmedabad', $subjectIds['MATH'], 'M.Sc Mathematics', 12, '2011-08-01', 42000, 'active', $classIds['Class 8']], // Teacher 8: Class 8, 10
     ['teacher9@school.com', 'sureshchandra', 'Suresh', 'Chandra', '9876543220', 'Hyderabad', $subjectIds['ENG'], 'M.A. English', 13, '2010-05-10', 43000, 'active', $classIds['Class 9']], // Teacher 9: Class 9
     ['teacher10@school.com', 'anitaroy', 'Anita', 'Roy', '9876543221', 'Jaipur', $subjectIds['SCI'], 'M.Sc Physics', 14, '2009-09-20', 44000, 'active', $classIds['Class 10']], // Teacher 10: Class 10

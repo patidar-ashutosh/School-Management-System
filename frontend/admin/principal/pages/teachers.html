@@ -364,24 +364,36 @@
         subjectFormDropdown.disabled = false;
         subjectFormDropdown.innerHTML =
           '<option value="">Select Subject</option>';
-        allSubjects.forEach((subject) => {
-          if (
-            subject.status === "active" &&
-            String(subject.class_id) === String(selectedClassId)
-          ) {
-            const option = document.createElement("option");
-            option.value = subject.id;
-            option.textContent = subject.name;
-            if (
-              selectedSubjectId &&
-              String(subject.id) === String(selectedSubjectId)
-            ) {
-              option.selected = true;
+        // Fetch subjects for the selected class using the backend API
+        fetch("/backend/controllers/subjects.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "get_by_class",
+            class_id: selectedClassId,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success && data.data) {
+              data.data.forEach((subject) => {
+                const option = document.createElement("option");
+                option.value = subject.id;
+                option.textContent = subject.name;
+                if (
+                  selectedSubjectId &&
+                  String(subject.id) === String(selectedSubjectId)
+                ) {
+                  option.selected = true;
+                }
+                subjectFormDropdown.appendChild(option);
+              });
+            } else {
+              subjectFormDropdown.innerHTML =
+                '<option value="">No subjects found</option>';
             }
-            subjectFormDropdown.appendChild(option);
-          }
-        });
-        updateClassesTaughtDropdown(); // Update classes taught dropdown after filtering subjects
+            updateClassesTaughtDropdown(); // Update classes taught dropdown after filtering subjects
+          });
       }
 
       // Update class dropdown to trigger subject filtering
@@ -592,53 +604,49 @@
             "<option value='' disabled selected>Please select Subject first</option>";
           classesTaughtDropdown.disabled = true;
         } else {
-          // Filter classes based on where the selected subject is taught
-          classesTaughtDropdown.innerHTML = "";
-
-          // Find the selected subject to get its name
-          const selectedSubject = allSubjects.find(
-            (subject) => String(subject.id) === String(selectedSubjectId)
-          );
-
-          if (!selectedSubject) {
-            classesTaughtDropdown.innerHTML =
-              "<option value='' disabled selected>Subject not found</option>";
-            classesTaughtDropdown.disabled = true;
-            return;
-          }
-
-          // Find all classes where this subject name is taught
-          const classesWithSubject = allSubjects
-            .filter(
-              (subject) =>
-                subject.name === selectedSubject.name &&
-                subject.status === "active"
-            )
-            .map((subject) => subject.class_id);
-
-          // Load all classes and filter them
-          fetch("/backend/controllers/classes.php", {
+          // Fetch subject's mapped classes from backend
+          fetch("/backend/controllers/subjects.php", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "get_all" }),
+            body: JSON.stringify({
+              action: "get_by_id",
+              id: selectedSubjectId,
+            }),
           })
             .then((response) => response.json())
             .then((data) => {
               classesTaughtDropdown.innerHTML = "";
-              (data.data || []).forEach((cls) => {
-                // Only show classes where the selected subject is taught
-                if (classesWithSubject.includes(cls.id)) {
-                  const option = document.createElement("option");
-                  option.value = cls.id;
-                  option.textContent = cls.name;
-                  if (String(cls.id) === String(classTeacherOf)) {
-                    option.selected = true;
-                    option.disabled = true; // Prevent unselecting
-                  }
-                  classesTaughtDropdown.appendChild(option);
-                }
-              });
-              classesTaughtDropdown.disabled = false;
+              if (data.success && data.data && data.data.class_ids) {
+                const classIds = data.data.class_ids
+                  .split(",")
+                  .map((id) => id.trim());
+                // Load all classes and filter them
+                fetch("/backend/controllers/classes.php", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ action: "get_all" }),
+                })
+                  .then((response) => response.json())
+                  .then((classData) => {
+                    (classData.data || []).forEach((cls) => {
+                      if (classIds.includes(String(cls.id))) {
+                        const option = document.createElement("option");
+                        option.value = cls.id;
+                        option.textContent = cls.name;
+                        if (String(cls.id) === String(classTeacherOf)) {
+                          option.selected = true;
+                          option.disabled = true; // Prevent unselecting
+                        }
+                        classesTaughtDropdown.appendChild(option);
+                      }
+                    });
+                    classesTaughtDropdown.disabled = false;
+                  });
+              } else {
+                classesTaughtDropdown.innerHTML =
+                  "<option value='' disabled selected>No classes found for this subject</option>";
+                classesTaughtDropdown.disabled = true;
+              }
             });
         }
       }
