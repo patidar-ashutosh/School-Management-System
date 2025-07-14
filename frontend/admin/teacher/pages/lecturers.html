@@ -873,7 +873,24 @@
             defaultOption.value = "";
             defaultOption.textContent = "Select class";
             classDropdown.appendChild(defaultOption);
+            // Remove duplicate classes by id
+            const uniqueClasses = {};
             (data.data || []).forEach((cls) => {
+              uniqueClasses[cls.id] = cls;
+            });
+            // Also add the class_teacher_of class if not already present
+            if (
+              teacher.class_teacher_of &&
+              !uniqueClasses[teacher.class_teacher_of]
+            ) {
+              uniqueClasses[teacher.class_teacher_of] = {
+                id: teacher.class_teacher_of,
+                name:
+                  teacher.class_teacher_of_name ||
+                  "Class " + teacher.class_teacher_of,
+              };
+            }
+            Object.values(uniqueClasses).forEach((cls) => {
               const option = document.createElement("option");
               option.value = cls.id;
               option.textContent = cls.name;
@@ -950,28 +967,42 @@
         loadClassesDropdown();
         loadSubjectDropdownForTeacher();
 
-        // Set min and max date to next week's Monday to Sunday
+        // Set min and max date to today and this week's Saturday (no Sunday, no past days)
         const dateInput = document.getElementById("date");
         const today = new Date();
-        // Find next week's Monday
-        const dayOfWeek = today.getDay(); // 0=Sunday, 1=Monday, ...
-        const daysUntilNextMonday = (8 - dayOfWeek) % 7 || 7;
-        const nextMonday = new Date(
+        const dayOfWeek = today.getDay();
+        const daysSinceMonday = (dayOfWeek + 6) % 7;
+        const thisMonday = new Date(
           today.getFullYear(),
           today.getMonth(),
-          today.getDate() + daysUntilNextMonday
+          today.getDate() - daysSinceMonday
         );
-        // Next week's Sunday
-        const nextSunday = new Date(
-          nextMonday.getFullYear(),
-          nextMonday.getMonth(),
-          nextMonday.getDate() + 6
+        const thisSaturday = new Date(
+          thisMonday.getFullYear(),
+          thisMonday.getMonth(),
+          thisMonday.getDate() + 6
         );
-        const minDate = nextMonday.toISOString().split("T")[0];
-        const maxDate = nextSunday.toISOString().split("T")[0];
+        const minDate = today.toISOString().split("T")[0];
+        const maxDate = thisSaturday.toISOString().split("T")[0];
         dateInput.min = minDate;
         dateInput.max = maxDate;
-        dateInput.value = minDate;
+        // Default to today if in range and not Sunday, else to minDate
+        if (
+          today >= thisMonday &&
+          today <= thisSaturday &&
+          today.getDay() !== 0 // not Sunday
+        ) {
+          dateInput.value = today.toISOString().split("T")[0];
+        } else {
+          dateInput.value = minDate;
+        }
+        // Prevent Sunday selection (disable via input event)
+        dateInput.oninput = function () {
+          const selected = new Date(this.value);
+          if (selected.getDay() === 0 || selected < today) {
+            this.value = minDate;
+          }
+        };
 
         // Show status field and set it to scheduled for new lectures
         const statusField = document.querySelector(".form-group:has(#status)");
@@ -1020,26 +1051,43 @@
               document.getElementById("class").value = data.data.class_id;
               document.getElementById("subject").value = data.data.subject_id;
 
-              // Set min and max date to next week's Monday to Sunday
+              // Set min and max date to today and this week's Saturday (no Sunday, no past days)
               const dateInput = document.getElementById("date");
               const today = new Date();
               const dayOfWeek = today.getDay();
-              const daysUntilNextMonday = (8 - dayOfWeek) % 7 || 7;
-              const nextMonday = new Date(
+              const daysSinceMonday = (dayOfWeek + 6) % 7;
+              const thisMonday = new Date(
                 today.getFullYear(),
                 today.getMonth(),
-                today.getDate() + daysUntilNextMonday
+                today.getDate() - daysSinceMonday
               );
-              const nextSunday = new Date(
-                nextMonday.getFullYear(),
-                nextMonday.getMonth(),
-                nextMonday.getDate() + 6
+              const thisSaturday = new Date(
+                thisMonday.getFullYear(),
+                thisMonday.getMonth(),
+                thisMonday.getDate() + 6
               );
-              const minDate = nextMonday.toISOString().split("T")[0];
-              const maxDate = nextSunday.toISOString().split("T")[0];
+              const minDate = today.toISOString().split("T")[0];
+              const maxDate = thisSaturday.toISOString().split("T")[0];
               dateInput.min = minDate;
               dateInput.max = maxDate;
-              dateInput.value = data.data.date;
+              // Default to lecture date if in range, not Sunday, and not before today, else to minDate
+              const lectureDate = new Date(data.data.date);
+              if (
+                lectureDate >= today &&
+                lectureDate <= thisSaturday &&
+                lectureDate.getDay() !== 0
+              ) {
+                dateInput.value = data.data.date;
+              } else {
+                dateInput.value = minDate;
+              }
+              // Prevent Sunday or past date selection
+              dateInput.oninput = function () {
+                const selected = new Date(this.value);
+                if (selected.getDay() === 0 || selected < today) {
+                  this.value = minDate;
+                }
+              };
 
               document.getElementById("startTime").value =
                 data.data.start_time.slice(0, 5);

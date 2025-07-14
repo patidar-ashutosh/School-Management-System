@@ -121,7 +121,7 @@ foreach ($teachers as $t) {
 // 5. Students (5 students per class + 10 extra for Class 1, admission dates: today to minus 5 days)
 $students = [];
 $firstNames = ['Arjun', 'Zara', 'Ishaan', 'Megha', 'Rohan', 'Simran', 'Kabir', 'Aanya', 'Dev', 'Tara', 'Yash', 'Riya', 'Aarav', 'Anaya', 'Vivaan', 'Diya', 'Aditya', 'Saanvi', 'Krishna', 'Myra', 'Dhruv', 'Kiara', 'Aryan', 'Navya', 'Parth', 'Rahul', 'Priya', 'Amit', 'Neha', 'Vikram', 'Sunita', 'Rajiv', 'Deepa', 'Suresh', 'Anita', 'Alok', 'Meena', 'Prakash', 'Kavita', 'Sanjay', 'Rekha', 'Mohan', 'Geeta', 'Ramesh', 'Lakshmi', 'Suresh', 'Radha', 'Gopal', 'Sita', 'Ram', 'Krishna', 'Radha', 'Balram', 'Subhadra', 'Jagannath', 'Lakshmi', 'Saraswati', 'Ganesh', 'Durga', 'Kali', 'Hanuman', 'Vishnu', 'Shiva', 'Brahma', 'Indra', 'Agni', 'Varuna', 'Vayu', 'Surya', 'Chandra', 'Mangal', 'Budh', 'Guru', 'Shukra', 'Shani', 'Rahu', 'Ketu'];
-$lastNames = ['Reddy', 'Khan', 'Verma', 'Sharma', 'Joshi', 'Singh', 'Patel', 'Gupta', 'Jain', 'Mehra', 'Roy', 'Chandra', 'Kumar', 'Shah', 'Chopra', 'Bansal', 'Kapoor', 'Malhotra', 'Rastogi', 'Saxena', 'Agarwal', 'Srivastava', 'Pandey', 'Tripathi', 'Dubey', 'Mishra', 'Tiwari', 'Yadav', 'Kaur', 'Gill', 'Randhawa', 'Dhillon', 'Sidhu', 'Malhotra', 'Rastogi', 'Saxena', 'Agarwal', 'Srivastava', 'Pandey', 'Tripathi', 'Dubey', 'Mishra', 'Tiwari', 'Yadav', 'Kaur', 'Gill', 'Randhawa', 'Dhillon', 'Sidhu', 'Malhotra', 'Rastogi', 'Saxena', 'Agarwal', 'Srivastava', 'Pandey', 'Tripathi', 'Dubey', 'Mishra', 'Tiwari', 'Yadav', 'Kaur', 'Gill', 'Randhawa', 'Dhillon', 'Sidhu', 'Malhotra', 'Rastogi', 'Saxena', 'Agarwal', 'Srivastava', 'Pandey', 'Tripathi', 'Dubey', 'Mishra', 'Tiwari', 'Yadav', 'Kaur', 'Gill', 'Randhawa', 'Dhillon', 'Sidhu'];
+$lastNames = ['Reddy', 'Khan', 'Verma', 'Sharma', 'Joshi', 'Singh', 'Patel', 'Gupta', 'Jain', 'Mehra', 'Roy', 'Chandra', 'Kumar', 'Shah', 'Chopra', 'Bansal', 'Kapoor', 'Malhotra', 'Rastogi', 'Saxena', 'Agarwal', 'Srivastava', 'Pandey', 'Tripathi', 'Dubey', 'Mishra', 'Tiwari', 'Yadav', 'Kaur', 'Gill', 'Randhawa', 'Dhillon', 'Sidhu', 'Malhotra', 'Rastogi', 'Saxena', 'Agarwal', 'Srivastava', 'Pandey', 'Tripathi', 'Dubey', 'Mishra', 'Tiwari', 'Yadav', 'Kaur', 'Gill', 'Randhawa', 'Dhillon', 'Sidhu', 'Malhotra', 'Rastogi', 'Saxena', 'Agarwal', 'Srivastava', 'Pandey', 'Tripathi', 'Dubey', 'Mishra', 'Tiwari', 'Yadav', 'Kaur', 'Gill', 'Randhawa', 'Dhillon', 'Sidhu', 'Malhotra', 'Rastogi', 'Saxena', 'Agarwal', 'Srivastava', 'Pandey', 'Tripathi', 'Dubey', 'Mishra', 'Tiwari', 'Yadav', 'Kaur', 'Gill', 'Randhawa', 'Dhillon', 'Sidhu', 'Malhotra', 'Rastogi', 'Saxena', 'Agarwal', 'Srivastava', 'Pandey', 'Tripathi', 'Dubey', 'Mishra', 'Tiwari', 'Yadav', 'Kaur', 'Gill', 'Randhawa', 'Dhillon', 'Sidhu', 'Malhotra', 'Rastogi', 'Saxena', 'Agarwal', 'Srivastava', 'Pandey', 'Tripathi', 'Dubey', 'Mishra', 'Tiwari', 'Yadav', 'Kaur', 'Gill', 'Randhawa', 'Dhillon', 'Sidhu', 'Malhotra', 'Rastogi', 'Saxena', 'Agarwal', 'Srivastava', 'Pandey', 'Tripathi', 'Dubey', 'Mishra', 'Tiwari', 'Yadav', 'Kaur', 'Gill', 'Randhawa', 'Dhillon', 'Sidhu', 'Malhotra', 'Rastogi', 'Saxena', 'Agarwal', 'Srivastava', 'Pandey', 'Tripathi', 'Dubey', 'Mishra', 'Tiwari', 'Yadav', 'Kaur', 'Gill', 'Randhawa', 'Dhillon', 'Sidhu'];
 
 $studentCounter = 1;
 
@@ -261,27 +261,31 @@ foreach ($attendance as $a) {
 $assignments = [];
 $assignmentTitles = [
     'Mathematics Assignment', 'English Essay', 'Science Project', 'Hindi Literature', 
-    'Social Studies Report', 'Computer Science Lab', 'Physical Education Test'
+    'Social Studies Report', 'Computer Science Lab', 'Business Education Test'
 ];
 
 foreach ($classes as $classIndex => $class) {
     $className = $class[0];
     $classId = $classIds[$className];
-    
     // Find the class teacher for this class
     $classTeacherId = null;
+    $classTeacherSubjectId = null;
     foreach ($teachers as $teacher) {
         if ($teacher[12] == $classId) { // class_teacher_of
             $teacherEmail = $teacher[0];
             $classTeacherId = $teacherIds[$teacherEmail];
+            $classTeacherSubjectId = $teacher[6]; // subject_id
             break;
         }
     }
-    
-    if ($classTeacherId) {
-        // Create assignments for each subject
+    // Get valid subjects for this class
+    $validSubjectIds = getSubjectsForClass($classId, $subjectClassMap, $subjectIds, $classIds);
+    if ($classTeacherId && $classTeacherSubjectId) {
+        // Only create assignments for the subject(s) the class teacher teaches AND that are mapped to the class
         foreach ($subjects as $subjectIndex => $subject) {
             $subjectId = $subjectIds[$subject[1]]; // subject code
+            if ($subjectId != $classTeacherSubjectId) continue; // Only for teacher's subject
+            if (!in_array($subjectId, $validSubjectIds)) continue; // Only if subject is mapped to class
             $title = $assignmentTitles[$subjectIndex] . ' - ' . $className;
             $description = $subject[0] . ' assignment for ' . $className;
             $startDate = date('Y-m-d', strtotime('-2 days'));
@@ -289,7 +293,6 @@ foreach ($classes as $classIndex => $class) {
             $totalMarks = 50 + ($subjectIndex * 10);
             $type = ($subjectIndex % 2 == 0) ? 'essays' : 'reports';
             $status = ($subjectIndex % 3 == 0) ? 'completed' : (($subjectIndex % 3 == 1) ? 'running' : 'coming');
-            
             $assignments[] = [
                 $title,
                 $description,
@@ -318,26 +321,34 @@ foreach ($assignments as $assignmentIndex => $assignment) {
     $classStudents = array_filter($students, function($student) use ($classId) {
         return $student[11] == $classId;
     });
-    
     // Take first 3 students from each class for submissions
     $count = 0;
     foreach ($classStudents as $student) {
         if ($count >= 3) break;
-        
         $studentEmail = $student[0];
         if (isset($studentIds[$studentEmail])) {
             $studentId = $studentIds[$studentEmail];
             $submittedDate = date('Y-m-d H:i:s', strtotime('-1 day'));
-            $marksObtained = rand(60, 95);
-            $feedback = 'Good work on ' . $assignment[0];
             $status = 'graded';
-            
+            $marksObtained = 0;
+            if ($status === 'graded') {
+                $assignmentTotalMarks = $assignment[6];
+                $marksObtained = rand(0, $assignmentTotalMarks); // always <= total_marks
+            }
+            $feedback = 'Good work on ' . $assignment[0];
+            // Add sample text for essays/reports
+            $submittedText = null;
+            if ($assignment[8] === 'essays') {
+                $submittedText = 'Sample essay submission for ' . $assignment[0];
+            } elseif ($assignment[8] === 'reports') {
+                $submittedText = 'Sample report submission for ' . $assignment[0];
+            }
             $studentAssignments[] = [
                 $assignmentIndex + 1, // assignment_id (assuming sequential insertion)
                 $studentId,
                 $submittedDate,
                 $marksObtained,
-                null, // No text submission
+                $submittedText, // submitted_text
                 null, // No file submission
                 $status
             ];
@@ -414,55 +425,116 @@ foreach ($exams as $e) {
     $pdo->prepare("INSERT IGNORE INTO exams (name, subject_id, class_id, date, start_time, end_time, total_marks, exam_type, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")->execute($e);
 }
 
-// 10. Lecturers (weekly schedule)
+// 10. Lecturers (weekly schedule with current and previous week)
 $lecturers = [];
-$currentWeekStart = date('Y-m-d', strtotime('monday this week'));
-$currentWeekEnd = date('Y-m-d', strtotime('friday this week'));
+$today = new DateTime();
+$weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 
-// Generate lectures for each class for the current week
-foreach ($classes as $classIndex => $class) {
-    $className = $class[0];
-    $classId = $classIds[$className];
-    
-    // Find the class teacher
-    $classTeacherId = null;
-    foreach ($teachers as $teacher) {
-        if ($teacher[12] == $classId) { // class_teacher_of
-            $teacherEmail = $teacher[0];
-            $classTeacherId = $teacherIds[$teacherEmail];
-            break;
+// Helper: get all subject_ids mapped to a class
+function getSubjectsForClass($classId, $subjectClassMap, $subjectIds, $classIds) {
+    $subjects = [];
+    foreach ($subjectClassMap as $subjectCode => $classNames) {
+        foreach ($classNames as $className) {
+            if ($classIds[$className] == $classId) {
+                $subjects[] = $subjectIds[$subjectCode];
+            }
         }
     }
-    
-    if ($classTeacherId) {
-        // Generate lectures for each day of the week
-        for ($dayOffset = 0; $dayOffset < 5; $dayOffset++) {
-            $lectureDate = date('Y-m-d', strtotime("monday this week +$dayOffset days"));
-            
-            // Skip today's date for scheduled lectures
-            if ($lectureDate <= $today) {
-                $lectureDate = date('Y-m-d', strtotime("monday next week +$dayOffset days"));
+    return $subjects;
+}
+
+// Current week (3 lectures per day, different subjects, skip Sundays)
+$startOfWeek = (clone $today)->modify('monday this week');
+for ($day = 0; $day < 7; $day++) { // 0=Monday, ..., 6=Sunday
+    $dateObj = (clone $startOfWeek)->modify("+{$day} days");
+    $date = $dateObj->format('Y-m-d');
+    if ($dateObj->format('w') == 0) continue; // Skip Sunday (w=0)
+    foreach ($classIds as $className => $classId) {
+        $subjects = getSubjectsForClass($classId, $subjectClassMap, $subjectIds, $classIds);
+        $usedSubjects = array_slice($subjects, 0, 3); // 3 different subjects
+        foreach ($usedSubjects as $i => $subjectId) {
+            $teacherId = null;
+            // Find a teacher for this subject and class
+            foreach ($teachers as $t) {
+                if ($t[6] == $subjectId && $t[12] == $classId) {
+                    $teacherEmail = $t[0];
+                    $teacherId = $teacherIds[$teacherEmail];
+                    break;
+                }
             }
-            
-            $startHour = 8 + ($dayOffset % 3); // 8, 9, 10, 8, 9
-            $startTime = sprintf('%02d:00:00', $startHour);
-            $endTime = sprintf('%02d:00:00', $startHour + 1);
-            
-            $lecturers[] = [
-                $subjectIds['MATH'], // Default subject
-                $classTeacherId,
-                $classId,
-                $lectureDate,
-                $startTime,
-                $endTime,
-                'scheduled'
-            ];
+            if ($teacherId) {
+                $lecturers[] = [
+                    $subjectId,
+                    $teacherId,
+                    $classId,
+                    $date,
+                    '09:00:00',
+                    '10:00:00',
+                    'scheduled'
+                ];
+            }
         }
     }
 }
-
+// Previous week (2 lectures per day, different subjects, skip Sundays)
+$startOfPrevWeek = (clone $today)->modify('monday last week');
+for ($day = 0; $day < 7; $day++) { // 0=Monday, ..., 6=Sunday
+    $dateObj = (clone $startOfPrevWeek)->modify("+{$day} days");
+    $date = $dateObj->format('Y-m-d');
+    if ($dateObj->format('w') == 0) continue; // Skip Sunday (w=0)
+    foreach ($classIds as $className => $classId) {
+        $subjects = getSubjectsForClass($classId, $subjectClassMap, $subjectIds, $classIds);
+        $usedSubjects = array_slice($subjects, 0, 2); // 2 different subjects
+        foreach ($usedSubjects as $i => $subjectId) {
+            $teacherId = null;
+            // Find a teacher for this subject and class
+            foreach ($teachers as $t) {
+                if ($t[6] == $subjectId && $t[12] == $classId) {
+                    $teacherEmail = $t[0];
+                    $teacherId = $teacherIds[$teacherEmail];
+                    break;
+                }
+            }
+            if ($teacherId) {
+                $lecturers[] = [
+                    $subjectId,
+                    $teacherId,
+                    $classId,
+                    $date,
+                    '09:00:00',
+                    '10:00:00',
+                    'completed'
+                ];
+            }
+        }
+    }
+}
 foreach ($lecturers as $l) {
     $pdo->prepare("INSERT IGNORE INTO lecturers (subject_id, teacher_id, class_id, date, start_time, end_time, status) VALUES (?, ?, ?, ?, ?, ?, ?)")->execute($l);
+}
+
+// Add 5 sample lectures for teacher 1 (Mathematics) for Monday to Saturday of the current week, with current time
+$teacher1Id = $teacherIds['teacher1@school.com'];
+$teacher1SubjectId = $subjectIds['MATH'];
+$teacher1ClassIds = [
+    $classIds['Class 1'],
+    $classIds['Class 2'],
+    $classIds['Class 3'],
+];
+$currentTime = new DateTime();
+$startTime = $currentTime->format('H:i:s');
+$endTime = $currentTime->modify('+1 hour')->format('H:i:s');
+// Get Monday to Saturday dates of current week (14 to 19 if week is 14-20)
+$today = new DateTime();
+$dayOfWeek = (int)$today->format('w'); // 0=Sunday, 1=Monday, ...
+$daysSinceMonday = ($dayOfWeek + 6) % 7;
+$thisMonday = (clone $today)->modify("-{$daysSinceMonday} days");
+for ($i = 0; $i < 6; $i++) { // Monday to Saturday
+    $date = (clone $thisMonday)->modify("+{$i} days")->format('Y-m-d');
+    // Cycle through teacher 1's classes for variety
+    $classId = $teacher1ClassIds[$i % count($teacher1ClassIds)];
+    $pdo->prepare("INSERT IGNORE INTO lecturers (subject_id, teacher_id, class_id, date, start_time, end_time, status) VALUES (?, ?, ?, ?, ?, ?, ?)")
+        ->execute([$teacher1SubjectId, $teacher1Id, $classId, $date, $startTime, $endTime, 'scheduled']);
 }
 
 // 11. Teacher Classes (many-to-many relationships)

@@ -86,19 +86,23 @@ if ($method === 'GET') {
             case 'update_profile':
                 requireRole('teacher');
                 $teacherId = getCurrentUserId();
-                $fields = [
-                    'first_name', 'last_name', 'phone', 'address', 'qualification', 'joining_date', 'status', 'email'
-                ];
-                $data = [];
-                foreach ($fields as $field) {
-                    $data[$field] = $input[$field] ?? null;
-                }
-                // Email should not be updated, but is required by the update method signature
                 $current = $teacherModel->getById($teacherId);
                 if (!$current) {
                     echo json_encode(['success' => false, 'message' => 'Teacher not found']);
                     exit;
                 }
+                $fields = [
+                    'first_name', 'last_name', 'phone', 'address', 'qualification', 'joining_date', 'status', 'subject_id', 'class_teacher_of', 'salary', 'experience_years'
+                ];
+                $data = [];
+                foreach ($fields as $field) {
+                    if (array_key_exists($field, $input) && $input[$field] !== null && $input[$field] !== '') {
+                        $data[$field] = $input[$field];
+                    } else {
+                        $data[$field] = $current[$field];
+                    }
+                }
+                // Email should not be updated, but is required by the update method signature
                 $data['email'] = $current['email'];
                 $result = $teacherModel->update($teacherId, $data);
                 if ($result !== false) {

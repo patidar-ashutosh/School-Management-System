@@ -115,17 +115,6 @@
       <div class="dashboard-cards">
         <div class="dashboard-card">
           <div class="card-header">
-            <div class="card-title">Total Assignments</div>
-            <div class="card-icon" style="background: #667eea">
-              <i class="fas fa-tasks"></i>
-            </div>
-          </div>
-          <div class="card-number" id="totalAssignments">-</div>
-          <div class="card-description">Active assignments</div>
-        </div>
-
-        <div class="dashboard-card">
-          <div class="card-header">
             <div class="card-title">Running Assignments</div>
             <div class="card-icon" style="background: #ffc107">
               <i class="fas fa-play-circle"></i>
@@ -412,7 +401,6 @@
 
       async function fetchAssignmentStatistics() {
         // Show loading state initially
-        document.getElementById("totalAssignments").textContent = "Loading...";
         document.getElementById("runningAssignments").textContent =
           "Loading...";
         document.getElementById("comingAssignments").textContent = "Loading...";
@@ -432,8 +420,6 @@
           const data = await response.json();
 
           if (data.success) {
-            document.getElementById("totalAssignments").textContent =
-              data.total_assignments || "0";
             document.getElementById("runningAssignments").textContent =
               data.running_assignments || "0";
             document.getElementById("comingAssignments").textContent =
@@ -442,7 +428,6 @@
               data.completed_assignments || "0";
           } else {
             // Fallback to 0 if API fails
-            document.getElementById("totalAssignments").textContent = "0";
             document.getElementById("runningAssignments").textContent = "0";
             document.getElementById("comingAssignments").textContent = "0";
             document.getElementById("completedAssignments").textContent = "0";
@@ -450,7 +435,6 @@
         } catch (error) {
           console.error("Error fetching assignment statistics:", error);
           // Fallback to 0 if network error
-          document.getElementById("totalAssignments").textContent = "0";
           document.getElementById("runningAssignments").textContent = "0";
           document.getElementById("comingAssignments").textContent = "0";
           document.getElementById("completedAssignments").textContent = "0";
@@ -599,7 +583,24 @@
           .then((response) => response.json())
           .then((data) => {
             classFilter.innerHTML = "<option value=''>All Classes</option>";
+            // Remove duplicate classes by id
+            const uniqueClasses = {};
             (data.data || []).forEach((cls) => {
+              uniqueClasses[cls.id] = cls;
+            });
+            // Also add the class_teacher_of class if not already present
+            if (
+              user.class_teacher_of &&
+              !uniqueClasses[user.class_teacher_of]
+            ) {
+              uniqueClasses[user.class_teacher_of] = {
+                id: user.class_teacher_of,
+                name:
+                  user.class_teacher_of_name ||
+                  "Class " + user.class_teacher_of,
+              };
+            }
+            Object.values(uniqueClasses).forEach((cls) => {
               const option = document.createElement("option");
               option.value = cls.id;
               option.textContent = cls.name;
@@ -706,7 +707,24 @@
           .then((data) => {
             classDropdown.innerHTML =
               "<option value=''>Select class...</option>";
+            // Remove duplicate classes by id
+            const uniqueClasses = {};
             (data.data || []).forEach((cls) => {
+              uniqueClasses[cls.id] = cls;
+            });
+            // Also add the class_teacher_of class if not already present
+            if (
+              user.class_teacher_of &&
+              !uniqueClasses[user.class_teacher_of]
+            ) {
+              uniqueClasses[user.class_teacher_of] = {
+                id: user.class_teacher_of,
+                name:
+                  user.class_teacher_of_name ||
+                  "Class " + user.class_teacher_of,
+              };
+            }
+            Object.values(uniqueClasses).forEach((cls) => {
               const option = document.createElement("option");
               option.value = cls.id;
               option.textContent = cls.name;
@@ -807,7 +825,18 @@
         form.description.value = assignment.description || "";
         form.class.value = assignment.class_id || "";
         form.subject.value = assignment.subject_id || "";
-        form.startDate.value = assignment.start_date || "";
+        // Set start date min to today and default to today if in range
+        const startDateInput = document.getElementById("assignmentStartDate");
+        const today = new Date();
+        startDateInput.min = today.toISOString().split("T")[0];
+        if (
+          assignment.start_date &&
+          assignment.start_date >= startDateInput.min
+        ) {
+          startDateInput.value = assignment.start_date;
+        } else {
+          startDateInput.value = startDateInput.min;
+        }
         form.dueDate.value = assignment.due_date || "";
         form.totalMarks.value = assignment.total_marks || "";
         form.type.value = assignment.type || "";

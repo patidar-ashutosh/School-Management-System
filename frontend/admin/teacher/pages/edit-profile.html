@@ -56,15 +56,50 @@
               <input type="text" id="qualification" name="qualification" />
             </p>
             <p>
+              <strong>Subject:</strong>
+              <select id="subject" name="subject_id" required readonly>
+                <option value="">Select Subject</option>
+              </select>
+            </p>
+            <p>
+              <strong>Class Teacher Of:</strong>
+              <select
+                id="classTeacherOf"
+                name="class_teacher_of"
+                required
+                readonly
+              >
+                <option value="">Select Class</option>
+              </select>
+            </p>
+            <p>
               <strong>Joining Date:</strong>
-              <input type="date" id="joiningDate" name="joining_date" />
+              <input
+                type="date"
+                id="joiningDate"
+                name="joining_date"
+                readonly
+              />
             </p>
             <p>
               <strong>Status:</strong>
-              <select id="status" name="status">
+              <select id="status" name="status" disabled>
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
               </select>
+            </p>
+            <p>
+              <strong>Salary:</strong>
+              <input type="number" id="salary" name="salary" readonly />
+            </p>
+            <p>
+              <strong>Experience Years:</strong>
+              <input
+                type="number"
+                id="experienceYears"
+                name="experience_years"
+                disabled
+              />
             </p>
           </div>
           <div class="profile-actions">
@@ -107,6 +142,55 @@
               data.profile.joining_date || "";
             document.getElementById("status").value =
               data.profile.status || "active";
+            document.getElementById("salary").value = data.profile.salary || "";
+            document.getElementById("experienceYears").value =
+              data.profile.experience_years || "";
+            // Populate subject dropdown
+            fetch("/backend/controllers/subjects.php", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ action: "get_all" }),
+            })
+              .then((res) => res.json())
+              .then((subjectData) => {
+                const subjectSelect = document.getElementById("subject");
+                subjectSelect.innerHTML =
+                  '<option value="">Select Subject</option>';
+                if (subjectData.success && Array.isArray(subjectData.data)) {
+                  subjectData.data.forEach((subj) => {
+                    const option = document.createElement("option");
+                    option.value = subj.id;
+                    option.textContent = subj.name;
+                    if (data.profile.subject_id == subj.id) {
+                      option.selected = true;
+                    }
+                    subjectSelect.appendChild(option);
+                  });
+                }
+              });
+            // Populate class teacher of dropdown
+            fetch("/backend/controllers/classes.php", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ action: "get_all" }),
+            })
+              .then((res) => res.json())
+              .then((classData) => {
+                const classSelect = document.getElementById("classTeacherOf");
+                classSelect.innerHTML =
+                  '<option value="">Select Class</option>';
+                if (classData.success && Array.isArray(classData.data)) {
+                  classData.data.forEach((cls) => {
+                    const option = document.createElement("option");
+                    option.value = cls.id;
+                    option.textContent = cls.name;
+                    if (data.profile.class_teacher_of == cls.id) {
+                      option.selected = true;
+                    }
+                    classSelect.appendChild(option);
+                  });
+                }
+              });
           } else {
             showAlert("Failed to load profile", "error");
           }
@@ -123,8 +207,11 @@
           phone: document.getElementById("phone").value.trim(),
           address: document.getElementById("address").value.trim(),
           qualification: document.getElementById("qualification").value.trim(),
+          subject_id: document.getElementById("subject").value,
+          class_teacher_of: document.getElementById("classTeacherOf").value,
           joining_date: document.getElementById("joiningDate").value,
           status: document.getElementById("status").value,
+          salary: document.getElementById("salary").value,
         };
         try {
           const response = await fetch("/backend/controllers/teacher.php", {

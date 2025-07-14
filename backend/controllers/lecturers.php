@@ -38,18 +38,18 @@ try {
                 if (!isset($input['teacher_id']) || !isset($input['subject_id']) || !isset($input['class_id']) || !isset($input['start_time']) || !isset($input['end_time']) || !isset($input['status']) || !isset($input['date'])) {
                     throw new Exception('All fields are required');
                 }
-                // Validate date is in next week
+                // Validate date is in this week (Monday to Saturday)
                 $lectureDate = $input['date'];
                 $today = new DateTime();
                 $today->setTime(0,0,0);
                 $dayOfWeek = (int)$today->format('w'); // 0=Sunday, 1=Monday, ...
-                $daysUntilNextMonday = (($dayOfWeek === 0) ? 1 : 8 - $dayOfWeek);
-                $nextMonday = clone $today;
-                $nextMonday->modify("+{$daysUntilNextMonday} days");
-                $nextSunday = clone $nextMonday;
-                $nextSunday->modify("+6 days");
-                if ($lectureDate < $nextMonday->format('Y-m-d') || $lectureDate > $nextSunday->format('Y-m-d')) {
-                    throw new Exception('Lecture date must be in next week (Monday to Sunday) only.');
+                $daysSinceMonday = ($dayOfWeek + 6) % 7;
+                $thisMonday = clone $today;
+                $thisMonday->modify("-{$daysSinceMonday} days");
+                $thisSaturday = clone $thisMonday;
+                $thisSaturday->modify("+5 days");
+                if ($lectureDate < $thisMonday->format('Y-m-d') || $lectureDate > $thisSaturday->format('Y-m-d')) {
+                    throw new Exception('Lecture date must be in this week (Monday to Saturday) only.');
                 }
                 // Prevent duplicate: same subject, class, date
                 if ($lecturer->existsForSubjectClassDay($input['subject_id'], $input['class_id'], $input['date'])) {
@@ -66,18 +66,18 @@ try {
                 if (!isset($input['id']) || !isset($input['teacher_id']) || !isset($input['subject_id']) || !isset($input['class_id']) || !isset($input['start_time']) || !isset($input['end_time']) || !isset($input['status']) || !isset($input['date'])) {
                     throw new Exception('All fields are required');
                 }
-                // Validate date is in next week
+                // Validate date is in this week (Monday to Saturday)
                 $lectureDate = $input['date'];
                 $today = new DateTime();
                 $today->setTime(0,0,0);
                 $dayOfWeek = (int)$today->format('w');
-                $daysUntilNextMonday = (($dayOfWeek === 0) ? 1 : 8 - $dayOfWeek);
-                $nextMonday = clone $today;
-                $nextMonday->modify("+{$daysUntilNextMonday} days");
-                $nextSunday = clone $nextMonday;
-                $nextSunday->modify("+6 days");
-                if ($lectureDate < $nextMonday->format('Y-m-d') || $lectureDate > $nextSunday->format('Y-m-d')) {
-                    throw new Exception('Lecture date must be in next week (Monday to Sunday) only.');
+                $daysSinceMonday = ($dayOfWeek + 6) % 7;
+                $thisMonday = clone $today;
+                $thisMonday->modify("-{$daysSinceMonday} days");
+                $thisSaturday = clone $thisMonday;
+                $thisSaturday->modify("+5 days");
+                if ($lectureDate < $thisMonday->format('Y-m-d') || $lectureDate > $thisSaturday->format('Y-m-d')) {
+                    throw new Exception('Lecture date must be in this week (Monday to Saturday) only.');
                 }
                 // Prevent duplicate on edit (exclude current id)
                 if ($lecturer->existsForSubjectClassDay($input['subject_id'], $input['class_id'], $input['date'], $input['id'])) {

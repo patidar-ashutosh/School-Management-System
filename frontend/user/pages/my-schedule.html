@@ -103,17 +103,6 @@
           <div class="card-number" id="weekClasses">--</div>
           <div class="card-description">Total classes</div>
         </div>
-
-        <div class="dashboard-card">
-          <div class="card-header">
-            <div class="card-title">Upcoming Events</div>
-            <div class="card-icon" style="background: #17a2b8">
-              <i class="fas fa-calendar-plus"></i>
-            </div>
-          </div>
-          <div class="card-number" id="upcomingEvents">--</div>
-          <div class="card-description">This week</div>
-        </div>
       </div>
 
       <!-- Weekly Schedule -->
@@ -133,6 +122,7 @@
               <div class="day-slot">Wednesday</div>
               <div class="day-slot">Thursday</div>
               <div class="day-slot">Friday</div>
+              <div class="day-slot">Saturday</div>
             </div>
             <div class="schedule-body" id="scheduleBody">
               <!-- Dynamic schedule rows -->
@@ -170,16 +160,7 @@
       </div>
 
       <!-- Upcoming Events -->
-      <div class="card">
-        <div class="card-header">
-          <h3>Upcoming Events</h3>
-        </div>
-        <div class="card-body">
-          <div class="events-list" id="upcomingEventsList">
-            <!-- Dynamic upcoming events will be rendered here -->
-          </div>
-        </div>
-      </div>
+      <!-- Removed entire Upcoming Events card section -->
     </main>
 
     <script src="/assets/js/auth.js"></script>
@@ -212,8 +193,6 @@
                 '<div style="text-align:center;color:#b94a48;font-weight:500;">No schedule found for your class.</div>';
               document.getElementById("todayScheduleBody").innerHTML =
                 '<div style="text-align:center;color:#b94a48;font-weight:500;">No schedule found for your class.</div>';
-              document.getElementById("upcomingEventsList").innerHTML =
-                '<div style="text-align:center;color:#b94a48;font-weight:500;">No events found for your class.</div>';
               return;
             }
             const classId = studentRes.data.class_id;
@@ -258,38 +237,19 @@
                 renderTodaySchedule(scheduleRes.data);
                 updateScheduleStatistics();
               });
-            // Fetch upcoming events (exams)
-            fetch("/backend/controllers/exams.php", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                action: "get_by_class",
-                class_id: classId,
-              }),
-            })
-              .then((res) => res.json())
-              .then((examRes) => {
-                if (
-                  !examRes.success ||
-                  !Array.isArray(examRes.data) ||
-                  !examRes.data.length
-                ) {
-                  document.getElementById("upcomingEventsList").innerHTML =
-                    '<div style="text-align:center;color:#b94a48;font-weight:500;">No events found for your class.</div>';
-                  cachedEventsData = [];
-                  updateScheduleStatistics();
-                  return;
-                }
-                cachedEventsData = examRes.data;
-                renderUpcomingEvents(examRes.data);
-                updateScheduleStatistics();
-              });
           });
       }
 
       function renderWeeklySchedule(scheduleData) {
         // Build a map: { timeSlot: { dayOfWeek: scheduleObj } }
-        const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+        const days = [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+        ];
         // Collect all unique time slots
         const timeSlotsSet = new Set();
         scheduleData.forEach((item) => {
@@ -416,44 +376,6 @@
         window.print();
       }
 
-      function renderUpcomingEvents(events) {
-        // Only show events that are today or in the future
-        const today = new Date();
-        const upcoming = events.filter((ev) => new Date(ev.date) >= today);
-        if (!upcoming.length) {
-          document.getElementById("upcomingEventsList").innerHTML =
-            '<div style="text-align:center;color:#b94a48;font-weight:500;">No events found for your class.</div>';
-          return;
-        }
-        // Sort by date ascending
-        upcoming.sort((a, b) => new Date(a.date) - new Date(b.date));
-        let html = "";
-        upcoming.slice(0, 5).forEach((ev) => {
-          const dateObj = new Date(ev.date);
-          const day = String(dateObj.getDate()).padStart(2, "0");
-          const month = dateObj.toLocaleString("default", { month: "short" });
-          html += `<div class="event-item">
-            <div class="event-date">
-              <div class="event-day">${day}</div>
-              <div class="event-month">${month}</div>
-            </div>
-            <div class="event-content">
-              <div class="event-title">${ev.name || ev.title || "Exam"}</div>
-              <div class="event-details">${ev.subject_name || ""} • ${
-            ev.class_name || ""
-          }</div>
-              <div class="event-time">${
-                ev.start_time ? ev.start_time + " - " + ev.end_time : ""
-              }</div>
-            </div>
-            <div class="event-type event">
-              <i class="fas fa-calendar-alt"></i>
-            </div>
-          </div>`;
-        });
-        document.getElementById("upcomingEventsList").innerHTML = html;
-      }
-
       function updateScheduleStatistics() {
         // Today's Classes
         const today = new Date();
@@ -475,11 +397,16 @@
           todaysClasses = cachedScheduleData.filter(
             (item) => item.day_of_week === todayName
           );
-          // Count all classes in the week (Monday-Friday)
+          // Count all classes in the week (Monday-Saturday)
           weekClasses = cachedScheduleData.filter((item) =>
-            ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].includes(
-              item.day_of_week
-            )
+            [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+            ].includes(item.day_of_week)
           ).length;
           // Find next class
           const now = today.getHours() + today.getMinutes() / 60;
@@ -515,19 +442,6 @@
         document.getElementById("todayClasses").textContent =
           todaysClasses.length;
         document.getElementById("weekClasses").textContent = weekClasses;
-        // Upcoming Events (this week)
-        let eventsThisWeek = 0;
-        if (cachedEventsData && Array.isArray(cachedEventsData)) {
-          const startOfWeek = new Date(today);
-          startOfWeek.setDate(today.getDate() - today.getDay() + 1); // Monday
-          const endOfWeek = new Date(startOfWeek);
-          endOfWeek.setDate(startOfWeek.getDate() + 6); // Sunday
-          eventsThisWeek = cachedEventsData.filter((ev) => {
-            const evDate = new Date(ev.date);
-            return evDate >= startOfWeek && evDate <= endOfWeek;
-          }).length;
-        }
-        document.getElementById("upcomingEvents").textContent = eventsThisWeek;
       }
     </script>
 
@@ -538,7 +452,7 @@
 
       .schedule-header {
         display: grid;
-        grid-template-columns: 120px repeat(5, 1fr);
+        grid-template-columns: 120px repeat(6, 1fr);
         gap: 1px;
         background: #e1e5e9;
         border-radius: 8px 8px 0 0;
@@ -552,7 +466,7 @@
 
       .schedule-row {
         display: grid;
-        grid-template-columns: 120px repeat(5, 1fr);
+        grid-template-columns: 120px repeat(6, 1fr);
         gap: 1px;
         background: #e1e5e9;
       }
@@ -807,7 +721,7 @@
       @media (max-width: 768px) {
         .schedule-header,
         .schedule-row {
-          grid-template-columns: 80px repeat(5, 1fr);
+          grid-template-columns: 80px repeat(6, 1fr);
         }
 
         .time-slot {
