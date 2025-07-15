@@ -458,6 +458,7 @@
       }
 
       let assignmentsCache = [];
+      let filteredAssignments = [];
       let currentPage = 1;
       let itemsPerPage = 10;
 
@@ -469,7 +470,7 @@
         const statusFilter = document.getElementById("statusFilter").value;
         const typeFilter = document.getElementById("typeFilter").value;
 
-        let filtered = assignmentsCache.filter((assignment) => {
+        filteredAssignments = assignmentsCache.filter((assignment) => {
           let matches = true;
           if (
             searchTerm &&
@@ -496,7 +497,7 @@
           return matches;
         });
         currentPage = 1;
-        displayFilteredAssignments(filtered);
+        displayFilteredAssignments(filteredAssignments);
       }
 
       function displayFilteredAssignments(filteredAssignments) {
@@ -567,6 +568,22 @@
         document.getElementById(
           "pageInfo"
         ).textContent = `Page ${currentPage} of ${totalPages}`;
+      }
+
+      function previousPage() {
+        if (currentPage > 1) {
+          currentPage--;
+          displayFilteredAssignments(filteredAssignments);
+        }
+      }
+
+      function nextPage() {
+        const totalPages =
+          Math.ceil(filteredAssignments.length / itemsPerPage) || 1;
+        if (currentPage < totalPages) {
+          currentPage++;
+          displayFilteredAssignments(filteredAssignments);
+        }
       }
 
       function populateClassFilterDropdown() {

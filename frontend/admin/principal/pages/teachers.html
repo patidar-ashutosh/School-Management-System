@@ -234,6 +234,7 @@
     <script src="/assets/js/popup-alert.js"></script>
     <script>
       let teachers = [];
+      let filteredTeachers = [];
       let currentPage = 1;
       let itemsPerPage = 10;
       let editingTeacherId = null;
@@ -295,7 +296,8 @@
             teachers = data.data
               .filter((teacher) => teacher.status === "active")
               .sort((a, b) => a.id - b.id);
-            displayTeachers();
+            filteredTeachers = teachers;
+            displayFilteredTeachers(filteredTeachers);
           } else {
             console.error("Failed to load teachers:", data.message);
             showAlert("Failed to load teachers", "error");
@@ -465,7 +467,7 @@
         const classFilter = document.getElementById("classFilter").value;
         const subjectFilter = document.getElementById("subjectFilter").value;
 
-        const filteredTeachers = teachers.filter((teacher) => {
+        filteredTeachers = teachers.filter((teacher) => {
           const matchesSearch =
             teacher.first_name.toLowerCase().includes(searchTerm) ||
             teacher.last_name.toLowerCase().includes(searchTerm) ||
@@ -480,7 +482,7 @@
 
           return matchesSearch && matchesClass && matchesSubject;
         });
-
+        currentPage = 1;
         displayFilteredTeachers(filteredTeachers);
       }
 
@@ -546,15 +548,15 @@
       function previousPage() {
         if (currentPage > 1) {
           currentPage--;
-          displayTeachers();
+          displayFilteredTeachers(filteredTeachers);
         }
       }
 
       function nextPage() {
-        const totalPages = Math.ceil(teachers.length / itemsPerPage);
+        const totalPages = Math.ceil(filteredTeachers.length / itemsPerPage);
         if (currentPage < totalPages) {
           currentPage++;
-          displayTeachers();
+          displayFilteredTeachers(filteredTeachers);
         }
       }
 

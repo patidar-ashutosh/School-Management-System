@@ -341,8 +341,13 @@
         }
       }
 
+      let assignments = [];
+      let filteredAssignments = [];
+      let currentPage = 1;
+      let itemsPerPage = 10;
+
       // Fetch and render class assignments (coming/running)
-      function loadAndRenderAssignments() {
+      function loadAndRenderAssignments(filters = {}) {
         const auth = new Auth();
         const user = auth.getCurrentUser();
         if (!user) return;
@@ -352,6 +357,7 @@
           body: JSON.stringify({
             action: "get_class_assignments",
             student_id: user.id,
+            ...filters,
           }),
         })
           .then((res) => res.json())
@@ -361,17 +367,29 @@
               !Array.isArray(data.assignments) ||
               !data.assignments.length
             ) {
-              document.getElementById("assignmentsTableBody").innerHTML =
-                '<tr><td colspan="7" class="text-center text-danger">No assignments found.</td></tr>';
+              assignments = [];
+              filteredAssignments = [];
+              renderAssignmentsTable([]);
+              renderAssignmentsPagination();
               return;
             }
-            renderAssignmentsTable(data.assignments);
+            assignments = data.assignments;
+            filteredAssignments = [...assignments];
+            currentPage = 1;
+            renderAssignmentsTable(getCurrentPageAssignments());
+            renderAssignmentsPagination();
           });
       }
 
-      function renderAssignmentsTable(assignments) {
+      function getCurrentPageAssignments() {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        return filteredAssignments.slice(startIndex, endIndex);
+      }
+
+      function renderAssignmentsTable(assignmentsToRender) {
         // Sort assignments: running first, then coming
-        assignments.sort((a, b) => {
+        assignmentsToRender.sort((a, b) => {
           // Define status priority: running = 1, coming = 2, completed = 3
           const statusPriority = {
             running: 1,
@@ -386,7 +404,7 @@
         });
 
         let html = "";
-        assignments.forEach((row) => {
+        assignmentsToRender.forEach((row) => {
           html += `<tr>
             <td>
               <div class="assignment-info">
@@ -420,6 +438,53 @@
         document.getElementById("assignmentsTableBody").innerHTML = html;
       }
 
+      function renderAssignmentsPagination() {
+        const totalPages = Math.max(
+          1,
+          Math.ceil(filteredAssignments.length / itemsPerPage)
+        );
+        const tableContainer = document.querySelector(
+          "#assignmentsTableBody"
+        ).parentElement;
+        let existingPagination = tableContainer.querySelector(".pagination");
+        if (existingPagination) existingPagination.remove();
+        if (filteredAssignments.length === 0) return;
+        let html = `<div class="pagination">
+          <button onclick="previousPage()" ${
+            currentPage === 1 ? "disabled" : ""
+          }>
+            <i class="fas fa-chevron-left"></i> Previous
+          </button>
+          <span>Page ${currentPage} of ${totalPages}</span>
+          <button onclick="nextPage()" ${
+            currentPage === totalPages ? "disabled" : ""
+          }>
+            Next <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>`;
+        tableContainer.insertAdjacentHTML("afterend", html);
+      }
+
+      function previousPage() {
+        if (currentPage > 1) {
+          currentPage--;
+          renderAssignmentsTable(getCurrentPageAssignments());
+          renderAssignmentsPagination();
+        }
+      }
+
+      function nextPage() {
+        const totalPages = Math.max(
+          1,
+          Math.ceil(filteredAssignments.length / itemsPerPage)
+        );
+        if (currentPage < totalPages) {
+          currentPage++;
+          renderAssignmentsTable(getCurrentPageAssignments());
+          renderAssignmentsPagination();
+        }
+      }
+
       function capitalize(str) {
         if (!str) return "";
         return str.charAt(0).toUpperCase() + str.slice(1);
@@ -447,12 +512,36 @@
         const subjectFilter = document.getElementById("subjectFilter").value;
         const statusFilter = document.getElementById("statusFilter").value;
         const typeFilter = document.getElementById("typeFilter").value;
-        const filters = {};
-        if (statusFilter) filters.status = statusFilter;
-        if (typeFilter) filters.type = typeFilter;
-        if (subjectFilter) filters.subject_id = subjectFilter;
-        // Fetch filtered assignments from backend
-        loadAndRenderAssignments(filters);
+        filteredAssignments = assignments.filter((row) => {
+          let matches = true;
+          if (
+            searchTerm &&
+            !(
+              (row.title && row.title.toLowerCase().includes(searchTerm)) ||
+              (row.description &&
+                row.description.toLowerCase().includes(searchTerm))
+            )
+          ) {
+            matches = false;
+          }
+          if (
+            subjectFilter &&
+            row.subject_name &&
+            row.subject_name.toLowerCase() !== subjectFilter.toLowerCase()
+          ) {
+            matches = false;
+          }
+          if (statusFilter && row.status !== statusFilter) {
+            matches = false;
+          }
+          if (typeFilter && row.type !== typeFilter) {
+            matches = false;
+          }
+          return matches;
+        });
+        currentPage = 1;
+        renderAssignmentsTable(getCurrentPageAssignments());
+        renderAssignmentsPagination();
       }
 
       function viewAssignment(assignmentId) {

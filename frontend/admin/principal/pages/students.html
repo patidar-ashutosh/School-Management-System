@@ -109,6 +109,7 @@
     <script src="/assets/js/popup-alert.js"></script>
     <script>
       let students = [];
+      let filteredStudents = [];
       let currentPage = 1;
       let itemsPerPage = 10;
       let editingStudentId = null;
@@ -146,7 +147,8 @@
             students = data.data
               .filter((student) => student.status === "active")
               .sort((a, b) => a.id - b.id);
-            displayStudents();
+            filteredStudents = students;
+            displayFilteredStudents(filteredStudents);
           } else {
             console.error("Failed to load students:", data.message);
             showAlert("Failed to load students", "error");
@@ -288,7 +290,7 @@
           .value.toLowerCase();
         const classFilter = document.getElementById("classFilter").value;
 
-        const filteredStudents = students.filter((student) => {
+        filteredStudents = students.filter((student) => {
           const matchesSearch =
             student.first_name.toLowerCase().includes(searchTerm) ||
             student.last_name.toLowerCase().includes(searchTerm) ||
@@ -301,7 +303,7 @@
 
           return matchesSearch && matchesClass && matchesStatus;
         });
-
+        currentPage = 1;
         displayFilteredStudents(filteredStudents);
       }
 
@@ -375,15 +377,15 @@
       function previousPage() {
         if (currentPage > 1) {
           currentPage--;
-          loadStudents();
+          displayFilteredStudents(filteredStudents);
         }
       }
 
       function nextPage() {
-        const totalPages = Math.ceil(students.length / itemsPerPage);
+        const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
         if (currentPage < totalPages) {
           currentPage++;
-          loadStudents();
+          displayFilteredStudents(filteredStudents);
         }
       }
 
