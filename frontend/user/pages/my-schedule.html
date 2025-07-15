@@ -108,7 +108,13 @@
       <!-- Weekly Schedule -->
       <div class="card">
         <div class="card-header">
-          <h3>Weekly Schedule</h3>
+          <h3>
+            Weekly Schedule
+            <span
+              id="weekDateRange"
+              style="font-size: 0.9em; font-weight: 400; color: #888"
+            ></span>
+          </h3>
           <div class="header-actions">
             <!-- Removed Download and Print buttons -->
           </div>
@@ -166,10 +172,29 @@
     <script src="/assets/js/auth.js"></script>
     <script src="/assets/js/popup-alert.js"></script>
     <script>
+      async function autoUpdateLectureStatuses() {
+        try {
+          const response = await fetch("/backend/controllers/lecturers.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "auto_update_status" }),
+          });
+          const data = await response.json();
+          if (data.success) {
+            console.log("Lecture statuses updated automatically");
+          }
+        } catch (error) {
+          console.error("Error updating lecture statuses:", error);
+        }
+      }
+
       document.addEventListener("DOMContentLoaded", function () {
-        loadScheduleData();
+        autoUpdateLectureStatuses().then(() => {
+          loadScheduleData();
+        });
         updateCurrentDate();
         fetchAndUpdateHeaderName();
+        updateWeekDateRange();
       });
 
       async function fetchAndUpdateHeaderName() {
@@ -472,6 +497,25 @@
         document.getElementById("todayClasses").textContent =
           todaysClasses.length;
         document.getElementById("weekClasses").textContent = weekClasses;
+      }
+
+      function updateWeekDateRange() {
+        const today = new Date();
+        // Calculate Monday of this week
+        const dayOfWeek = today.getDay(); // 0=Sunday, 1=Monday, ...
+        const daysSinceMonday = (dayOfWeek + 6) % 7;
+        const monday = new Date(today);
+        monday.setDate(today.getDate() - daysSinceMonday);
+        // Saturday
+        const saturday = new Date(monday);
+        saturday.setDate(monday.getDate() + 5);
+        // Format dates
+        const options = { year: "numeric", month: "long", day: "numeric" };
+        const mondayStr = monday.toLocaleDateString("en-US", options);
+        const saturdayStr = saturday.toLocaleDateString("en-US", options);
+        document.getElementById(
+          "weekDateRange"
+        ).textContent = `(${mondayStr} - ${saturdayStr})`;
       }
     </script>
 

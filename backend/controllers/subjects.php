@@ -201,9 +201,13 @@ try {
                         FROM lecturers l
                         LEFT JOIN subjects s ON l.subject_id = s.id
                         LEFT JOIN teachers t ON l.teacher_id = t.id
-                        WHERE l.class_id = ? AND l.status IN ('completed', 'incoming')
+                        WHERE l.class_id = ? AND l.status IN ('scheduled', 'running', 'completed')
                         ORDER BY l.date, l.start_time";
                 $rows = $db->fetchAll($sql, [$class_id]);
+                foreach ($rows as &$row) {
+                    $row['day_of_week'] = date('l', strtotime($row['date']));
+                }
+                unset($row);
                 echo json_encode(['success' => true, 'data' => $rows]);
                 return;
                 
